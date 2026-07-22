@@ -1570,3 +1570,81 @@ The app no longer needs to know whether an exchange is implemented by a specific
 It can ask a MarketDataConnector for realtime top-of-book data and optional REST snapshot validation.
 This creates the extension point for FIX, third-party providers, and replay without rewriting strategy code.
 ```
+## V15: Reference-Inspired Data Module Cleanup
+
+Status:
+
+```text
+Adds instrument metadata, data engine/cache/event bus, and replay skeletons based on common patterns in Hummingbot, NautilusTrader, XChange, and CCXT.
+```
+
+Improved local image:
+
+```text
+docs/data-source-architecture.png
+docs/data-source-architecture.svg
+```
+
+Design influence:
+
+```text
+Hummingbot: connector + order-book data source + order-book tracker.
+NautilusTrader: adapter/data client -> DataEngine -> cache -> message bus -> strategy.
+XChange / CCXT: stable unified API facade over many exchange implementations.
+```
+
+Implemented package additions:
+
+```text
+com.example.hft.datasource.instrument   Instrument, InstrumentProvider, SymbolMapper
+com.example.hft.datasource.engine       MarketDataEngine, MarketDataCache, MarketDataEventBus
+com.example.hft.datasource.replay       RecordingMarketDataSink, ReplayMarketDataSource
+```
+
+Current high-level flow:
+
+```mermaid
+flowchart LR
+    Source["Exchange / Provider / Replay"] --> Connector["MarketDataConnector"]
+    Connector --> Client["MarketDataClient"]
+    Client --> Raw["RawInboundMessage"]
+    Raw --> Normalize["Parser / Normalizer"]
+    Normalize --> Engine["MarketDataEngine"]
+    Engine --> Cache["MarketDataCache"]
+    Engine --> Bus["MarketDataEventBus"]
+    Bus --> Book["BookCoordinator / LocalOrderBooks"]
+    Book --> View["CrossExchangeMarketView"]
+    View --> Strategy["Strategy / Benchmark"]
+    Engine -.-> Recorder["Recorder"]
+    Recorder -.-> Source
+```
+## V16: Data Engine Runtime Wiring
+
+Status:
+
+```text
+Current active multi-exchange validation path now uses MarketDataConnector.subscribe, MarketDataEngine, MarketDataCache, MarketDataEventBus, RecordingMarketDataSink, and SymbolMapper.
+```
+
+Runtime flow:
+
+```mermaid
+flowchart LR
+    Connector["MarketDataConnector.subscribe"] --> Fanout["FanoutMarketDataSink"]
+    Fanout --> Engine["MarketDataEngine"]
+    Fanout --> Recorder["RecordingMarketDataSink"]
+    Engine --> Cache["MarketDataCache"]
+    Engine --> Bus["MarketDataEventBus"]
+    Cache --> Compare["REST / XChange comparison"]
+    Bus --> Listener["strategy/benchmark listener"]
+    Recorder -.-> Replay["future replay input"]
+    SymbolMapper["SymbolMapper"] --> Compare
+```
+
+Behavioral difference from V14/V15:
+
+```text
+V14 wrapped adapters as connectors.
+V15 added reference-inspired instrument, engine, cache, bus, and replay skeletons.
+V16 makes the main live validation app use those pieces instead of bypassing them.
+```

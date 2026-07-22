@@ -1,201 +1,134 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="960" viewBox="0 0 1440 960" role="img" aria-labelledby="title desc">
-  <title id="title">Crypto ATS Data Source Architecture</title>
-  <desc id="desc">A colored block diagram showing exchange REST, WebSocket, FIX, third-party feeds, transport, raw messages, normalizers, book sequencing, local books, cross-exchange market view, strategy pipeline, and replay recorder.</desc>
-  <defs>
-    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
-      <path d="M2,2 L10,6 L2,10 Z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-dashed" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
-      <path d="M2,2 L10,6 L2,10 Z" fill="#a21caf"/>
-    </marker>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="6" stdDeviation="7" flood-color="#0f172a" flood-opacity="0.14"/>
-    </filter>
-    <style>
-      .bg { fill: #f8fafc; }
-      .title { font: 700 34px Arial, sans-serif; fill: #0f172a; }
-      .subtitle { font: 400 16px Arial, sans-serif; fill: #475569; }
-      .section-title { font: 700 17px Arial, sans-serif; fill: #0f172a; }
-      .block-title { font: 700 18px Arial, sans-serif; fill: #0f172a; }
-      .block-text { font: 400 13px Arial, sans-serif; fill: #334155; }
-      .small { font: 400 12px Arial, sans-serif; fill: #475569; }
-      .tiny { font: 400 11px Arial, sans-serif; fill: #64748b; }
-      .arrow { fill: none; stroke: #475569; stroke-width: 2.5; marker-end: url(#arrow); }
-      .arrow-soft { fill: none; stroke: #94a3b8; stroke-width: 2; marker-end: url(#arrow); }
-      .arrow-dashed { fill: none; stroke: #a21caf; stroke-width: 2.5; stroke-dasharray: 8 7; marker-end: url(#arrow-dashed); }
-      .section { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.4; rx: 18; filter: url(#shadow); }
-      .source { fill: #e0f2fe; stroke: #0284c7; stroke-width: 1.7; rx: 14; }
-      .transport { fill: #dcfce7; stroke: #16a34a; stroke-width: 1.7; rx: 14; }
-      .raw { fill: #fef3c7; stroke: #d97706; stroke-width: 1.7; rx: 14; }
-      .normalizer { fill: #ede9fe; stroke: #7c3aed; stroke-width: 1.7; rx: 14; }
-      .quality { fill: #ffe4e6; stroke: #e11d48; stroke-width: 1.7; rx: 14; }
-      .book { fill: #f1f5f9; stroke: #475569; stroke-width: 1.7; rx: 14; }
-      .strategy { fill: #ccfbf1; stroke: #0f766e; stroke-width: 1.7; rx: 14; }
-      .replay { fill: #fae8ff; stroke: #a21caf; stroke-width: 1.7; rx: 14; }
-      .legend-label { font: 600 12px Arial, sans-serif; fill: #334155; }
-    </style>
-  </defs>
-
-  <rect class="bg" x="0" y="0" width="1440" height="960"/>
-
-  <text class="title" x="58" y="58">Crypto ATS Data Source Architecture</text>
-  <text class="subtitle" x="58" y="86">REST, WebSocket, future FIX, third-party providers, and replay all flow into one normalized market-data pipeline.</text>
-
-  <rect class="section" x="46" y="124" width="250" height="646"/>
-  <text class="section-title" x="72" y="156">Source Protocols</text>
-
-  <rect class="source" x="72" y="182" width="198" height="76"/>
-  <text class="block-title" x="94" y="213">Exchange REST</text>
-  <text class="block-text" x="94" y="235">snapshot, metadata</text>
-  <text class="block-text" x="94" y="253">validation, recovery</text>
-
-  <rect class="source" x="72" y="282" width="198" height="76"/>
-  <text class="block-title" x="94" y="313">WebSocket</text>
-  <text class="block-text" x="94" y="335">live public market data</text>
-  <text class="block-text" x="94" y="353">JSON book / trade feed</text>
-
-  <rect class="source" x="72" y="382" width="198" height="76"/>
-  <text class="block-title" x="94" y="413">Exchange FIX</text>
-  <text class="block-text" x="94" y="435">future direct feed</text>
-  <text class="block-text" x="94" y="453">session + sequence rules</text>
-
-  <rect class="source" x="72" y="482" width="198" height="82"/>
-  <text class="block-title" x="94" y="512">Third-party Feed</text>
-  <text class="block-text" x="94" y="535">CoinAPI, dxFeed</text>
-  <text class="block-text" x="94" y="553">provider-normalized data</text>
-
-  <rect class="replay" x="72" y="594" width="198" height="86"/>
-  <text class="block-title" x="94" y="626">Replay Files</text>
-  <text class="block-text" x="94" y="648">recorded raw messages</text>
-  <text class="block-text" x="94" y="666">repeatable benchmark input</text>
-
-  <rect class="section" x="340" y="124" width="196" height="646"/>
-  <text class="section-title" x="365" y="156">Transport</text>
-
-  <rect class="transport" x="365" y="190" width="146" height="54"/>
-  <text class="block-title" x="386" y="224">REST</text>
-
-  <rect class="transport" x="365" y="292" width="146" height="54"/>
-  <text class="block-title" x="386" y="326">WebSocket</text>
-
-  <rect class="transport" x="365" y="394" width="146" height="54"/>
-  <text class="block-title" x="386" y="428">FIX</text>
-
-  <rect class="transport" x="365" y="502" width="146" height="54"/>
-  <text class="block-title" x="386" y="536">Provider</text>
-
-  <rect class="transport" x="365" y="612" width="146" height="54"/>
-  <text class="block-title" x="386" y="646">Replay</text>
-
-  <rect class="raw" x="590" y="282" width="230" height="132"/>
-  <text class="block-title" x="620" y="318">RawInboundMessage</text>
-  <text class="block-text" x="620" y="345">source, exchange, symbol</text>
-  <text class="block-text" x="620" y="365">channel, transport</text>
-  <text class="block-text" x="620" y="385">receivedNanos, sequence</text>
-  <text class="block-text" x="620" y="405">raw payload bytes</text>
-
-  <rect class="normalizer" x="876" y="154" width="224" height="96"/>
-  <text class="block-title" x="906" y="190">Exchange Parsers</text>
-  <text class="block-text" x="906" y="214">Binance / OKX / Kraken</text>
-  <text class="block-text" x="906" y="234">JSON-specific parsing</text>
-
-  <rect class="normalizer" x="876" y="292" width="224" height="112"/>
-  <text class="block-title" x="906" y="328">Normalizer</text>
-  <text class="block-text" x="906" y="352">TopOfBookEvent</text>
-  <text class="block-text" x="906" y="372">BookDepthEvent</text>
-  <text class="block-text" x="906" y="392">TradeEvent</text>
-
-  <rect class="normalizer" x="876" y="450" width="224" height="96"/>
-  <text class="block-title" x="906" y="486">FIX / Provider Parser</text>
-  <text class="block-text" x="906" y="510">future institutional feed</text>
-  <text class="block-text" x="906" y="530">same canonical events</text>
-
-  <rect class="quality" x="1148" y="220" width="230" height="116"/>
-  <text class="block-title" x="1178" y="256">BookSequencer</text>
-  <text class="block-text" x="1178" y="282">sequence continuity</text>
-  <text class="block-text" x="1178" y="302">gap + duplicate checks</text>
-  <text class="block-text" x="1178" y="322">resync trigger</text>
-
-  <rect class="quality" x="1148" y="378" width="230" height="116"/>
-  <text class="block-title" x="1178" y="414">BookQuality Gate</text>
-  <text class="block-text" x="1178" y="440">LIVE / STALE / GAP</text>
-  <text class="block-text" x="1178" y="460">CROSSED / DEGRADED</text>
-  <text class="block-text" x="1178" y="480">checksum when available</text>
-
-  <rect class="section" x="590" y="612" width="788" height="236"/>
-  <text class="section-title" x="620" y="646">Per-Venue Books and Strategy</text>
-
-  <rect class="book" x="620" y="674" width="188" height="74"/>
-  <text class="block-title" x="646" y="705">Binance Book</text>
-  <text class="block-text" x="646" y="728">BTC/USD local view</text>
-
-  <rect class="book" x="846" y="674" width="188" height="74"/>
-  <text class="block-title" x="886" y="705">OKX Book</text>
-  <text class="block-text" x="886" y="728">BTC/USD local view</text>
-
-  <rect class="book" x="1072" y="674" width="188" height="74"/>
-  <text class="block-title" x="1102" y="705">Kraken Book</text>
-  <text class="block-text" x="1102" y="728">BTC/USD local view</text>
-
-  <rect class="book" x="730" y="782" width="250" height="46"/>
-  <text class="block-title" x="760" y="812">CrossExchangeMarketView</text>
-
-  <rect class="strategy" x="1028" y="770" width="270" height="66"/>
-  <text class="block-title" x="1058" y="800">Strategy Pipeline</text>
-  <text class="block-text" x="1058" y="822">spread, top5/top10, latency</text>
-
-  <rect class="replay" x="590" y="470" width="230" height="88"/>
-  <text class="block-title" x="620" y="504">Recorder</text>
-  <text class="block-text" x="620" y="528">write raw + normalized</text>
-  <text class="block-text" x="620" y="546">events for replay</text>
-
-  <path class="arrow" d="M270 220 C308 220, 320 217, 365 217"/>
-  <path class="arrow" d="M270 320 C308 320, 320 319, 365 319"/>
-  <path class="arrow" d="M270 420 C308 420, 320 421, 365 421"/>
-  <path class="arrow" d="M270 523 C308 523, 320 529, 365 529"/>
-  <path class="arrow" d="M270 637 C308 637, 320 639, 365 639"/>
-
-  <path class="arrow" d="M511 217 C552 235, 570 270, 590 312"/>
-  <path class="arrow" d="M511 319 C538 326, 560 338, 590 348"/>
-  <path class="arrow" d="M511 421 C550 408, 570 390, 590 374"/>
-  <path class="arrow" d="M511 529 C558 504, 574 456, 610 414"/>
-  <path class="arrow" d="M511 639 C560 612, 574 464, 626 414"/>
-
-  <path class="arrow" d="M820 348 C844 315, 858 260, 876 218"/>
-  <path class="arrow" d="M820 348 C846 348, 858 348, 876 348"/>
-  <path class="arrow" d="M820 348 C844 388, 858 456, 876 498"/>
-
-  <path class="arrow" d="M1100 202 C1126 226, 1136 250, 1148 278"/>
-  <path class="arrow" d="M1100 348 C1126 342, 1138 328, 1148 306"/>
-  <path class="arrow" d="M1100 498 C1126 480, 1138 458, 1148 438"/>
-  <path class="arrow" d="M1263 336 C1263 350, 1263 362, 1263 378"/>
-
-  <path class="arrow" d="M1263 494 C1248 575, 1228 640, 1166 674"/>
-  <path class="arrow-soft" d="M1263 494 C1120 590, 940 628, 940 674"/>
-  <path class="arrow-soft" d="M1263 494 C1038 570, 714 620, 714 674"/>
-
-  <path class="arrow" d="M714 748 C735 770, 767 782, 805 782"/>
-  <path class="arrow" d="M940 748 C930 764, 910 776, 892 782"/>
-  <path class="arrow" d="M1166 748 C1116 779, 1024 798, 980 805"/>
-  <path class="arrow" d="M980 805 C1000 805, 1010 804, 1028 803"/>
-
-  <path class="arrow-dashed" d="M705 414 C704 434, 704 450, 704 470"/>
-  <path class="arrow-dashed" d="M988 404 C938 442, 882 472, 820 514"/>
-  <path class="arrow-dashed" d="M590 514 C470 560, 358 610, 270 637"/>
-
-  <text class="tiny" x="760" y="454">record live data</text>
-  <text class="tiny" x="298" y="704">replay later with identical input</text>
-
-  <rect x="46" y="804" width="496" height="92" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2" rx="14"/>
-  <text class="section-title" x="72" y="834">Design rule</text>
-  <text class="small" x="72" y="860">Strategies consume normalized events and local books.</text>
-  <text class="small" x="72" y="880">They should not care whether input came from REST, WebSocket, FIX, provider, or replay.</text>
-
-  <rect x="1028" y="870" width="350" height="42" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2" rx="12"/>
-  <rect x="1048" y="884" width="18" height="14" class="source"/>
-  <text class="legend-label" x="1074" y="896">source</text>
-  <rect x="1132" y="884" width="18" height="14" class="transport"/>
-  <text class="legend-label" x="1158" y="896">transport</text>
-  <rect x="1232" y="884" width="18" height="14" class="quality"/>
-  <text class="legend-label" x="1258" y="896">quality/replay</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1080" viewBox="0 0 1800 1080">
+<defs><marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M2,2 L10,6 L2,10 Z" fill="#475569"/></marker></defs>
+<rect width="1800" height="1080" fill="#f8fafc"/>
+<text x="56" y="78" font-family="Arial, sans-serif" font-size="36" font-weight="700" fill="#0f172a">Crypto ATS Data Module - Reference-Inspired Layout</text>
+<text x="56" y="108" font-family="Arial, sans-serif" font-size="17" font-weight="400" fill="#475569">Connector/data-client/data-engine/cache/replay patterns adapted from mature open-source trading frameworks.</text>
+<rect x="56" y="128" width="520" height="98" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+<text x="74" y="164" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#0f172a">Hummingbot pattern</text>
+<text x="74" y="185" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569">Connector owns order-book data source, order-book tracker, user stream, auth, order tracker.</text>
+<text x="74" y="203" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569">We copy: connector + order-book data source + tracker separation.</text>
+<rect x="640" y="128" width="520" height="98" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+<text x="658" y="164" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#0f172a">NautilusTrader pattern</text>
+<text x="658" y="185" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569">Adapters translate venue APIs into normalized domain events.</text>
+<text x="658" y="203" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569">DataEngine writes cache first, then publishes to strategies through a bus.</text>
+<rect x="1224" y="128" width="520" height="98" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+<text x="1242" y="164" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#0f172a">XChange / CCXT pattern</text>
+<text x="1242" y="185" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569">Provide a unified API facade over many exchanges.</text>
+<text x="1242" y="203" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569">We copy: one interface, exchange-specific implementations behind it.</text>
+<rect x="56" y="260" width="220" height="44" rx="10" fill="#e0f2fe" stroke="#0284c7" stroke-width="1"/>
+<text x="74" y="289" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#0f172a">External Sources</text>
+<rect x="326" y="260" width="220" height="44" rx="10" fill="#dcfce7" stroke="#16a34a" stroke-width="1"/>
+<text x="344" y="289" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#0f172a">Venue Adapter</text>
+<rect x="596" y="260" width="220" height="44" rx="10" fill="#fef3c7" stroke="#d97706" stroke-width="1"/>
+<text x="614" y="289" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#0f172a">Data Intake</text>
+<rect x="866" y="260" width="220" height="44" rx="10" fill="#ede9fe" stroke="#7c3aed" stroke-width="1"/>
+<text x="884" y="289" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#0f172a">Data Engine</text>
+<rect x="1136" y="260" width="220" height="44" rx="10" fill="#ffe4e6" stroke="#e11d48" stroke-width="1"/>
+<text x="1154" y="289" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#0f172a">Book State</text>
+<rect x="1406" y="260" width="220" height="44" rx="10" fill="#ccfbf1" stroke="#0f766e" stroke-width="1"/>
+<text x="1424" y="289" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#0f172a">Consumers</text>
+<rect x="56" y="340" width="220" height="112" rx="14" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+<text x="76" y="381" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">Direct Exchanges</text>
+<text x="76" y="403" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">Binance.US / OKX / Kraken</text>
+<text x="76" y="421" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">REST + WebSocket now</text>
+<text x="76" y="439" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">FIX later where available</text>
+<rect x="56" y="520" width="220" height="92" rx="14" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+<text x="76" y="561" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">Third-party Data</text>
+<text x="76" y="583" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">CoinAPI / dxFeed</text>
+<text x="76" y="601" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">normalized or FIX feeds</text>
+<rect x="56" y="700" width="220" height="92" rx="14" fill="#fae8ff" stroke="#a21caf" stroke-width="2"/>
+<text x="76" y="741" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">Replay Store</text>
+<text x="76" y="763" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">local JSONL / binary later</text>
+<text x="76" y="781" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">repeatable benchmark input</text>
+<rect x="326" y="330" width="220" height="78" rx="14" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+<text x="346" y="371" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">InstrumentProvider</text>
+<text x="346" y="393" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">symbols, tick size, lot size</text>
+<rect x="326" y="450" width="220" height="96" rx="14" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+<text x="346" y="491" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">MarketDataConnector</text>
+<text x="346" y="513" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">one interface per venue</text>
+<text x="346" y="531" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">status, subscribe, snapshot</text>
+<rect x="326" y="590" width="220" height="92" rx="14" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+<text x="346" y="631" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">MarketDataClient</text>
+<text x="346" y="653" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">public feed lifecycle</text>
+<text x="346" y="671" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">reconnect / heartbeat</text>
+<rect x="596" y="330" width="220" height="92" rx="14" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+<text x="616" y="371" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">Transport Clients</text>
+<text x="616" y="393" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">REST / WebSocket / FIX</text>
+<text x="616" y="411" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">rate limits, timeout</text>
+<rect x="596" y="470" width="220" height="92" rx="14" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+<text x="616" y="511" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">RawInboundMessage</text>
+<text x="616" y="533" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">raw payload + receive time</text>
+<text x="616" y="551" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">source/channel/sequence</text>
+<rect x="596" y="610" width="220" height="92" rx="14" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+<text x="616" y="651" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">Parser / Normalizer</text>
+<text x="616" y="673" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">venue JSON/FIX parser</text>
+<text x="616" y="691" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">canonical events</text>
+<rect x="866" y="330" width="220" height="92" rx="14" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+<text x="886" y="371" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">MarketDataEngine</text>
+<text x="886" y="393" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">single ingestion boundary</text>
+<text x="886" y="411" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">cache then publish</text>
+<rect x="866" y="470" width="220" height="92" rx="14" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+<text x="886" y="511" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">MarketDataCache</text>
+<text x="886" y="533" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">latest quote/book state</text>
+<text x="886" y="551" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">fast strategy reads</text>
+<rect x="866" y="610" width="220" height="92" rx="14" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+<text x="886" y="651" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">MarketDataEventBus</text>
+<text x="886" y="673" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">fan-out to processors</text>
+<text x="886" y="691" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">strategy subscriptions</text>
+<rect x="866" y="750" width="220" height="82" rx="14" fill="#fae8ff" stroke="#a21caf" stroke-width="2"/>
+<text x="886" y="791" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">Recorder</text>
+<text x="886" y="813" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">persist raw/normalized</text>
+<text x="886" y="831" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">feeds replay</text>
+<rect x="1136" y="330" width="220" height="92" rx="14" fill="#ffe4e6" stroke="#e11d48" stroke-width="2"/>
+<text x="1156" y="371" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">BookCoordinator</text>
+<text x="1156" y="393" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">snapshot bootstrap</text>
+<text x="1156" y="411" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">resync policy</text>
+<rect x="1136" y="470" width="220" height="92" rx="14" fill="#ffe4e6" stroke="#e11d48" stroke-width="2"/>
+<text x="1156" y="511" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">BookSequencer</text>
+<text x="1156" y="533" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">gap, duplicate, stale</text>
+<text x="1156" y="551" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">checksum when available</text>
+<rect x="1136" y="610" width="220" height="102" rx="14" fill="#ffe4e6" stroke="#e11d48" stroke-width="2"/>
+<text x="1156" y="651" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">LocalOrderBooks</text>
+<text x="1156" y="673" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">one book per venue + symbol</text>
+<text x="1156" y="691" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">Binance != OKX != Kraken</text>
+<rect x="1136" y="760" width="220" height="72" rx="14" fill="#ffe4e6" stroke="#e11d48" stroke-width="2"/>
+<text x="1156" y="801" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">SymbolMapper</text>
+<text x="1156" y="823" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">venue symbol -&gt; canonical</text>
+<rect x="1406" y="330" width="250" height="92" rx="14" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
+<text x="1426" y="371" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">CrossExchangeMarketView</text>
+<text x="1426" y="393" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">compare venues after each</text>
+<text x="1426" y="411" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">book is internally valid</text>
+<rect x="1406" y="500" width="250" height="96" rx="14" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
+<text x="1426" y="541" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">Strategy Pipeline</text>
+<text x="1426" y="563" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">spread, top5/top10 depth</text>
+<text x="1426" y="581" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">future order signal</text>
+<rect x="1406" y="670" width="250" height="96" rx="14" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
+<text x="1426" y="711" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">Benchmark / Replay Runner</text>
+<text x="1426" y="733" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">same input, compare versions</text>
+<text x="1426" y="751" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#334155">local latency breakdown</text>
+<polyline points="276,396 300,396 300,498 326,498" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<polyline points="276,566 300,566 300,498 326,498" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<polyline points="276,746 300,746 300,506 326,506" fill="none" stroke="#a21caf" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10 8" marker-end="url(#arrow)"/>
+<polyline points="436,408 436,450" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<polyline points="436,546 436,590" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<polyline points="546,636 570,636 570,376 596,376" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<polyline points="706,422 706,470" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<polyline points="706,562 706,610" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<polyline points="816,656 842,656 842,376 866,376" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<polyline points="976,422 976,470" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<polyline points="976,562 976,610" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<polyline points="976,702 976,750" fill="none" stroke="#a21caf" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10 8" marker-end="url(#arrow)"/>
+<polyline points="1086,376 1136,376" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<polyline points="1246,422 1246,470" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<polyline points="1246,562 1246,610" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<polyline points="1356,661 1382,661 1382,376 1406,376" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<polyline points="1531,422 1531,500" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<polyline points="1531,596 1531,670" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<polyline points="1086,656 1136,656" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<polyline points="1086,792 1120,792 1120,870 170,870 170,792" fill="none" stroke="#a21caf" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10 8" marker-end="url(#arrow)"/>
+<polyline points="976,516 1406,546" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<rect x="56" y="884" width="1600" height="86" rx="14" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+<text x="82" y="931" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#0f172a">Design rule after refactor</text>
+<text x="82" y="956" font-family="Arial, sans-serif" font-size="12" font-weight="400" fill="#475569">Strategy code consumes normalized events, cache, and local books. It should not know whether input came from REST, WebSocket, FIX, third-party provider, or replay.</text>
+<text x="82" y="980" font-family="Arial, sans-serif" font-size="12" font-weight="400" fill="#475569">Replay is a first-class source so live trading, debugging, and benchmarks can share the same downstream pipeline.</text>
 </svg>

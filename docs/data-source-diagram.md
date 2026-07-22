@@ -1,6 +1,6 @@
 # Data Source Module Diagram
 
-This is the V14 target shape for the data-source module. The colors separate source protocols, transport, normalization, book quality, strategy consumption, and replay.
+This is the V15 reference-inspired shape for the data-source module. The PNG/SVG image uses aligned columns and orthogonal arrows to show external sources, venue adapter, data intake, data engine, book state, and consumers.
 
 Actual image files:
 

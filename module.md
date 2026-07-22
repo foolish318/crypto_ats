@@ -583,3 +583,111 @@ Next implementation step after V14:
 V15 should add a Recorder and ReplayTransport around Binance.US depth data.
 Then benchmark live WebSocket processing versus replayed local-file processing.
 ```
+## V15 Reference-Inspired Data Module Cleanup
+
+This update compares the project against mature open-source trading frameworks and adds the missing boundaries that are common in those systems.
+
+What we copied from other projects:
+
+```text
+Hummingbot:
+  Connector + OrderBookTrackerDataSource + OrderBookTracker separation.
+  Lesson for us: data retrieval, book maintenance, and strategy access should be separate responsibilities.
+
+NautilusTrader:
+  Adapter/DataClient -> DataEngine -> Cache -> MessageBus -> Strategy flow.
+  Lesson for us: market data should be cached before strategies consume it, and publication should go through one data-engine boundary.
+
+XChange / CCXT:
+  Unified exchange-facing API over many exchange implementations.
+  Lesson for us: strategy and app code should depend on a stable connector interface, not specific Binance/OKX/Kraken classes.
+```
+
+New Java package boundaries added:
+
+```text
+com.example.hft.datasource.instrument
+  Instrument
+  InstrumentProvider
+  StaticInstrumentProvider
+  SymbolMapper
+
+com.example.hft.datasource.engine
+  MarketDataEngine
+  MarketDataCache
+  MarketDataEventBus
+  MarketDataListener
+
+com.example.hft.datasource.replay
+  RecordingMarketDataSink
+  ReplayMarketDataSource
+  ReplayRecord
+  ReplayClockMode
+```
+
+Updated target flow:
+
+```text
+External source
+  -> MarketDataConnector / MarketDataClient
+  -> Transport client
+  -> RawInboundMessage
+  -> Parser / Normalizer
+  -> NormalizedMarketDataEvent
+  -> MarketDataEngine
+  -> MarketDataCache + MarketDataEventBus
+  -> BookCoordinator / BookSequencer / LocalOrderBook
+  -> CrossExchangeMarketView
+  -> Strategy / Benchmark / Replay runner
+```
+
+Why this is more professional:
+
+```text
+Instrument metadata is no longer mixed with parser code.
+Market-data ingestion has a single engine boundary.
+Strategies can read latest state from cache and subscribe to events.
+Replay is treated as a first-class source, not a special benchmark hack.
+The diagram now uses aligned columns and orthogonal arrows so it reads like an architecture document, not a sketch.
+```
+
+Updated image files:
+
+```text
+docs/data-source-architecture.png
+docs/data-source-architecture.svg
+docs/data-source-diagram.md
+```
+## V16 Runtime Wiring
+
+V16 moves the architecture from skeleton to active runtime path for the multi-exchange top-of-book validation app.
+
+Active path now used by `CustomWebSocketVsBaselineTopOfBookMain`:
+
+```text
+MarketDataConnector.subscribe(...)
+  -> FanoutMarketDataSink
+  -> MarketDataEngine.onEvent(...)
+  -> MarketDataCache.update(...)
+  -> MarketDataEventBus.publish(...)
+  -> RecordingMarketDataSink.onEvent(...)
+  -> REST / XChange baseline comparison reads WebSocket result from MarketDataCache
+```
+
+What changed in practice:
+
+```text
+The app no longer treats the WebSocket adapter result as a one-off local variable.
+The WebSocket event is normalized into TopOfBookEvent.
+MarketDataEngine caches the latest top-of-book per exchange + symbol.
+MarketDataEventBus publishes the normalized event to subscribed listeners.
+RecordingMarketDataSink captures the same normalized events for future replay.
+SymbolMapper maps exchange-specific symbols like BTCUSDT and BTC-USDT to canonical BTC/USD.
+```
+
+Current limitation:
+
+```text
+This is still top-of-book validation, not full depth local-book maintenance.
+The next real implementation step is BookCoordinator: REST snapshot bootstrap + WebSocket delta sequencing + LocalOrderBook update.
+```

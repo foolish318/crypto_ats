@@ -1026,3 +1026,79 @@ src/main/java/com/example/hft/app/CustomWebSocketVsBaselineTopOfBookMain.java
 docs/data-source-diagram.md
 module.md
 ```
+## V15 Runbook: Reference-Inspired Data Module Cleanup
+
+Status:
+
+```text
+Adds instrument metadata, data engine/cache/event bus, replay skeletons, and a cleaner architecture image.
+```
+
+Read the updated data-module design:
+
+```bash
+cat module.md
+cat docs/project-structure.md
+```
+
+Open the real architecture images:
+
+```text
+docs/data-source-architecture.png
+docs/data-source-architecture.svg
+```
+
+Compile and smoke test:
+
+```bash
+mvn -q compile
+./scripts/test.sh
+```
+
+Relevant new packages:
+
+```text
+src/main/java/com/example/hft/datasource/instrument
+src/main/java/com/example/hft/datasource/engine
+src/main/java/com/example/hft/datasource/replay
+```
+## V16 Runbook: Data Engine Runtime Wiring
+
+Status:
+
+```text
+The active multi-exchange top-of-book validation app now routes WebSocket data through the datasource engine/cache/bus/recorder path.
+```
+
+Compile and run self-tests:
+
+```bash
+mvn -q compile
+./scripts/test.sh
+```
+
+Run the active architecture path:
+
+```bash
+./scripts/custom-ws-vs-baseline.sh
+```
+
+Expected output markers:
+
+```text
+datasource-engine-websocket-vs-baseline sampledAt=...
+CUSTOM_WS ... canonical=... connectorStatus=LIVE
+DATASOURCE_ENGINE_SUMMARY cacheTopOfBook=6 publishedEvents=6 replayRecords=6 eventBusListeners=1
+```
+
+Relevant code:
+
+```text
+src/main/java/com/example/hft/app/CustomWebSocketVsBaselineTopOfBookMain.java
+src/main/java/com/example/hft/datasource/FanoutMarketDataSink.java
+src/main/java/com/example/hft/datasource/engine/MarketDataEngine.java
+src/main/java/com/example/hft/datasource/engine/MarketDataCache.java
+src/main/java/com/example/hft/datasource/engine/MarketDataEventBus.java
+src/main/java/com/example/hft/datasource/replay/RecordingMarketDataSink.java
+src/main/java/com/example/hft/datasource/instrument/SymbolMapper.java
+```

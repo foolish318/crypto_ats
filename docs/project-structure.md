@@ -23,6 +23,15 @@ com.example.hft.datasource.normalizer
 com.example.hft.datasource.book
   Sequencing and book-quality checks for normalized market-data events.
 
+com.example.hft.datasource.instrument
+  Instrument definitions, tick/lot metadata, and venue-symbol to canonical-symbol mapping.
+
+com.example.hft.datasource.engine
+  MarketDataEngine, cache, and event bus. This is the active cache-then-publish boundary before strategies.
+
+com.example.hft.datasource.replay
+  In-memory replay records and replay source skeleton for repeatable benchmarks.
+
 com.example.hft.exchange.binance
 com.example.hft.exchange.okx
 com.example.hft.exchange.kraken
@@ -49,9 +58,11 @@ com.example.hft.benchmark
 ## Runtime Flow
 
 ```text
-MarketDataConnector
+InstrumentProvider / SymbolMapper
+  -> MarketDataConnector / MarketDataClient
   -> transport/raw message metadata
   -> normalized market-data event
+  -> MarketDataEngine cache-then-publish boundary
   -> book sequencing / quality gate
   -> local order book or top-of-book view
   -> strategy / decision engine

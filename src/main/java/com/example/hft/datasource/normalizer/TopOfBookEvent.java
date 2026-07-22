@@ -3,6 +3,7 @@ package com.example.hft.datasource.normalizer;
 import com.example.hft.datasource.transport.TransportType;
 import com.example.hft.marketdata.model.TopOfBookSnapshot;
 import java.math.BigDecimal;
+import java.time.Instant;
 
 
 public record TopOfBookEvent(
@@ -13,6 +14,8 @@ public record TopOfBookEvent(
         long receivedNanos,
         long exchangeTimeMillis,
         long sequence,
+        Instant sampledAt,
+        long sourceElapsedNanos,
         BigDecimal bidPrice,
         BigDecimal bidSize,
         BigDecimal askPrice,
@@ -30,6 +33,8 @@ public record TopOfBookEvent(
                 System.nanoTime(),
                 UNKNOWN_EXCHANGE_TIME,
                 UNKNOWN_SEQUENCE,
+                snapshot.sampledAt(),
+                snapshot.elapsedNanos(),
                 snapshot.bidPrice(),
                 snapshot.bidSize(),
                 snapshot.askPrice(),
@@ -39,5 +44,10 @@ public record TopOfBookEvent(
 
     public BigDecimal spread() {
         return askPrice.subtract(bidPrice);
+    }
+
+    public TopOfBookSnapshot toSnapshot() {
+        return new TopOfBookSnapshot(source, exchange, symbol, bidPrice, bidSize, askPrice, askSize,
+                sampledAt, sourceElapsedNanos);
     }
 }
