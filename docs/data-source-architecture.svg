@@ -1,0 +1,201 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="960" viewBox="0 0 1440 960" role="img" aria-labelledby="title desc">
+  <title id="title">Crypto ATS Data Source Architecture</title>
+  <desc id="desc">A colored block diagram showing exchange REST, WebSocket, FIX, third-party feeds, transport, raw messages, normalizers, book sequencing, local books, cross-exchange market view, strategy pipeline, and replay recorder.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#475569"/>
+    </marker>
+    <marker id="arrow-dashed" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#a21caf"/>
+    </marker>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="7" flood-color="#0f172a" flood-opacity="0.14"/>
+    </filter>
+    <style>
+      .bg { fill: #f8fafc; }
+      .title { font: 700 34px Arial, sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 16px Arial, sans-serif; fill: #475569; }
+      .section-title { font: 700 17px Arial, sans-serif; fill: #0f172a; }
+      .block-title { font: 700 18px Arial, sans-serif; fill: #0f172a; }
+      .block-text { font: 400 13px Arial, sans-serif; fill: #334155; }
+      .small { font: 400 12px Arial, sans-serif; fill: #475569; }
+      .tiny { font: 400 11px Arial, sans-serif; fill: #64748b; }
+      .arrow { fill: none; stroke: #475569; stroke-width: 2.5; marker-end: url(#arrow); }
+      .arrow-soft { fill: none; stroke: #94a3b8; stroke-width: 2; marker-end: url(#arrow); }
+      .arrow-dashed { fill: none; stroke: #a21caf; stroke-width: 2.5; stroke-dasharray: 8 7; marker-end: url(#arrow-dashed); }
+      .section { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.4; rx: 18; filter: url(#shadow); }
+      .source { fill: #e0f2fe; stroke: #0284c7; stroke-width: 1.7; rx: 14; }
+      .transport { fill: #dcfce7; stroke: #16a34a; stroke-width: 1.7; rx: 14; }
+      .raw { fill: #fef3c7; stroke: #d97706; stroke-width: 1.7; rx: 14; }
+      .normalizer { fill: #ede9fe; stroke: #7c3aed; stroke-width: 1.7; rx: 14; }
+      .quality { fill: #ffe4e6; stroke: #e11d48; stroke-width: 1.7; rx: 14; }
+      .book { fill: #f1f5f9; stroke: #475569; stroke-width: 1.7; rx: 14; }
+      .strategy { fill: #ccfbf1; stroke: #0f766e; stroke-width: 1.7; rx: 14; }
+      .replay { fill: #fae8ff; stroke: #a21caf; stroke-width: 1.7; rx: 14; }
+      .legend-label { font: 600 12px Arial, sans-serif; fill: #334155; }
+    </style>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1440" height="960"/>
+
+  <text class="title" x="58" y="58">Crypto ATS Data Source Architecture</text>
+  <text class="subtitle" x="58" y="86">REST, WebSocket, future FIX, third-party providers, and replay all flow into one normalized market-data pipeline.</text>
+
+  <rect class="section" x="46" y="124" width="250" height="646"/>
+  <text class="section-title" x="72" y="156">Source Protocols</text>
+
+  <rect class="source" x="72" y="182" width="198" height="76"/>
+  <text class="block-title" x="94" y="213">Exchange REST</text>
+  <text class="block-text" x="94" y="235">snapshot, metadata</text>
+  <text class="block-text" x="94" y="253">validation, recovery</text>
+
+  <rect class="source" x="72" y="282" width="198" height="76"/>
+  <text class="block-title" x="94" y="313">WebSocket</text>
+  <text class="block-text" x="94" y="335">live public market data</text>
+  <text class="block-text" x="94" y="353">JSON book / trade feed</text>
+
+  <rect class="source" x="72" y="382" width="198" height="76"/>
+  <text class="block-title" x="94" y="413">Exchange FIX</text>
+  <text class="block-text" x="94" y="435">future direct feed</text>
+  <text class="block-text" x="94" y="453">session + sequence rules</text>
+
+  <rect class="source" x="72" y="482" width="198" height="82"/>
+  <text class="block-title" x="94" y="512">Third-party Feed</text>
+  <text class="block-text" x="94" y="535">CoinAPI, dxFeed</text>
+  <text class="block-text" x="94" y="553">provider-normalized data</text>
+
+  <rect class="replay" x="72" y="594" width="198" height="86"/>
+  <text class="block-title" x="94" y="626">Replay Files</text>
+  <text class="block-text" x="94" y="648">recorded raw messages</text>
+  <text class="block-text" x="94" y="666">repeatable benchmark input</text>
+
+  <rect class="section" x="340" y="124" width="196" height="646"/>
+  <text class="section-title" x="365" y="156">Transport</text>
+
+  <rect class="transport" x="365" y="190" width="146" height="54"/>
+  <text class="block-title" x="386" y="224">REST</text>
+
+  <rect class="transport" x="365" y="292" width="146" height="54"/>
+  <text class="block-title" x="386" y="326">WebSocket</text>
+
+  <rect class="transport" x="365" y="394" width="146" height="54"/>
+  <text class="block-title" x="386" y="428">FIX</text>
+
+  <rect class="transport" x="365" y="502" width="146" height="54"/>
+  <text class="block-title" x="386" y="536">Provider</text>
+
+  <rect class="transport" x="365" y="612" width="146" height="54"/>
+  <text class="block-title" x="386" y="646">Replay</text>
+
+  <rect class="raw" x="590" y="282" width="230" height="132"/>
+  <text class="block-title" x="620" y="318">RawInboundMessage</text>
+  <text class="block-text" x="620" y="345">source, exchange, symbol</text>
+  <text class="block-text" x="620" y="365">channel, transport</text>
+  <text class="block-text" x="620" y="385">receivedNanos, sequence</text>
+  <text class="block-text" x="620" y="405">raw payload bytes</text>
+
+  <rect class="normalizer" x="876" y="154" width="224" height="96"/>
+  <text class="block-title" x="906" y="190">Exchange Parsers</text>
+  <text class="block-text" x="906" y="214">Binance / OKX / Kraken</text>
+  <text class="block-text" x="906" y="234">JSON-specific parsing</text>
+
+  <rect class="normalizer" x="876" y="292" width="224" height="112"/>
+  <text class="block-title" x="906" y="328">Normalizer</text>
+  <text class="block-text" x="906" y="352">TopOfBookEvent</text>
+  <text class="block-text" x="906" y="372">BookDepthEvent</text>
+  <text class="block-text" x="906" y="392">TradeEvent</text>
+
+  <rect class="normalizer" x="876" y="450" width="224" height="96"/>
+  <text class="block-title" x="906" y="486">FIX / Provider Parser</text>
+  <text class="block-text" x="906" y="510">future institutional feed</text>
+  <text class="block-text" x="906" y="530">same canonical events</text>
+
+  <rect class="quality" x="1148" y="220" width="230" height="116"/>
+  <text class="block-title" x="1178" y="256">BookSequencer</text>
+  <text class="block-text" x="1178" y="282">sequence continuity</text>
+  <text class="block-text" x="1178" y="302">gap + duplicate checks</text>
+  <text class="block-text" x="1178" y="322">resync trigger</text>
+
+  <rect class="quality" x="1148" y="378" width="230" height="116"/>
+  <text class="block-title" x="1178" y="414">BookQuality Gate</text>
+  <text class="block-text" x="1178" y="440">LIVE / STALE / GAP</text>
+  <text class="block-text" x="1178" y="460">CROSSED / DEGRADED</text>
+  <text class="block-text" x="1178" y="480">checksum when available</text>
+
+  <rect class="section" x="590" y="612" width="788" height="236"/>
+  <text class="section-title" x="620" y="646">Per-Venue Books and Strategy</text>
+
+  <rect class="book" x="620" y="674" width="188" height="74"/>
+  <text class="block-title" x="646" y="705">Binance Book</text>
+  <text class="block-text" x="646" y="728">BTC/USD local view</text>
+
+  <rect class="book" x="846" y="674" width="188" height="74"/>
+  <text class="block-title" x="886" y="705">OKX Book</text>
+  <text class="block-text" x="886" y="728">BTC/USD local view</text>
+
+  <rect class="book" x="1072" y="674" width="188" height="74"/>
+  <text class="block-title" x="1102" y="705">Kraken Book</text>
+  <text class="block-text" x="1102" y="728">BTC/USD local view</text>
+
+  <rect class="book" x="730" y="782" width="250" height="46"/>
+  <text class="block-title" x="760" y="812">CrossExchangeMarketView</text>
+
+  <rect class="strategy" x="1028" y="770" width="270" height="66"/>
+  <text class="block-title" x="1058" y="800">Strategy Pipeline</text>
+  <text class="block-text" x="1058" y="822">spread, top5/top10, latency</text>
+
+  <rect class="replay" x="590" y="470" width="230" height="88"/>
+  <text class="block-title" x="620" y="504">Recorder</text>
+  <text class="block-text" x="620" y="528">write raw + normalized</text>
+  <text class="block-text" x="620" y="546">events for replay</text>
+
+  <path class="arrow" d="M270 220 C308 220, 320 217, 365 217"/>
+  <path class="arrow" d="M270 320 C308 320, 320 319, 365 319"/>
+  <path class="arrow" d="M270 420 C308 420, 320 421, 365 421"/>
+  <path class="arrow" d="M270 523 C308 523, 320 529, 365 529"/>
+  <path class="arrow" d="M270 637 C308 637, 320 639, 365 639"/>
+
+  <path class="arrow" d="M511 217 C552 235, 570 270, 590 312"/>
+  <path class="arrow" d="M511 319 C538 326, 560 338, 590 348"/>
+  <path class="arrow" d="M511 421 C550 408, 570 390, 590 374"/>
+  <path class="arrow" d="M511 529 C558 504, 574 456, 610 414"/>
+  <path class="arrow" d="M511 639 C560 612, 574 464, 626 414"/>
+
+  <path class="arrow" d="M820 348 C844 315, 858 260, 876 218"/>
+  <path class="arrow" d="M820 348 C846 348, 858 348, 876 348"/>
+  <path class="arrow" d="M820 348 C844 388, 858 456, 876 498"/>
+
+  <path class="arrow" d="M1100 202 C1126 226, 1136 250, 1148 278"/>
+  <path class="arrow" d="M1100 348 C1126 342, 1138 328, 1148 306"/>
+  <path class="arrow" d="M1100 498 C1126 480, 1138 458, 1148 438"/>
+  <path class="arrow" d="M1263 336 C1263 350, 1263 362, 1263 378"/>
+
+  <path class="arrow" d="M1263 494 C1248 575, 1228 640, 1166 674"/>
+  <path class="arrow-soft" d="M1263 494 C1120 590, 940 628, 940 674"/>
+  <path class="arrow-soft" d="M1263 494 C1038 570, 714 620, 714 674"/>
+
+  <path class="arrow" d="M714 748 C735 770, 767 782, 805 782"/>
+  <path class="arrow" d="M940 748 C930 764, 910 776, 892 782"/>
+  <path class="arrow" d="M1166 748 C1116 779, 1024 798, 980 805"/>
+  <path class="arrow" d="M980 805 C1000 805, 1010 804, 1028 803"/>
+
+  <path class="arrow-dashed" d="M705 414 C704 434, 704 450, 704 470"/>
+  <path class="arrow-dashed" d="M988 404 C938 442, 882 472, 820 514"/>
+  <path class="arrow-dashed" d="M590 514 C470 560, 358 610, 270 637"/>
+
+  <text class="tiny" x="760" y="454">record live data</text>
+  <text class="tiny" x="298" y="704">replay later with identical input</text>
+
+  <rect x="46" y="804" width="496" height="92" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2" rx="14"/>
+  <text class="section-title" x="72" y="834">Design rule</text>
+  <text class="small" x="72" y="860">Strategies consume normalized events and local books.</text>
+  <text class="small" x="72" y="880">They should not care whether input came from REST, WebSocket, FIX, provider, or replay.</text>
+
+  <rect x="1028" y="870" width="350" height="42" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2" rx="12"/>
+  <rect x="1048" y="884" width="18" height="14" class="source"/>
+  <text class="legend-label" x="1074" y="896">source</text>
+  <rect x="1132" y="884" width="18" height="14" class="transport"/>
+  <text class="legend-label" x="1158" y="896">transport</text>
+  <rect x="1232" y="884" width="18" height="14" class="quality"/>
+  <text class="legend-label" x="1258" y="896">quality/replay</text>
+</svg>

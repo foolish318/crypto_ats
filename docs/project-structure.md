@@ -11,6 +11,18 @@ com.example.hft.app
 com.example.hft.exchange
   Exchange adapter interfaces, shared REST/WebSocket adapter base classes, XChange comparison client.
 
+com.example.hft.datasource
+  Unified market-data connector interface, subscriptions, health/status, and adapter wrappers.
+
+com.example.hft.datasource.transport
+  Transport metadata such as REST, WebSocket, FIX, third-party, replay, and raw inbound messages.
+
+com.example.hft.datasource.normalizer
+  Canonical events consumed by downstream book builders and strategies.
+
+com.example.hft.datasource.book
+  Sequencing and book-quality checks for normalized market-data events.
+
 com.example.hft.exchange.binance
 com.example.hft.exchange.okx
 com.example.hft.exchange.kraken
@@ -35,6 +47,18 @@ com.example.hft.benchmark
 ```
 
 ## Runtime Flow
+
+```text
+MarketDataConnector
+  -> transport/raw message metadata
+  -> normalized market-data event
+  -> book sequencing / quality gate
+  -> local order book or top-of-book view
+  -> strategy / decision engine
+  -> stats / benchmark output
+```
+
+Legacy examples still use this shorter path:
 
 ```text
 Exchange adapter

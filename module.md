@@ -1,0 +1,585 @@
+# Data Source Module Design
+
+This document records the design direction for the market-data source module. The goal is to make exchange data ingestion more professional while keeping the current Java learning project understandable.
+
+## Scope
+
+The data source module covers:
+
+```text
+exchange REST API
+exchange WebSocket API
+direct exchange FIX API
+third-party normalized data providers
+local normalization, sequencing, order-book building, and fan-out to processors
+```
+
+It does not cover order execution yet. Order entry will be designed separately because private auth, risk checks, order state, rejects, and fills have a different lifecycle from public market data.
+
+## References
+
+Open-source design references:
+
+```text
+Hummingbot:
+  Connector architecture separates exchange connector, order-book tracker,
+  order-book data source, user stream data source, and order tracker.
+  https://hummingbot.org/connectors/connectors/architecture/
+
+Hummingbot connector requirements:
+  REST is used for trading rules, status, snapshots, and backup state.
+  WebSocket is used for public order-book/trade streams and private order updates.
+  https://hummingbot.org/connectors/connectors/build/
+
+XChange:
+  Java library with a unified exchange API across many crypto exchanges.
+  Useful as a correctness/reference path, but not the best low-latency path.
+  https://github.com/knowm/XChange
+
+CCXT:
+  Unified public/private exchange API. REST is open-source; WebSocket support
+  is handled by CCXT Pro.
+  https://github.com/ccxt/ccxt/wiki/manual
+```
+
+Exchange protocol references:
+
+```text
+Binance.US:
+  REST depth snapshots plus WebSocket bookTicker, partial depth, and diff depth.
+  Local book management requires buffering deltas, fetching a REST snapshot,
+  dropping stale updates, then applying sequential deltas.
+  https://github.com/binance-us/binance-us-api-docs/blob/master/web-socket-streams.md
+
+OKX:
+  Public market data is available through REST and WebSocket. books5 is a
+  top-5 snapshot channel; books/books-l2-tbt are incremental order-book feeds.
+  https://www.okx.com/docs-v5/en/
+
+Kraken:
+  WebSocket v2 book channel streams L2 order-book data with configurable depth
+  and checksum support.
+  https://docs-legacy.kraken.com/api/docs/websocket-v2/book/
+```
+
+FIX and third-party data references:
+
+```text
+Coinbase Exchange:
+  Provides REST, WebSocket market data, FIX order entry, and FIX market data.
+  https://docs.cdp.coinbase.com/exchange/introduction/welcome
+
+Binance Spot global:
+  FIX market-data sessions exist for the global spot exchange and require
+  API keys with FIX permissions. This is not the same as Binance.US.
+  https://github.com/binance/binance-spot-api-docs/blob/master/fix-api.md
+
+Gemini:
+  Public docs expose FIX API reference. Account/API access is required for
+  private or institutional workflows.
+  https://developer.gemini.com/fix-api/fix-api
+
+Kraken:
+  Public API center lists REST, WebSocket, and FIX for spot/futures.
+  https://docs.kraken.com/
+
+CoinAPI:
+  Third-party unified crypto data provider. REST and WebSocket are documented
+  for market data; FIX 4.4 is available as a market-data alternative to WebSocket.
+  https://www.coinapi.io/products/market-data-api/docs
+  https://www.coinapi.io/products/market-data-api/docs/fix
+
+dxFeed:
+  Third-party market-data provider with REST, WebSocket, FIX, and Java/C++ APIs.
+  https://kb.dxfeed.com/en/market-data-api/data-access-solutions.html
+
+Databento:
+  Third-party normalized market-data provider with live/historical feeds,
+  unified schemas, and low-latency normalization claims. More relevant for
+  futures/options/equities than spot crypto.
+  https://databento.com/docs
+```
+
+## Current State
+
+Current active code already has useful boundaries:
+
+```text
+com.example.hft.exchange
+  Shared REST/WebSocket adapter base classes.
+
+com.example.hft.exchange.binance
+com.example.hft.exchange.okx
+com.example.hft.exchange.kraken
+  Exchange-specific parsers/adapters.
+
+com.example.hft.marketdata.model
+  Quote, depth, top-of-book, and local order-book models.
+
+com.example.hft.pipeline
+  Queue/ring-buffer processing and latency measurement.
+```
+
+The main gap is that REST, WebSocket, and future FIX data are not yet modeled as one professional ingestion module. Today each runnable example reaches into adapters directly. The next design should make data sources plug into one common contract.
+
+## Design Principles
+
+1. Keep exchange-specific code isolated.
+
+Each exchange has different symbols, timestamps, sequence IDs, checksums, reconnect rules, and JSON shapes. Those differences should stay inside one connector package.
+
+2. Normalize before strategy.
+
+The strategy layer should not know whether a quote came from Binance JSON, Kraken JSON, OKX JSON, or FIX tags. It should consume canonical Java records.
+
+3. Use REST for bootstrap and recovery, not the main live signal.
+
+REST is useful for metadata, trading rules, snapshots, validation, and gap recovery. WebSocket or FIX should provide live market-data updates.
+
+4. Build local order books per exchange and symbol.
+
+For cross-exchange arbitrage, each venue keeps its own book. The aggregator compares normalized books after each venue is internally consistent.
+
+5. Track data quality explicitly.
+
+Every event should carry source, transport, receive time, exchange time if present, sequence/update ID if present, and a quality status.
+
+6. Measure each stage separately.
+
+End-to-end time is not enough. We need network receive, parse, queue wait, book update, strategy decision, and fan-out timing.
+
+## Target Flow
+
+```text
+Exchange REST snapshot
+Exchange WebSocket stream
+Exchange FIX session
+Third-party provider stream
+        |
+        v
+Transport client
+        |
+        v
+RawInboundMessage
+        |
+        v
+Exchange parser / normalizer
+        |
+        v
+NormalizedMarketDataEvent
+        |
+        v
+Per exchange-symbol sequencer
+        |
+        v
+LocalOrderBook
+        |
+        v
+TopOfBook / DepthView / TradeTick
+        |
+        v
+Strategy and benchmark pipeline
+```
+
+## Proposed Package Layout
+
+```text
+com.example.hft.datasource
+  MarketDataConnector
+  MarketDataSubscription
+  MarketDataSink
+  DataSourceHealth
+  DataSourceStatus
+
+com.example.hft.datasource.transport
+  RestTransport
+  WebSocketTransport
+  FixTransport
+  TransportType
+  RawInboundMessage
+
+com.example.hft.datasource.normalizer
+  MarketDataNormalizer
+  NormalizedMarketDataEvent
+  BookSnapshotEvent
+  BookDeltaEvent
+  TradeEvent
+  TopOfBookEvent
+
+com.example.hft.datasource.book
+  BookCoordinator
+  BookSequencer
+  BookResyncPolicy
+  BookQuality
+
+com.example.hft.exchange.binance
+com.example.hft.exchange.okx
+com.example.hft.exchange.kraken
+  Exchange-specific connector, parser, symbol mapping, and resync rules.
+
+com.example.hft.exchange.coinapi
+com.example.hft.exchange.dxfeed
+  Future third-party normalized provider adapters.
+```
+
+## Core Interfaces
+
+The connector is the outside-facing unit. One connector represents one venue or provider.
+
+```java
+public interface MarketDataConnector extends AutoCloseable {
+    String name();
+
+    DataSourceStatus status();
+
+    void subscribe(MarketDataSubscription subscription, MarketDataSink sink);
+
+    TopOfBookSnapshot fetchTopOfBook(String symbol) throws Exception;
+
+    BookSnapshotEvent fetchBookSnapshot(String symbol, int depth) throws Exception;
+}
+```
+
+The sink is the handoff from data source into the pipeline.
+
+```java
+public interface MarketDataSink {
+    void onEvent(NormalizedMarketDataEvent event);
+
+    void onHealth(DataSourceHealth health);
+
+    void onError(String source, Throwable error);
+}
+```
+
+The raw message is captured before parsing so we can benchmark and replay.
+
+```java
+public record RawInboundMessage(
+        String source,
+        String exchange,
+        String symbol,
+        TransportType transport,
+        String channel,
+        long receivedNanos,
+        long exchangeTimeMillis,
+        long sequence,
+        byte[] payload
+) {
+}
+```
+
+## REST, WebSocket, and FIX Roles
+
+REST:
+
+```text
+Best use:
+  metadata, active symbols, trading rules, depth snapshots, validation, recovery
+
+Weakness:
+  polling latency, rate limits, missing intra-poll events
+
+In our module:
+  RestTransport fetches snapshots and metadata.
+  BookCoordinator uses REST snapshots for bootstrap and resync.
+```
+
+WebSocket:
+
+```text
+Best use:
+  live public market data, trades, book deltas, top-of-book updates
+
+Weakness:
+  disconnects, heartbeat handling, exchange-specific sequence logic,
+  JSON parse overhead
+
+In our module:
+  WebSocketTransport owns connection lifecycle.
+  Exchange parser converts JSON messages into canonical events.
+```
+
+FIX:
+
+```text
+Best use:
+  institutional-style sessions, lower-latency market data where available,
+  stricter sequence/session semantics, direct exchange or provider access
+
+Weakness:
+  usually needs account onboarding or paid access, more complex protocol,
+  message dictionaries, heartbeats, resend/sequence rules
+
+In our module:
+  FixTransport should be hidden behind the same MarketDataConnector interface.
+  QuickFIX/J is the likely Java starting point.
+```
+
+Third-party normalized data:
+
+```text
+Best use:
+  faster multi-exchange coverage, historical data, backtesting, normalized schemas,
+  data quality checks, provider-managed exchange integration
+
+Weakness:
+  may add provider hop latency, usually needs paid subscription, source rules
+  and timestamps must be understood carefully
+
+In our module:
+  Treat provider feeds as another connector, not as a replacement for direct feeds.
+```
+
+## Local Order Book Design
+
+For each `exchange + symbol`:
+
+```text
+1. Open WebSocket or FIX stream.
+2. Buffer incoming deltas.
+3. Fetch REST or provider snapshot.
+4. Drop stale deltas older than the snapshot sequence.
+5. Apply the first delta that bridges the snapshot sequence.
+6. Apply future deltas only if sequence continuity is valid.
+7. If a gap, checksum failure, stale feed, or crossed book appears, mark the book degraded.
+8. Trigger resync with a fresh snapshot.
+```
+
+This is directly aligned with Binance-style snapshot plus diff-depth logic and Hummingbot-style `OrderBookTrackerDataSource -> OrderBookTracker` separation.
+
+## Fan-In for Multi-Exchange Data
+
+For cross-exchange comparison, keep each venue independent until its book is valid.
+
+```text
+Binance.US BTCUSDT book
+OKX BTC-USDT book
+Kraken BTC/USD book
+        |
+        v
+Canonical symbol mapper
+        |
+        v
+CrossExchangeMarketView BTC/USD
+        |
+        v
+Strategy:
+  compare bid/ask, depth-weighted spread, top5/top10 liquidity,
+  stale data, fees, and transfer/trading constraints
+```
+
+Do not merge raw books into one book. A Binance bid and Kraken bid are different liquidity pools with different fees, latency, and fill probability.
+
+## Latency Measurements
+
+Every event should carry timestamps for:
+
+```text
+exchangeEventTimeMillis:
+  Time assigned by the exchange/provider, if available.
+
+receivedNanos:
+  Local monotonic time when bytes/message were received.
+
+parsedNanos:
+  Local monotonic time after JSON/FIX parsing.
+
+enqueuedNanos:
+  Time when normalized event entered the queue.
+
+dequeuedNanos:
+  Time when processor consumed the event.
+
+bookAppliedNanos:
+  Time after local order book update finished.
+
+strategyDoneNanos:
+  Time after decision logic finished.
+```
+
+Metrics to print:
+
+```text
+network lag:
+  local receive time minus exchange event time, only meaningful if clocks are sane.
+
+parse latency:
+  parsedNanos - receivedNanos
+
+queue latency:
+  dequeuedNanos - enqueuedNanos
+
+book latency:
+  bookAppliedNanos - dequeuedNanos
+
+strategy latency:
+  strategyDoneNanos - bookAppliedNanos
+
+local pipeline latency:
+  strategyDoneNanos - receivedNanos
+```
+
+## Data Quality Checks
+
+Required checks:
+
+```text
+sequence gap detection
+duplicate event detection
+out-of-order event detection
+stale feed detection
+REST snapshot age
+crossed book detection
+negative or zero price validation
+negative size validation
+checksum validation where exchange provides checksum
+symbol mapping validation
+exchange status / maintenance handling
+rate-limit handling
+reconnect and resubscribe behavior
+```
+
+## Recommended Implementation Phases
+
+V14 - Data-source interfaces:
+
+```text
+Add MarketDataConnector, MarketDataSink, MarketDataSubscription,
+RawInboundMessage, TransportType, and NormalizedMarketDataEvent.
+Move existing Binance.US, OKX, and Kraken WebSocket adapters behind the interface.
+```
+
+V15 - Local book coordinator:
+
+```text
+Implement REST snapshot bootstrap plus WebSocket delta application for one exchange.
+Start with Binance.US depth because its local-book algorithm is clearly documented.
+```
+
+V16 - Multi-exchange market view:
+
+```text
+Keep one local book per exchange/symbol.
+Add symbol mapping into canonical BTC/USD, ETH/USD style names.
+Compare top-of-book, top5/top10 depth, and stale-book status.
+```
+
+V17 - Recorder and replay:
+
+```text
+Persist RawInboundMessage or normalized events to local files.
+Run the same pipeline against captured live data for repeatable benchmarks.
+```
+
+V18 - FIX adapter experiment:
+
+```text
+Pick one accessible provider or exchange.
+Likely candidates:
+  CoinAPI FIX for third-party normalized crypto market data.
+  Coinbase Exchange FIX Market Data if account access is available.
+  Gemini/Kraken/Binance global FIX only if account/API permissions allow it.
+Use QuickFIX/J behind FixTransport.
+```
+
+## Practical Recommendation
+
+For this project, the next useful optimization is not adding more exchanges. It is making the ingestion path consistent:
+
+```text
+MarketDataConnector
+  -> RawInboundMessage
+  -> NormalizedMarketDataEvent
+  -> BookSequencer
+  -> LocalOrderBook
+  -> Strategy pipeline
+```
+
+After that, adding Binance.US, OKX, Kraken, Gemini, Coinbase, CoinAPI, or FIX becomes a connector problem instead of a whole-system rewrite.
+
+
+## V14 Implementation Status
+
+Implemented in this project:
+
+```text
+com.example.hft.datasource
+  MarketDataConnector
+  MarketDataSubscription
+  MarketDataSink
+  DataSourceHealth
+  DataSourceStatus
+  TopOfBookMarketDataConnector
+
+com.example.hft.datasource.transport
+  TransportType
+  RawInboundMessage
+
+com.example.hft.datasource.normalizer
+  NormalizedMarketDataEvent
+  TopOfBookEvent
+  BookDepthEvent
+  TradeEvent
+
+com.example.hft.datasource.book
+  BookSequencer
+  BookQuality
+```
+
+The current `custom-ws-vs-baseline` app now uses `MarketDataConnector` wrappers around existing Binance.US, OKX, and Kraken WebSocket/REST adapters. The exchange-specific parser code remains in the exchange packages.
+
+Colored local diagram:
+
+```text
+docs/data-source-diagram.md
+```
+
+## Replay Module
+
+A replay module lets us run the same strategy pipeline against previously recorded market data instead of always connecting to live exchanges.
+
+Why it matters:
+
+```text
+Live exchange data changes every run, so benchmark results are hard to compare.
+Replay gives us repeatable input, so V2/V3/V4/V5/V14 can be compared on the same event sequence.
+Replay also lets us debug parser, queue, book, and strategy logic without depending on network availability.
+```
+
+Replay design:
+
+```text
+Recorder
+  writes RawInboundMessage and/or NormalizedMarketDataEvent to local files
+
+ReplayTransport
+  reads those files back in timestamp order
+
+ReplayMarketDataConnector
+  exposes replayed events through the same MarketDataConnector / MarketDataSink contract
+
+Strategy Pipeline
+  receives replayed events as if they came from WebSocket or FIX
+```
+
+Replay should preserve:
+
+```text
+source exchange
+symbol
+channel
+transport type
+exchange event time
+local receive time
+sequence/update id
+raw payload
+normalized event fields
+```
+
+Next implementation step after V14:
+
+```text
+V15 should add a Recorder and ReplayTransport around Binance.US depth data.
+Then benchmark live WebSocket processing versus replayed local-file processing.
+```

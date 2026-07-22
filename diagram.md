@@ -1515,3 +1515,58 @@ The active data sources are Binance.US, OKX, and Kraken.
 Exchange-specific code now lives in exchange-specific packages.
 Shared market-data objects and pipeline code are separated from runnable app entry points.
 ```
+
+## V14: Data Source Module Refactor
+
+Status:
+
+```text
+Current code introduces a datasource abstraction and wraps the active top-of-book WebSocket/REST adapters behind it.
+```
+
+Purpose:
+
+```text
+Move from app-level direct adapter calls toward a professional market-data ingestion design:
+source protocol -> transport -> raw message -> normalizer -> sequencer/book quality -> local books -> strategy.
+```
+
+Local colored diagram:
+
+```text
+docs/data-source-diagram.md
+```
+
+Implemented package boundary:
+
+```text
+com.example.hft.datasource              connector, subscription, sink, health/status
+com.example.hft.datasource.transport    transport type and raw inbound message
+com.example.hft.datasource.normalizer   canonical market-data events
+com.example.hft.datasource.book         sequencing and book quality checks
+```
+
+Design:
+
+```mermaid
+flowchart LR
+    REST["REST snapshot/meta"] --> Connector["MarketDataConnector"]
+    WS["WebSocket live feed"] --> Connector
+    FIX["Future FIX feed"] -.-> Connector
+    Third["Third-party provider"] -.-> Connector
+    Replay["Replay files"] -.-> Connector
+    Connector --> Raw["RawInboundMessage"]
+    Raw --> Normalized["NormalizedMarketDataEvent"]
+    Normalized --> Quality["BookSequencer / BookQuality"]
+    Quality --> Books["LocalOrderBook per exchange + symbol"]
+    Books --> View["CrossExchangeMarketView"]
+    View --> Strategy["Strategy pipeline"]
+```
+
+Why this version matters:
+
+```text
+The app no longer needs to know whether an exchange is implemented by a specific WebSocket adapter class.
+It can ask a MarketDataConnector for realtime top-of-book data and optional REST snapshot validation.
+This creates the extension point for FIX, third-party providers, and replay without rewriting strategy code.
+```

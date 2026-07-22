@@ -897,3 +897,132 @@ Main-class package change:
 Executable classes moved from com.example.hft.* to com.example.hft.app.*.
 Scripts have been updated accordingly.
 ```
+
+## Git Push Runbook: Publish Local Project to GitHub
+
+Status:
+
+```text
+Used on 2026-07-22 to push this local project to foolish318/crypto_ats.
+The push was direct to main. No PR was created.
+No plaintext passwords or private keys are recorded here.
+```
+
+Repository target:
+
+```text
+git@github.com:foolish318/crypto_ats.git
+```
+
+Initial repository setup and remote inspection:
+
+```bash
+git init -b main
+git remote add origin https://github.com/foolish318/crypto_ats.git
+git fetch origin main
+git ls-tree --name-only origin/main
+git status -sb
+git remote -v
+git log --oneline --decorate --all -5
+```
+
+SSH authentication checks:
+
+```bash
+ssh-keygen -lf ~/.ssh/id_ed25519_github_foolish318.pub
+ssh -T git@github.com
+```
+
+SSH config added because the key file had a custom name:
+
+```text
+Host github.com
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/id_ed25519_github_foolish318
+    IdentitiesOnly yes
+```
+
+Validation before commit:
+
+```bash
+grep -RInE 'password|passwd|api[_-]?key|secret|token|private key|BEGIN .*PRIVATE' --exclude-dir=.git --exclude-dir=target . || true
+mvn -q compile
+./scripts/test.sh
+```
+
+Commit and push commands:
+
+```bash
+git update-ref refs/heads/main origin/main
+git reset --mixed origin/main
+git config user.name 'foolish318'
+git config user.email 'foolish318@users.noreply.github.com'
+git add -A
+git diff --cached --stat
+git diff --cached --name-only | wc -l
+git commit -m 'Organize crypto ATS Java project'
+git remote set-url origin git@github.com:foolish318/crypto_ats.git
+git push -u origin main
+```
+
+Final verification commands:
+
+```bash
+git status -sb
+git log --oneline --decorate -3
+git remote -v
+```
+
+Result:
+
+```text
+Pushed commit 146d9e9 Organize crypto ATS Java project.
+main now tracks origin/main.
+Working tree was clean after push.
+```
+
+## V14 Runbook: Data Source Module Refactor
+
+Status:
+
+```text
+Adds the datasource package and refactors the multi-exchange validation app to use MarketDataConnector.
+```
+
+Read the data-source design:
+
+```bash
+cat module.md
+cat docs/data-source-diagram.md
+```
+
+Compile after refactor:
+
+```bash
+mvn -q compile
+```
+
+Run local smoke checks:
+
+```bash
+./scripts/test.sh
+```
+
+Run active multi-exchange validation through the datasource connector wrapper:
+
+```bash
+./scripts/custom-ws-vs-baseline.sh
+```
+
+Current important files:
+
+```text
+src/main/java/com/example/hft/datasource/MarketDataConnector.java
+src/main/java/com/example/hft/datasource/TopOfBookMarketDataConnector.java
+src/main/java/com/example/hft/datasource/transport/RawInboundMessage.java
+src/main/java/com/example/hft/datasource/normalizer/NormalizedMarketDataEvent.java
+src/main/java/com/example/hft/app/CustomWebSocketVsBaselineTopOfBookMain.java
+docs/data-source-diagram.md
+module.md
+```
