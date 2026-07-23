@@ -1694,3 +1694,26 @@ V16 proved the top-of-book datasource engine wiring.
 V17 starts the real depth-book layer: raw exchange data becomes a maintained local order book with gap/stale/crossed quality metrics.
 This is the correct foundation before strategy, arbitrage, or order routing logic.
 ```
+## V18: Automatic Reconnect And Resync
+
+Scope:
+
+```text
+Only step 1 production hardening: recover the Binance.US raw-depth local book path after stream errors or invalid book state.
+```
+
+Flow:
+
+```mermaid
+flowchart LR
+    WS["Binance.US depth WebSocket"] --> Raw["RawDepthPayload queue"]
+    Raw --> Parser["BinanceDepthParser"]
+    Parser --> Book["SequencedLocalOrderBook"]
+    Book -->|APPLIED/STALE| Continue["continue"]
+    Book -->|GAP/CROSSED| Snapshot["REST depth snapshot"]
+    Snapshot --> Reset["book.loadSnapshot"]
+    Reset --> Continue
+    WS -->|onError| Reconnect["connect new WebSocket"]
+    Reconnect --> SnapshotAll["reload snapshots for all symbols"]
+    SnapshotAll --> Continue
+```

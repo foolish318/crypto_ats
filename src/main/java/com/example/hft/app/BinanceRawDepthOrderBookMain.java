@@ -22,6 +22,7 @@ import java.net.http.WebSocket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -75,19 +76,60 @@ public final class BinanceRawDepthOrderBookMain {
         Files.createDirectories(outputDir);
         ObjectMapper mapper = new ObjectMapper();
         String runId = runId();
-        Path rawFile = outputDir.resolve("binance-raw-depth-v17-" + runId + ".jsonl");
-        Path snapshotFile = outputDir.resolve("binance-depth-snapshots-v17-" + runId + ".jsonl");
-        Path bookEventFile = outputDir.resolve("binance-book-events-v17-" + runId + ".jsonl");
-        Path summaryFile = outputDir.resolve("binance-book-summary-v17-" + runId + ".json");
+        Path rawFile = outputDir.resolve("binance-raw-depth-v18-" + runId + ".jsonl");
+        Path snapshotFile = outputDir.resolve("binance-depth-snapshots-v18-" + runId + ".jsonl");
+        Path bookEventFile = outputDir.resolve("binance-book-events-v18-" + runId + ".jsonl");
+        Path summaryFile = outputDir.resolve("binance-book-summary-v18-" + runId + ".json");
 
         HttpClient httpClient = HttpClient.newBuilder().connectTimeout(CONNECT_TIMEOUT).build();
         LinkedBlockingQueue<RawDepthPayload> rawQueue = new LinkedBlockingQueue<>();
         AtomicReference<Throwable> failure = new AtomicReference<>();
         AtomicBoolean stopping = new AtomicBoolean();
         AtomicLong sequence = new AtomicLong();
-        CountDownLatch open = new CountDownLatch(1);
         URI uri = URI.create(BinanceBookTickerSource.BINANCE_US_STREAM_URI + streamNames(symbols));
+        WebSocket webSocket = connectDepthStream(httpClient, uri, rawQueue, sequence, stopping, failure);
 
+        Map<String, SequencedLocalOrderBook> books = loadSnapshots(httpClient, symbols, snapshotFile, mapper, "INITIAL");
+        BinanceDepthParser parser = new BinanceDepthParser();
+        RawDepthBookStats stats = new RawDepthBookStats(symbols);
+        long startedNanos = System.nanoTime();
+        long deadlineNanos = startedNanos + TimeUnit.SECONDS.toNanos(durationSeconds);
+
+        try (BufferedWriter rawWriter = Files.newBufferedWriter(rawFile, StandardCharsets.UTF_8);
+             BufferedWriter bookWriter = Files.newBufferedWriter(bookEventFile, StandardCharsets.UTF_8)) {
+            while (System.nanoTime() < deadlineNanos) {
+                RawDepthPayload raw = rawQueue.poll(100, TimeUnit.MILLISECONDS);
+                if (raw == null) {
+                    if (failure.get() != null) {
+                        webSocket = reconnectDepthStream(webSocket, httpClient, uri, rawQueue, sequence, stopping, failure, stats);
+                        resyncAllBooks(httpClient, books, symbols, snapshotFile, mapper, stats, "WEBSOCKET_RECONNECT");
+                    }
+                    continue;
+                }
+                processRaw(raw, books, parser, stats, mapper, rawWriter, bookWriter, levels, httpClient, snapshotFile);
+            }
+
+            stopping.set(true);
+            webSocket.abort();
+            RawDepthPayload raw;
+            while ((raw = rawQueue.poll()) != null) {
+                processRaw(raw, books, parser, stats, mapper, rawWriter, bookWriter, levels, httpClient, snapshotFile);
+            }
+        } finally {
+            stopping.set(true);
+            webSocket.abort();
+        }
+
+        long elapsedNanos = System.nanoTime() - startedNanos;
+        writeSummary(summaryFile, mapper, stats, books, durationSeconds, elapsedNanos, rawFile, snapshotFile,
+                bookEventFile, levels, "record");
+        printSummary(stats, books, durationSeconds, elapsedNanos, rawFile, snapshotFile, bookEventFile, summaryFile,
+                "BINANCE_RAW_DEPTH_BOOK_SUMMARY");
+    }
+    private static WebSocket connectDepthStream(HttpClient httpClient, URI uri, LinkedBlockingQueue<RawDepthPayload> rawQueue,
+                                                AtomicLong sequence, AtomicBoolean stopping,
+                                                AtomicReference<Throwable> failure) throws Exception {
+        CountDownLatch open = new CountDownLatch(1);
         WebSocket webSocket = httpClient.newWebSocketBuilder()
                 .header("User-Agent", "hft-java-learning/0.1")
                 .buildAsync(uri, new WebSocket.Listener() {
@@ -130,42 +172,66 @@ public final class BinanceRawDepthOrderBookMain {
             webSocket.abort();
             throw new IllegalStateException("timed out opening Binance.US depth stream " + uri);
         }
+        failure.set(null);
+        return webSocket;
+    }
 
-        Map<String, SequencedLocalOrderBook> books = loadSnapshots(httpClient, symbols, snapshotFile, mapper);
-        BinanceDepthParser parser = new BinanceDepthParser();
-        RawDepthBookStats stats = new RawDepthBookStats(symbols);
-        long startedNanos = System.nanoTime();
-        long deadlineNanos = startedNanos + TimeUnit.SECONDS.toNanos(durationSeconds);
-
-        try (BufferedWriter rawWriter = Files.newBufferedWriter(rawFile, StandardCharsets.UTF_8);
-             BufferedWriter bookWriter = Files.newBufferedWriter(bookEventFile, StandardCharsets.UTF_8)) {
-            while (System.nanoTime() < deadlineNanos) {
-                RawDepthPayload raw = rawQueue.poll(100, TimeUnit.MILLISECONDS);
-                if (raw == null) {
-                    if (failure.get() != null) {
-                        throw new IllegalStateException("Binance.US depth stream failed", failure.get());
-                    }
-                    continue;
-                }
-                processRaw(raw, books, parser, stats, mapper, rawWriter, bookWriter, levels);
-            }
-
-            stopping.set(true);
-            webSocket.abort();
-            RawDepthPayload raw;
-            while ((raw = rawQueue.poll()) != null) {
-                processRaw(raw, books, parser, stats, mapper, rawWriter, bookWriter, levels);
-            }
-        } finally {
-            stopping.set(true);
-            webSocket.abort();
+    private static WebSocket reconnectDepthStream(WebSocket current, HttpClient httpClient, URI uri,
+                                                  LinkedBlockingQueue<RawDepthPayload> rawQueue, AtomicLong sequence,
+                                                  AtomicBoolean stopping, AtomicReference<Throwable> failure,
+                                                  RawDepthBookStats stats) throws Exception {
+        stats.addReconnectAttempt();
+        current.abort();
+        try {
+            WebSocket replacement = connectDepthStream(httpClient, uri, rawQueue, sequence, stopping, failure);
+            stats.addReconnectSuccess();
+            return replacement;
+        } catch (Exception e) {
+            stats.addReconnectFailure();
+            failure.compareAndSet(null, e);
+            throw e;
         }
+    }
 
-        long elapsedNanos = System.nanoTime() - startedNanos;
-        writeSummary(summaryFile, mapper, stats, books, durationSeconds, elapsedNanos, rawFile, snapshotFile,
-                bookEventFile, levels, "record");
-        printSummary(stats, books, durationSeconds, elapsedNanos, rawFile, snapshotFile, bookEventFile, summaryFile,
-                "BINANCE_RAW_DEPTH_BOOK_SUMMARY");
+    private static void resyncAllBooks(HttpClient httpClient, Map<String, SequencedLocalOrderBook> books,
+                                       List<String> symbols, Path snapshotFile, ObjectMapper mapper,
+                                       RawDepthBookStats stats, String reason) throws Exception {
+        for (String symbol : symbols) {
+            SequencedLocalOrderBook book = books.get(symbol.toUpperCase(Locale.ROOT));
+            if (book != null) {
+                resyncBook(httpClient, book, snapshotFile, mapper, stats, reason);
+            }
+        }
+    }
+
+    private static boolean resyncBook(HttpClient httpClient, SequencedLocalOrderBook book, Path snapshotFile,
+                                      ObjectMapper mapper, RawDepthBookStats stats, String reason) {
+        stats.addResyncAttempt(book.symbol());
+        try {
+            SnapshotPayload snapshot = fetchSnapshot(httpClient, book.symbol());
+            book.loadSnapshot(snapshot.payload());
+            try (BufferedWriter writer = Files.newBufferedWriter(snapshotFile, StandardCharsets.UTF_8,
+                    StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
+                writeSnapshotLine(writer, mapper, book.symbol(), snapshot.receivedEpochMillis(), book.lastUpdateId(),
+                        snapshot.payload(), reason);
+            }
+            stats.addResyncSuccess(book.symbol());
+            return true;
+        } catch (Exception e) {
+            stats.addResyncFailure(book.symbol());
+            return false;
+        }
+    }
+
+    private static SnapshotPayload fetchSnapshot(HttpClient httpClient, String symbol) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(String.format(SNAPSHOT_URI, symbol, SNAPSHOT_LIMIT)))
+                .timeout(SNAPSHOT_TIMEOUT)
+                .GET()
+                .build();
+        long receivedEpochMillis = System.currentTimeMillis();
+        String payload = httpClient.send(request, HttpResponse.BodyHandlers.ofString()).body();
+        return new SnapshotPayload(receivedEpochMillis, payload);
     }
     private static void replay(Path rawFile, Path snapshotFile, int levels) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
@@ -173,8 +239,8 @@ public final class BinanceRawDepthOrderBookMain {
         BinanceDepthParser parser = new BinanceDepthParser();
         RawDepthBookStats stats = new RawDepthBookStats(new ArrayList<>(books.keySet()));
         Path summaryFile = rawFile.getParent() == null
-                ? Path.of("binance-book-replay-summary-v17-" + runId() + ".json")
-                : rawFile.getParent().resolve("binance-book-replay-summary-v17-" + runId() + ".json");
+                ? Path.of("binance-book-replay-summary-v18-" + runId() + ".json")
+                : rawFile.getParent().resolve("binance-book-replay-summary-v18-" + runId() + ".json");
         long startedNanos = System.nanoTime();
 
         try (BufferedReader reader = Files.newBufferedReader(rawFile, StandardCharsets.UTF_8)) {
@@ -187,7 +253,7 @@ public final class BinanceRawDepthOrderBookMain {
                         root.get("localReceivedEpochMillis").asLong(),
                         0L,
                         root.get("rawPayload").asText());
-                processRaw(raw, books, parser, stats, mapper, null, null, levels);
+                processRaw(raw, books, parser, stats, mapper, null, null, levels, null, null);
             }
         }
 
@@ -198,7 +264,8 @@ public final class BinanceRawDepthOrderBookMain {
     }
 
     private static Map<String, SequencedLocalOrderBook> loadSnapshots(HttpClient httpClient, List<String> symbols,
-                                                                       Path snapshotFile, ObjectMapper mapper)
+                                                                       Path snapshotFile, ObjectMapper mapper,
+                                                                       String reason)
             throws Exception {
         Map<String, SequencedLocalOrderBook> books = new LinkedHashMap<>();
         try (BufferedWriter writer = Files.newBufferedWriter(snapshotFile, StandardCharsets.UTF_8)) {
@@ -214,7 +281,7 @@ public final class BinanceRawDepthOrderBookMain {
                 SequencedLocalOrderBook book = new SequencedLocalOrderBook(normalized);
                 book.loadSnapshot(payload);
                 books.put(normalized, book);
-                writeSnapshotLine(writer, mapper, normalized, receivedEpochMillis, book.lastUpdateId(), payload);
+                writeSnapshotLine(writer, mapper, normalized, receivedEpochMillis, book.lastUpdateId(), payload, reason);
             }
         }
         return books;
@@ -238,7 +305,8 @@ public final class BinanceRawDepthOrderBookMain {
 
     private static void processRaw(RawDepthPayload raw, Map<String, SequencedLocalOrderBook> books,
                                    BinanceDepthParser parser, RawDepthBookStats stats, ObjectMapper mapper,
-                                   BufferedWriter rawWriter, BufferedWriter bookWriter, int levels) throws Exception {
+                                   BufferedWriter rawWriter, BufferedWriter bookWriter, int levels,
+                                   HttpClient httpClient, Path snapshotFile) throws Exception {
         if (rawWriter != null) {
             writeRawLine(rawWriter, mapper, raw);
         }
@@ -274,8 +342,14 @@ public final class BinanceRawDepthOrderBookMain {
             writeBookEventLine(bookWriter, mapper, raw, update, book, top, result.name(), parseNanos, bookNanos,
                     levels, quality);
         }
+        if (httpClient != null && snapshotFile != null && book != null && needsResync(result)) {
+            resyncBook(httpClient, book, snapshotFile, mapper, stats, result.name());
+        }
     }
 
+    private static boolean needsResync(DepthUpdateApplyResult result) {
+        return result == DepthUpdateApplyResult.GAP || result == DepthUpdateApplyResult.CROSSED;
+    }
     private static void writeRawLine(BufferedWriter writer, ObjectMapper mapper, RawDepthPayload raw) throws Exception {
         ObjectNode line = mapper.createObjectNode();
         line.put("version", DataSourceModuleVersion.VERSION);
@@ -290,7 +364,8 @@ public final class BinanceRawDepthOrderBookMain {
     }
 
     private static void writeSnapshotLine(BufferedWriter writer, ObjectMapper mapper, String symbol,
-                                          long receivedEpochMillis, long lastUpdateId, String payload) throws Exception {
+                                          long receivedEpochMillis, long lastUpdateId, String payload,
+                                          String reason) throws Exception {
         ObjectNode line = mapper.createObjectNode();
         line.put("version", DataSourceModuleVersion.VERSION);
         line.put("exchange", EXCHANGE);
@@ -298,6 +373,7 @@ public final class BinanceRawDepthOrderBookMain {
         line.put("snapshotReceivedEpochMillis", receivedEpochMillis);
         line.put("snapshotLimit", SNAPSHOT_LIMIT);
         line.put("lastUpdateId", lastUpdateId);
+        line.put("reason", reason);
         line.put("rawPayload", payload);
         writer.write(mapper.writeValueAsString(line));
         writer.newLine();
@@ -350,6 +426,12 @@ public final class BinanceRawDepthOrderBookMain {
         root.put("gaps", stats.gaps);
         root.put("crossed", stats.crossed);
         root.put("unknownSymbol", stats.unknownSymbol);
+        root.put("resyncAttempts", stats.resyncAttempts);
+        root.put("resyncSuccesses", stats.resyncSuccesses);
+        root.put("resyncFailures", stats.resyncFailures);
+        root.put("reconnectAttempts", stats.reconnectAttempts);
+        root.put("reconnectSuccesses", stats.reconnectSuccesses);
+        root.put("reconnectFailures", stats.reconnectFailures);
         root.put("parseAvgUs", micros(stats.average(stats.parseLatencies)));
         root.put("parseP99Us", micros(stats.percentile(stats.parseLatencies, 0.99)));
         root.put("bookAvgUs", micros(stats.average(stats.bookLatencies)));
@@ -378,6 +460,9 @@ public final class BinanceRawDepthOrderBookMain {
             symbol.put("gaps", book.gaps());
             symbol.put("crossed", book.crossed());
             symbol.put("unknownSymbol", book.unknownSymbol());
+            symbol.put("resyncAttempts", symbolStats.resyncAttempts);
+            symbol.put("resyncSuccesses", symbolStats.resyncSuccesses);
+            symbol.put("resyncFailures", symbolStats.resyncFailures);
             addTopLevels(symbol, book.topLevels(levels), levels);
         }
         Files.writeString(summaryFile, mapper.writerWithDefaultPrettyPrinter().writeValueAsString(root),
@@ -399,6 +484,12 @@ public final class BinanceRawDepthOrderBookMain {
                 + " gaps=" + stats.gaps
                 + " crossed=" + stats.crossed
                 + " unknownSymbol=" + stats.unknownSymbol
+                + " resyncAttempts=" + stats.resyncAttempts
+                + " resyncSuccesses=" + stats.resyncSuccesses
+                + " resyncFailures=" + stats.resyncFailures
+                + " reconnectAttempts=" + stats.reconnectAttempts
+                + " reconnectSuccesses=" + stats.reconnectSuccesses
+                + " reconnectFailures=" + stats.reconnectFailures
                 + " parseAvgUs=" + micros(stats.average(stats.parseLatencies))
                 + " parseP99Us=" + micros(stats.percentile(stats.parseLatencies, 0.99))
                 + " bookAvgUs=" + micros(stats.average(stats.bookLatencies))
@@ -417,6 +508,9 @@ public final class BinanceRawDepthOrderBookMain {
                     + " stale=" + book.stale()
                     + " gaps=" + book.gaps()
                     + " crossed=" + book.crossed()
+                    + " resyncAttempts=" + stats.symbolStats(book.symbol()).resyncAttempts
+                    + " resyncSuccesses=" + stats.symbolStats(book.symbol()).resyncSuccesses
+                    + " resyncFailures=" + stats.symbolStats(book.symbol()).resyncFailures
                     + " bid1Ticks=" + top.bidPrices()[0]
                     + " ask1Ticks=" + top.askPrices()[0]
                     + " spreadTicks=" + (top.askPrices()[0] - top.bidPrices()[0]));
@@ -489,6 +583,9 @@ public final class BinanceRawDepthOrderBookMain {
         return String.format(Locale.ROOT, "%.2f", nanos / 1_000.0);
     }
 
+    private record SnapshotPayload(long receivedEpochMillis, String payload) {
+    }
+
     private static final class RawDepthBookStats {
         private final Map<String, SymbolStats> bySymbol = new LinkedHashMap<>();
         private final List<Long> parseLatencies = new ArrayList<>();
@@ -504,6 +601,12 @@ public final class BinanceRawDepthOrderBookMain {
         private long gaps;
         private long crossed;
         private long unknownSymbol;
+        private long resyncAttempts;
+        private long resyncSuccesses;
+        private long resyncFailures;
+        private long reconnectAttempts;
+        private long reconnectSuccesses;
+        private long reconnectFailures;
 
         private RawDepthBookStats(List<String> symbols) {
             for (String symbol : symbols) {
@@ -521,6 +624,32 @@ public final class BinanceRawDepthOrderBookMain {
             symbolStats(symbol).parseFailures++;
         }
 
+        private void addResyncAttempt(String symbol) {
+            resyncAttempts++;
+            symbolStats(symbol).resyncAttempts++;
+        }
+
+        private void addResyncSuccess(String symbol) {
+            resyncSuccesses++;
+            symbolStats(symbol).resyncSuccesses++;
+        }
+
+        private void addResyncFailure(String symbol) {
+            resyncFailures++;
+            symbolStats(symbol).resyncFailures++;
+        }
+
+        private void addReconnectAttempt() {
+            reconnectAttempts++;
+        }
+
+        private void addReconnectSuccess() {
+            reconnectSuccesses++;
+        }
+
+        private void addReconnectFailure() {
+            reconnectFailures++;
+        }
         private void record(String symbol, DepthUpdateApplyResult result, long parseNanos, long bookNanos,
                             long localE2eNanos, long exchangeToReceiveNanos) {
             parsed++;
@@ -592,6 +721,10 @@ public final class BinanceRawDepthOrderBookMain {
             private long gaps;
             private long crossed;
             private long unknownSymbol;
+            private long resyncAttempts;
+            private long resyncSuccesses;
+            private long resyncFailures;
+
         }
     }
 }

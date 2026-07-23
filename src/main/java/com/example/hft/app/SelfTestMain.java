@@ -62,6 +62,12 @@ public final class SelfTestMain {
         assertEquals(DepthUpdateApplyResult.GAP, gap, "missing update id should be gap");
         assertEquals(BookQuality.GAP_DETECTED, book.quality(), "gap should degrade book quality");
 
+        book.loadSnapshot("{\"lastUpdateId\":200,\"bids\":[[\"1.14100\",\"10.0000\"]],\"asks\":[[\"1.14130\",\"12.0000\"]]}");
+        assertEquals(BookQuality.BOOTSTRAPPING, book.quality(), "resync snapshot should reset quality");
+        DepthUpdateApplyResult afterResync = book.apply(parser.parseUpdate("{\"e\":\"depthUpdate\",\"E\":5,\"s\":\"XRPUSDT\",\"U\":199,\"u\":201,\"b\":[[\"1.14110\",\"10.0000\"]],\"a\":[[\"1.14140\",\"12.0000\"]]}"));
+        assertEquals(DepthUpdateApplyResult.APPLIED, afterResync, "bridged update after resync should apply");
+        assertEquals(BookQuality.LIVE, book.quality(), "book should be live after resync bridge");
+
         DepthBookTop top = book.topLevels(1);
         if (top.bidPrices()[0] >= top.askPrices()[0]) {
             throw new AssertionError("crypto decimal price scale should keep bid below ask");

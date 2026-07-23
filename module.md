@@ -772,3 +772,25 @@ Reference rule:
 ```text
 Binance.US documents the same local order-book algorithm: open the stream, buffer events, fetch depth snapshot, drop stale events, bridge lastUpdateId + 1, then apply continuous updates.
 ```
+## V18 Automatic Reconnect And Resync
+
+V18 implements the first production hardening item only.
+
+Behavior:
+
+```text
+WebSocket failure -> reconnect stream -> reload snapshots for all symbols.
+Book GAP or CROSSED -> reload snapshot for that symbol -> continue processing later raw messages.
+Replay mode stays deterministic and does not fetch live REST snapshots.
+```
+
+New operational counters:
+
+```text
+reconnectAttempts
+reconnectSuccesses
+reconnectFailures
+resyncAttempts
+resyncSuccesses
+resyncFailures
+```

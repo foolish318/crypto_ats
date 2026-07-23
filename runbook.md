@@ -1222,3 +1222,39 @@ Git note:
 ```text
 Generated V17 market-data captures are ignored by .gitignore. Keep code, docs, scripts, and diagrams in Git; regenerate raw data locally when benchmarking.
 ```
+## V18 Runbook: Automatic Reconnect And Resync
+
+Purpose:
+
+```text
+First production hardening step for the Binance.US raw-depth local book path.
+```
+
+What changed:
+
+```text
+WebSocket onError no longer immediately aborts the run.
+The app reconnects the Binance.US depth stream and reloads snapshots for all active symbols.
+If a local book detects GAP or CROSSED, the app reloads a REST depth snapshot for that symbol and continues.
+Snapshot JSONL lines now include reason: INITIAL, WEBSOCKET_RECONNECT, GAP, or CROSSED.
+Summary output now includes resyncAttempts/resyncSuccesses/resyncFailures and reconnectAttempts/reconnectSuccesses/reconnectFailures.
+```
+
+Run live smoke:
+
+```bash
+./scripts/binance-depth-book.sh 20 BTCUSDT,ETHUSDT,BNBUSDT,SOLUSDT,XRPUSDT 10 data
+```
+
+Latest V18 smoke result:
+
+```text
+BINANCE_RAW_DEPTH_BOOK_SUMMARY version=V18-auto-resync-order-book durationSeconds=20 rawMessages=248 parsed=248 parseFailures=0 applied=243 stale=5 gaps=0 crossed=0 unknownSymbol=0 resyncAttempts=0 resyncSuccesses=0 resyncFailures=0 reconnectAttempts=0 reconnectSuccesses=0 reconnectFailures=0
+```
+
+Interpretation:
+
+```text
+No reconnect/resync was needed during this 20-second clean live run.
+The deterministic self-test now covers gap -> snapshot reload -> bridged update -> LIVE quality.
+```

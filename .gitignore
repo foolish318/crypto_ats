@@ -13,3 +13,8 @@ target/
 /data/binance-depth-snapshots-v17-*.jsonl
 /data/binance-book-summary-v17-*.json
 /data/binance-book-replay-summary-v17-*.json
+/data/binance-raw-depth-v18-*.jsonl
+/data/binance-book-events-v18-*.jsonl
+/data/binance-depth-snapshots-v18-*.jsonl
+/data/binance-book-summary-v18-*.json
+/data/binance-book-replay-summary-v18-*.json
