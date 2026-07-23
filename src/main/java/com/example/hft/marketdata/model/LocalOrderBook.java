@@ -12,8 +12,8 @@ import java.util.TreeMap;
 
 
 public final class LocalOrderBook {
-    private static final int PRICE_SCALE = 100;
-    private static final int SIZE_SCALE = 1_000;
+    private static final int PRICE_SCALE = 100_000;
+    private static final int SIZE_SCALE = 10_000;
 
     private final TreeMap<Long, Integer> bids = new TreeMap<>(Comparator.reverseOrder());
     private final TreeMap<Long, Integer> asks = new TreeMap<>();
@@ -38,6 +38,10 @@ public final class LocalOrderBook {
         applySide(update.asks(), asks);
         lastUpdateId = update.finalUpdateId();
         return true;
+    }
+
+    public long lastUpdateId() {
+        return lastUpdateId;
     }
 
     public DepthBookTop topLevels(int levels) {
@@ -92,8 +96,15 @@ public final class LocalOrderBook {
     }
 
     private static int toSize(String value) {
-        BigDecimal scaled = new BigDecimal(value).multiply(BigDecimal.valueOf(SIZE_SCALE));
+        BigDecimal raw = new BigDecimal(value);
+        if (raw.signum() == 0) {
+            return 0;
+        }
+        BigDecimal scaled = raw.multiply(BigDecimal.valueOf(SIZE_SCALE));
         long size = scaled.longValue();
+        if (size <= 0) {
+            return 1;
+        }
         return size > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) size;
     }
 }

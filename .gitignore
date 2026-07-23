@@ -6,3 +6,10 @@ target/
 *.class
 *.log
 
+
+# Generated live market-data captures
+/data/binance-raw-depth-v17-*.jsonl
+/data/binance-book-events-v17-*.jsonl
+/data/binance-depth-snapshots-v17-*.jsonl
+/data/binance-book-summary-v17-*.json
+/data/binance-book-replay-summary-v17-*.json

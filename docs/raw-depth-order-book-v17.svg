@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">V17 Raw Depth To Local Order Book</title>
+  <desc id="desc">Binance US raw depth stream is recorded, parsed, sequenced against a REST snapshot, and applied to local order books.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#1f2937"/>
+    </marker>
+    <style>
+      .title { font: 700 28px Arial, sans-serif; fill: #111827; }
+      .label { font: 700 16px Arial, sans-serif; fill: #111827; }
+      .small { font: 13px Arial, sans-serif; fill: #374151; }
+      .tiny { font: 12px Arial, sans-serif; fill: #4b5563; }
+      .box { stroke-width: 2; rx: 10; ry: 10; }
+      .arrow { stroke: #1f2937; stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
+      .dash { stroke-dasharray: 8 6; }
+    </style>
+  </defs>
+
+  <rect width="1280" height="720" fill="#f8fafc"/>
+  <text x="40" y="54" class="title">V17: Raw Depth Data To Local Order Book</text>
+  <text x="40" y="82" class="small">Scope: Binance.US public depth stream, full local recording, REST snapshot bootstrap, sequence validation, local book update, replay from raw files.</text>
+
+  <rect x="40" y="130" width="210" height="90" class="box" fill="#dbeafe" stroke="#2563eb"/>
+  <text x="62" y="165" class="label">Binance.US WS</text>
+  <text x="62" y="191" class="small">@depth@100ms</text>
+  <text x="62" y="210" class="tiny">raw JSON diff updates</text>
+
+  <rect x="330" y="130" width="220" height="90" class="box" fill="#ffedd5" stroke="#ea580c"/>
+  <text x="355" y="165" class="label">RawDepthPayload</text>
+  <text x="355" y="191" class="small">unbounded queue</text>
+  <text x="355" y="210" class="tiny">no message-limit sampling</text>
+
+  <rect x="630" y="130" width="210" height="90" class="box" fill="#fef3c7" stroke="#d97706"/>
+  <text x="654" y="165" class="label">Raw Recorder</text>
+  <text x="654" y="191" class="small">JSONL on disk</text>
+  <text x="654" y="210" class="tiny">replayable raw payloads</text>
+
+  <rect x="40" y="310" width="210" height="90" class="box" fill="#dcfce7" stroke="#16a34a"/>
+  <text x="62" y="345" class="label">REST Snapshot</text>
+  <text x="62" y="371" class="small">depth limit=5000</text>
+  <text x="62" y="390" class="tiny">lastUpdateId anchor</text>
+
+  <rect x="330" y="310" width="220" height="90" class="box" fill="#ede9fe" stroke="#7c3aed"/>
+  <text x="355" y="345" class="label">Parser</text>
+  <text x="355" y="371" class="small">BinanceDepthParser</text>
+  <text x="355" y="390" class="tiny">U/u/b/a -> DepthUpdate</text>
+
+  <rect x="630" y="310" width="230" height="90" class="box" fill="#fce7f3" stroke="#db2777"/>
+  <text x="655" y="345" class="label">Sequencer</text>
+  <text x="655" y="371" class="small">snapshot bridge rule</text>
+  <text x="655" y="390" class="tiny">stale, gap, crossed checks</text>
+
+  <rect x="940" y="310" width="230" height="90" class="box" fill="#e0f2fe" stroke="#0284c7"/>
+  <text x="965" y="345" class="label">LocalOrderBook</text>
+  <text x="965" y="371" class="small">per symbol TreeMaps</text>
+  <text x="965" y="390" class="tiny">top N bid/ask view</text>
+
+  <rect x="940" y="500" width="230" height="90" class="box" fill="#ecfccb" stroke="#65a30d"/>
+  <text x="965" y="535" class="label">Book Output</text>
+  <text x="965" y="561" class="small">book events + summary</text>
+  <text x="965" y="580" class="tiny">latency and quality metrics</text>
+
+  <rect x="330" y="500" width="220" height="90" class="box" fill="#e5e7eb" stroke="#4b5563"/>
+  <text x="355" y="535" class="label">Replay Mode</text>
+  <text x="355" y="561" class="small">raw JSONL + snapshot</text>
+  <text x="355" y="580" class="tiny">same parser and book path</text>
+
+  <path class="arrow" d="M250 175 H330"/>
+  <path class="arrow" d="M550 175 H630"/>
+  <path class="arrow" d="M440 220 V310"/>
+  <path class="arrow" d="M250 355 H330"/>
+  <path class="arrow" d="M550 355 H630"/>
+  <path class="arrow" d="M860 355 H940"/>
+  <path class="arrow" d="M1055 400 V500"/>
+  <path class="arrow dash" d="M735 220 V270 H440 V310"/>
+  <path class="arrow dash" d="M550 545 H745 V400"/>
+
+  <text x="276" y="166" class="tiny">producer</text>
+  <text x="572" y="166" class="tiny">persist all raw</text>
+  <text x="573" y="346" class="tiny">DepthUpdate</text>
+  <text x="876" y="346" class="tiny">apply if valid</text>
+  <text x="765" y="260" class="tiny">replay later</text>
+</svg>

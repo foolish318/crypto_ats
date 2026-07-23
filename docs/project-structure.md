@@ -103,3 +103,27 @@ scripts/xchange-rest.sh                XChange REST experiment
 ```
 
 When adding new work, prefer adding a new app class under `com.example.hft.app` and a small script that calls it.
+## V17 Depth Book Files
+
+```text
+src/main/java/com/example/hft/app/BinanceRawDepthOrderBookMain.java
+  Runnable V17 app for record and replay modes.
+
+src/main/java/com/example/hft/datasource/book/SequencedLocalOrderBook.java
+  Wraps LocalOrderBook with Binance U/u sequence validation and quality counters.
+
+src/main/java/com/example/hft/datasource/book/DepthUpdateApplyResult.java
+  Result enum for applied, stale, gap, crossed, and unknown-symbol updates.
+
+scripts/binance-depth-book.sh
+scripts/binance-depth-book-30m.sh
+scripts/binance-depth-book-1h.sh
+scripts/binance-depth-book-replay.sh
+  Stable entry points for live capture and local replay.
+```
+
+V17 runtime boundary:
+
+```text
+WebSocket raw producer -> RawDepthPayload queue -> raw recorder -> parser -> sequence gate -> local order book -> book event recorder
+```

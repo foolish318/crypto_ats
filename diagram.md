@@ -1648,3 +1648,49 @@ V14 wrapped adapters as connectors.
 V15 added reference-inspired instrument, engine, cache, bus, and replay skeletons.
 V16 makes the main live validation app use those pieces instead of bypassing them.
 ```
+## V17: Raw Depth To Local Order Book
+
+Status:
+
+```text
+Current active depth-book path records Binance.US raw WebSocket depth messages, anchors them to REST snapshots, validates sequence continuity, and applies valid deltas to local order books.
+```
+
+Local image:
+
+```text
+docs/raw-depth-order-book-v17.svg
+```
+
+Runtime flow:
+
+```mermaid
+flowchart LR
+    WS["Binance.US WebSocket depth@100ms"] --> Queue["RawDepthPayload queue"]
+    Queue --> RawFile["raw JSONL recorder"]
+    Queue --> Parser["BinanceDepthParser"]
+    REST["REST depth snapshot limit=5000"] --> Book["SequencedLocalOrderBook"]
+    Parser --> Seq["U/u sequence gate"]
+    Seq --> Book
+    Book --> Events["book event JSONL"]
+    Book --> Summary["summary JSON + console metrics"]
+    RawFile -. replay .-> Parser
+```
+
+Key sequence rule:
+
+```text
+Open WebSocket first and buffer raw events.
+Fetch REST snapshot after the stream is open.
+Drop stale events where u <= snapshot lastUpdateId.
+The first applied event must bridge snapshot lastUpdateId + 1.
+After bootstrap, each event must continue from previous final update id + 1.
+```
+
+Why V17 matters:
+
+```text
+V16 proved the top-of-book datasource engine wiring.
+V17 starts the real depth-book layer: raw exchange data becomes a maintained local order book with gap/stale/crossed quality metrics.
+This is the correct foundation before strategy, arbitrage, or order routing logic.
+```

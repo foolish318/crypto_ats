@@ -713,3 +713,62 @@ Both versions loaded data successfully from all 6 exchange/symbol connectors.
 V16 confirms the refactored runtime path is active because cache, event bus, and replay recorder all received the expected 6 events.
 The live load-time difference should not be read as a regression without replay, because these runs include network and market-data arrival timing.
 ```
+## V17 Raw Depth To Local Order Book
+
+V17 implements the first real full-depth market-data stage for Binance.US.
+
+Implemented path:
+
+```text
+Binance.US WebSocket combined stream
+  -> RawDepthPayload queue
+  -> raw JSONL recorder
+  -> BinanceDepthParser
+  -> SequencedLocalOrderBook
+  -> LocalOrderBook per symbol
+  -> book event JSONL + summary JSON
+```
+
+Snapshot/bootstrap path:
+
+```text
+WebSocket is opened first.
+Raw events are buffered locally.
+REST depth snapshot is fetched with limit=5000.
+The snapshot lastUpdateId anchors the local book.
+Buffered and live events are then applied only if their U/u sequence is valid.
+```
+
+New code:
+
+```text
+src/main/java/com/example/hft/app/BinanceRawDepthOrderBookMain.java
+src/main/java/com/example/hft/datasource/book/SequencedLocalOrderBook.java
+src/main/java/com/example/hft/datasource/book/DepthUpdateApplyResult.java
+src/main/java/com/example/hft/marketdata/model/LocalOrderBook.java
+```
+
+Quality metrics now captured:
+
+```text
+rawMessages      every WebSocket message accepted by the local producer
+parsed           raw JSON messages successfully parsed into DepthUpdate
+applied          valid depth deltas applied to the local book
+stale            old updates safely ignored because u <= lastUpdateId
+gaps             sequence discontinuities, meaning the local book should be treated as invalid until resync
+crossed          bid >= ask after applying an update
+parseFailures    malformed or unexpected raw payloads
+```
+
+Important fix in this version:
+
+```text
+LocalOrderBook price and size scaling were increased for crypto decimals.
+The old cent-level price scale could incorrectly report XRPUSDT as crossed because bid and ask collapsed into the same integer tick.
+```
+
+Reference rule:
+
+```text
+Binance.US documents the same local order-book algorithm: open the stream, buffer events, fetch depth snapshot, drop stale events, bridge lastUpdateId + 1, then apply continuous updates.
+```

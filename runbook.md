@@ -1149,3 +1149,76 @@ Reading:
 V16 validates the architecture wiring: cache, event bus, and replay recorder all saw the same 6 top-of-book events.
 The clean latency benchmark still needs replay, because live WebSocket load includes network and exchange timing that changes between runs.
 ```
+## V17 Runbook: Raw Depth To Local Order Book
+
+Purpose:
+
+```text
+Capture unsampled Binance.US depth diff messages, build local order books from raw data, and keep replayable files for later 30m/1h backtests.
+```
+
+Compile:
+
+```bash
+mvn -q compile
+```
+
+Short smoke test:
+
+```bash
+./scripts/binance-depth-book.sh 20 BTCUSDT,ETHUSDT,BNBUSDT,SOLUSDT,XRPUSDT 10 data
+```
+
+30-minute live capture:
+
+```bash
+./scripts/binance-depth-book-30m.sh BTCUSDT,ETHUSDT,BNBUSDT,SOLUSDT,XRPUSDT 10 data
+```
+
+1-hour live capture:
+
+```bash
+./scripts/binance-depth-book-1h.sh BTCUSDT,ETHUSDT,BNBUSDT,SOLUSDT,XRPUSDT 10 data
+```
+
+Replay a saved capture:
+
+```bash
+./scripts/binance-depth-book-replay.sh \
+  data/binance-raw-depth-v17-<run-id>.jsonl \
+  data/binance-depth-snapshots-v17-<run-id>.jsonl \
+  10
+```
+
+Generated files:
+
+```text
+data/binance-raw-depth-v17-<run-id>.jsonl          raw WebSocket payloads, no local sampling
+data/binance-depth-snapshots-v17-<run-id>.jsonl    REST snapshots used to anchor the books
+data/binance-book-events-v17-<run-id>.jsonl        per-message book apply result and top levels
+data/binance-book-summary-v17-<run-id>.json        final quality and latency summary
+```
+
+Latest 20-second smoke result:
+
+```text
+BINANCE_RAW_DEPTH_BOOK_SUMMARY version=V17-raw-depth-to-order-book durationSeconds=20 rawMessages=222 parsed=222 parseFailures=0 applied=217 stale=5 gaps=0 crossed=0 unknownSymbol=0 parseAvgUs=116.60 bookAvgUs=47.49 localE2EAvgUs=18278.96 exchangeToReceiveAvgUs=34662.16
+BTCUSDT LIVE applied=50 stale=2 gaps=0 crossed=0
+ETHUSDT LIVE applied=78 stale=1 gaps=0 crossed=0
+BNBUSDT LIVE applied=24 stale=2 gaps=0 crossed=0
+SOLUSDT LIVE applied=38 stale=0 gaps=0 crossed=0
+XRPUSDT LIVE applied=27 stale=0 gaps=0 crossed=0
+```
+
+Latest replay validation of that same capture:
+
+```text
+BINANCE_RAW_DEPTH_REPLAY_SUMMARY rawMessages=222 parsed=222 parseFailures=0 applied=217 stale=5 gaps=0 crossed=0 unknownSymbol=0
+Replay rebuilt the same final lastUpdateId and top-of-book state for all five symbols.
+```
+
+Git note:
+
+```text
+Generated V17 market-data captures are ignored by .gitignore. Keep code, docs, scripts, and diagrams in Git; regenerate raw data locally when benchmarking.
+```
