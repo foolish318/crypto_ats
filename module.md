@@ -691,3 +691,25 @@ Current limitation:
 This is still top-of-book validation, not full depth local-book maintenance.
 The next real implementation step is BookCoordinator: REST snapshot bootstrap + WebSocket delta sequencing + LocalOrderBook update.
 ```
+## V16 Version and Validation
+
+Code version marker:
+
+```text
+DataSourceModuleVersion.VERSION = V16-data-engine-runtime
+```
+
+Latest validation result:
+
+```text
+V14-connector-wrapper: wsCount=6 avgWsLoadMs=1329.626667 restExact=5/6 xchangeExact=3/4
+V16-data-engine-runtime: wsCount=6 avgWsLoadMs=2108.258333 avgEngineEtlUs=433.300000 restExact=6/6 xchangeExact=4/4 cacheTopOfBook=6 publishedEvents=6 replayRecords=6
+```
+
+Quality interpretation:
+
+```text
+Both versions loaded data successfully from all 6 exchange/symbol connectors.
+V16 confirms the refactored runtime path is active because cache, event bus, and replay recorder all received the expected 6 events.
+The live load-time difference should not be read as a regression without replay, because these runs include network and market-data arrival timing.
+```

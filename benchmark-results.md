@@ -193,3 +193,60 @@ The custom WebSocket adapters produce top-of-book prices that match nearby REST 
 This validates the field mapping for Binance.US, OKX, and Kraken at the best bid/ask level.
 The next step is to promote these top-of-book adapters into full order-book update adapters that emit CanonicalOrderBookUpdate.
 ```
+
+## V16 Data Source Engine Runtime Comparison
+
+Purpose:
+
+```text
+Compare the previous connector-wrapper version against the refactored data-engine runtime path.
+This is a live public-market smoke benchmark, not a strict latency benchmark, because exchange/network timing changes between runs.
+```
+
+Versions compared:
+
+```text
+V14-connector-wrapper:
+  commit f584843 Add data source module design
+  path: WebSocket adapter -> TopOfBookSnapshot -> REST/XChange comparison
+
+V16-data-engine-runtime:
+  working tree after version marker update
+  path: MarketDataConnector.subscribe -> FanoutMarketDataSink -> MarketDataEngine
+        -> MarketDataCache + MarketDataEventBus + RecordingMarketDataSink
+        -> REST/XChange comparison reads from cache
+```
+
+Commands:
+
+```bash
+./scripts/custom-ws-vs-baseline.sh | tee data/datasource-v16-current-latest.log
+
+git worktree add --detach /tmp/hft_java_prev_f584843 f584843
+cd /tmp/hft_java_prev_f584843
+./scripts/custom-ws-vs-baseline.sh | tee /home/yimo/hft_java/data/datasource-v14-prev-f584843-latest.log
+
+cd /home/yimo/hft_java
+scripts/compare-datasource-logs.py \
+  data/datasource-v14-prev-f584843-latest.log \
+  data/datasource-v16-current-latest.log \
+  | tee data/datasource-version-comparison-latest.csv
+```
+
+Result:
+
+```text
+version,file,wsCount,avgWsLoadMs,avgEngineEtlUs,restSuccess,restExact,restAvgBidBps,restAvgAskBps,xchangeSuccess,xchangeExact,xchangeAvgBidBps,xchangeAvgAskBps,cacheTopOfBook,publishedEvents,replayRecords
+V14-connector-wrapper,data/datasource-v14-prev-f584843-latest.log,6,1329.626667,0.000000,6,5,0.008613,0.017224,4,3,0.012919,0.025836,-,-,-
+V16-data-engine-runtime,data/datasource-v16-current-latest.log,6,2108.258333,433.300000,6,6,0.000000,0.000000,4,4,0.000000,0.000000,6,6,6
+```
+
+Interpretation:
+
+```text
+V16 proves the new architecture is active: 6 cached top-of-book entries, 6 published events, and 6 replay records.
+The V16 engine/cache/event-bus/recorder ETL overhead averaged 433.30us for this run.
+The avgWsLoadMs comparison is not a clean architecture latency comparison because it includes live network/exchange timing.
+Quality improved in this sample: V16 had exact price matches for 6/6 REST checks and 4/4 XChange checks.
+The next stricter benchmark should use replay so both versions process identical captured input.
+```

@@ -16,3 +16,12 @@ binance-depth-latency.sh       Binance depth order-book latency
 binance-depth-compare.sh       JCTools SPSC vs Disruptor comparison
 binance-depth-raw-disruptor.sh raw depth -> Disruptor handler chain
 ```
+## Data Source Comparison
+
+Summarize saved validation logs:
+
+```bash
+scripts/compare-datasource-logs.py data/datasource-v14-prev-f584843-latest.log data/datasource-v16-current-latest.log
+```
+
+The parser reports WebSocket load time, engine ETL overhead, REST/XChange quality, and cache/event/replay counts.

@@ -1086,9 +1086,9 @@ Run the active architecture path:
 Expected output markers:
 
 ```text
-datasource-engine-websocket-vs-baseline sampledAt=...
+datasource-engine-websocket-vs-baseline version=V16-data-engine-runtime sampledAt=...
 CUSTOM_WS ... canonical=... connectorStatus=LIVE
-DATASOURCE_ENGINE_SUMMARY cacheTopOfBook=6 publishedEvents=6 replayRecords=6 eventBusListeners=1
+DATASOURCE_ENGINE_SUMMARY version=V16-data-engine-runtime cacheTopOfBook=6 publishedEvents=6 replayRecords=6 eventBusListeners=1`nDATASOURCE_VALIDATION_SUMMARY version=V16-data-engine-runtime connectors=6 ... avgWsLoadMs=... avgEngineEtlUs=...
 ```
 
 Relevant code:
@@ -1101,4 +1101,51 @@ src/main/java/com/example/hft/datasource/engine/MarketDataCache.java
 src/main/java/com/example/hft/datasource/engine/MarketDataEventBus.java
 src/main/java/com/example/hft/datasource/replay/RecordingMarketDataSink.java
 src/main/java/com/example/hft/datasource/instrument/SymbolMapper.java
+```
+## V16 Runbook: Compare Data Source Versions
+
+Purpose:
+
+```text
+Compare the previous connector-wrapper version with the current data-engine runtime path.
+This is a live smoke benchmark. Treat network-included load time as directional only.
+```
+
+Run current V16 and save a log:
+
+```bash
+./scripts/custom-ws-vs-baseline.sh | tee data/datasource-v16-current-latest.log
+```
+
+Run previous V14 connector-wrapper commit in a temporary worktree:
+
+```bash
+git worktree add --detach /tmp/hft_java_prev_f584843 f584843
+cd /tmp/hft_java_prev_f584843
+./scripts/custom-ws-vs-baseline.sh | tee /home/yimo/hft_java/data/datasource-v14-prev-f584843-latest.log
+cd /home/yimo/hft_java
+git worktree remove --force /tmp/hft_java_prev_f584843
+```
+
+Summarize load/ETL timing and quality:
+
+```bash
+scripts/compare-datasource-logs.py \
+  data/datasource-v14-prev-f584843-latest.log \
+  data/datasource-v16-current-latest.log \
+  | tee data/datasource-version-comparison-latest.csv
+```
+
+Latest comparison result:
+
+```text
+V14 avgWsLoadMs=1329.626667 avgEngineEtlUs=0.000000 restExact=5/6 xchangeExact=3/4
+V16 avgWsLoadMs=2108.258333 avgEngineEtlUs=433.300000 restExact=6/6 xchangeExact=4/4 cacheTopOfBook=6 publishedEvents=6 replayRecords=6
+```
+
+Reading:
+
+```text
+V16 validates the architecture wiring: cache, event bus, and replay recorder all saw the same 6 top-of-book events.
+The clean latency benchmark still needs replay, because live WebSocket load includes network and exchange timing that changes between runs.
 ```
