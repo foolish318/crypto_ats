@@ -994,7 +994,7 @@ Read the data-source design:
 
 ```bash
 cat module.md
-cat docs/data-source-diagram.md
+cat docs/architecture.md
 ```
 
 Compile after refactor:
@@ -1023,7 +1023,7 @@ src/main/java/com/example/hft/datasource/TopOfBookMarketDataConnector.java
 src/main/java/com/example/hft/datasource/transport/RawInboundMessage.java
 src/main/java/com/example/hft/datasource/normalizer/NormalizedMarketDataEvent.java
 src/main/java/com/example/hft/app/CustomWebSocketVsBaselineTopOfBookMain.java
-docs/data-source-diagram.md
+docs/architecture.md
 module.md
 ```
 ## V15 Runbook: Reference-Inspired Data Module Cleanup
@@ -1044,8 +1044,8 @@ cat docs/project-structure.md
 Open the real architecture images:
 
 ```text
-docs/data-source-architecture.png
-docs/data-source-architecture.svg
+docs/architecture.png
+docs/architecture.svg
 ```
 
 Compile and smoke test:
@@ -1312,3 +1312,58 @@ git push origin main
 ## Git Command Reference
 
 Git push commands are centralized in `gitcommand.md`. Future version notes should reference that file instead of repeating long git command blocks.
+## V20 Runbook: Multi-Exchange Data Quality Gate
+
+Purpose:
+
+```text
+Integrate venue-specific data quality checks with the V19 Binance.US, OKX, and Kraken deep-book sources.
+```
+
+Compile and run deterministic tests:
+
+```bash
+mvn -q compile
+./scripts/test.sh
+```
+
+Run the live quality probe:
+
+```bash
+./scripts/deep-book-sources.sh data
+```
+
+Expected summary shape:
+
+```text
+DEEP_BOOK_SOURCE_SUMMARY version=V20-deep-book-quality-gate sources=6 connected=6 qualityAccepted=6 rejected=0
+```
+
+Generated evidence:
+
+```text
+data/deep-book-quality-v20-<run-id>.jsonl
+```
+
+Important fields:
+
+```text
+transportSuccess
+qualityAccepted
+qualityCheckedMessages
+qualityChecksPassed
+qualityChecksFailed
+qualityFailures
+qualitySequence
+qualityChecksum
+```
+
+Architecture and module documentation:
+
+```text
+docs/architecture.md
+docs/modules/data-quality.md
+docs/modules/order-book.md
+```
+
+Git commands remain centralized in `gitcommand.md`.

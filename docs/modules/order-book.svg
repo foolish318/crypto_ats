@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
-  <title id="title">V17 Raw Depth To Local Order Book</title>
+  <title id="title">Local order-book module</title>
   <desc id="desc">Binance US raw depth stream is recorded, parsed, sequenced against a REST snapshot, and applied to local order books.</desc>
   <defs>
     <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
@@ -17,7 +17,7 @@
   </defs>
 
   <rect width="1280" height="720" fill="#f8fafc"/>
-  <text x="40" y="54" class="title">V17: Raw Depth Data To Local Order Book</text>
+  <text x="40" y="54" class="title">Local Order-Book Module</text>
   <text x="40" y="82" class="small">Scope: Binance.US public depth stream, full local recording, REST snapshot bootstrap, sequence validation, local book update, replay from raw files.</text>
 
   <rect x="40" y="130" width="210" height="90" class="box" fill="#dbeafe" stroke="#2563eb"/>

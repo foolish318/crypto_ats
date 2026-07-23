@@ -142,7 +142,10 @@ src/main/java/com/example/hft/app/DeepBookSourceDiscoveryMain.java
 Documentation:
 
 ```text
-docs/data-quality-v20.md
-docs/data-source-architecture-v20.svg
-docs/data-quality-gate-v20.svg
+docs/architecture.md
+docs/architecture.svg
+docs/modules/data-quality.md
+docs/modules/data-quality.svg
+docs/modules/order-book.md
+docs/modules/order-book.svg
 ```

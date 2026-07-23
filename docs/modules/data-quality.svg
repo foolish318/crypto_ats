@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1500" height="940" viewBox="0 0 1500 940" role="img" aria-labelledby="title desc">
-  <title id="title">V20 deep-book quality gate decision flow</title>
+  <title id="title">Data quality module decision flow</title>
   <desc id="desc">A detailed decision flow showing common and exchange-specific data quality checks, accept output, and reject resynchronization output.</desc>
   <defs>
     <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
@@ -17,7 +17,7 @@
   </defs>
 
   <rect width="1500" height="940" fill="#f8fafc"/>
-  <text x="58" y="66" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#0f172a">V20 Deep-Book Quality Gate</text>
+  <text x="58" y="66" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#0f172a">Data Quality Module</text>
   <text x="58" y="100" font-family="Arial, sans-serif" font-size="17" fill="#475569">Every path converges on one rule: reject the entire book as soon as a required invariant fails.</text>
 
   <g filter="url(#shadow)" font-family="Arial, sans-serif">

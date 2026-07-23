@@ -60,4 +60,4 @@ Compile everything:
 mvn -q compile
 ```
 
-Design history is recorded in `diagram.md`, setup and run commands in `runbook.md`, measured outputs in `benchmark-results.md`, data-source module design in `module.md`, the colored data-source diagram in `docs/data-source-diagram.md`, and actual image files in `docs/data-source-architecture.png` / `docs/data-source-architecture.svg`.
+Design history is recorded in `diagram.md`, setup and run commands in `runbook.md`, measured outputs in `benchmark-results.md`, data-source module design in `module.md`, the colored data-source diagram in `docs/architecture.md`, and actual image files in `docs/architecture.png` / `docs/architecture.svg`.

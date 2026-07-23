@@ -1534,7 +1534,7 @@ source protocol -> transport -> raw message -> normalizer -> sequencer/book qual
 Local colored diagram:
 
 ```text
-docs/data-source-diagram.md
+docs/architecture.md
 ```
 
 Implemented package boundary:
@@ -1581,8 +1581,8 @@ Adds instrument metadata, data engine/cache/event bus, and replay skeletons base
 Improved local image:
 
 ```text
-docs/data-source-architecture.png
-docs/data-source-architecture.svg
+docs/architecture.png
+docs/architecture.svg
 ```
 
 Design influence:
@@ -1659,7 +1659,7 @@ Current active depth-book path records Binance.US raw WebSocket depth messages, 
 Local image:
 
 ```text
-docs/raw-depth-order-book-v17.svg
+docs/modules/order-book.svg
 ```
 
 Runtime flow:
@@ -1736,3 +1736,40 @@ Design note:
 The data-source layer now knows where to get deeper books from multiple exchanges.
 This is intentionally separate from the local book builder because each exchange has different sequencing and integrity rules.
 ```
+## V20: Multi-Exchange Data Quality Module
+
+V20 extends the V19 source catalog inside the same canonical data pipeline:
+
+```mermaid
+flowchart LR
+    V19["V19 source catalog<br/>Binance.US / OKX / Kraken"] --> Capture["snapshot + consecutive updates"]
+    Capture --> Common["common checks<br/>schema / values / ordering / freshness"]
+    Common --> Venue{"venue rule"}
+    Venue --> Binance["Binance U/u bridge"]
+    Venue --> OKX["OKX prevSeqId/seqId"]
+    Venue --> Kraken["Kraken top-10 CRC32"]
+    Binance --> Decision{"all checks pass?"}
+    OKX --> Decision
+    Kraken --> Decision
+    Decision -->|yes| Accept["qualityAccepted=true"]
+    Decision -->|no| Reject["suppress book + recover"]
+```
+
+Architecture placement:
+
+```text
+Parser / Normalizer
+  -> Data Quality Gate      introduced in V20
+  -> Local Order Books      existing pipeline module
+  -> MarketDataEngine
+```
+
+V20 does not replace the overall data-source architecture. It implements one integrity module inside it. The canonical diagram is `docs/architecture.svg`; the module detail is `docs/modules/data-quality.svg`.
+
+Latest live validation:
+
+```text
+sources=6 connected=6 qualityAccepted=6 rejected=0
+```
+
+The next continuous OKX/Kraken book work expands the existing `Local Order Books` block rather than creating another architecture.

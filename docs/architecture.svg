@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1050" viewBox="0 0 1800 1050" role="img" aria-labelledby="title desc">
+  <title id="title">Canonical crypto ATS market-data pipeline</title>
+  <desc id="desc">One top-level architecture showing sources, ingestion, quality and book state, distribution, consumers, recording, replay, and recovery.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M1 1 L11 6 L1 11 Z" fill="#475569"/>
+    </marker>
+    <marker id="redArrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M1 1 L11 6 L1 11 Z" fill="#be123c"/>
+    </marker>
+    <marker id="purpleArrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M1 1 L11 6 L1 11 Z" fill="#7e22ce"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+  </defs>
+
+  <rect width="1800" height="1050" fill="#f8fafc"/>
+  <text x="60" y="66" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#0f172a">Crypto ATS Market-Data Pipeline</text>
+  <text x="60" y="100" font-family="Arial, sans-serif" font-size="17" fill="#475569">One canonical architecture. Version numbers describe implementation milestones inside these stable module boundaries.</text>
+
+  <g font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#334155">
+    <text x="76" y="164">SOURCES</text>
+    <text x="376" y="164">INGESTION</text>
+    <text x="696" y="164">INTEGRITY + STATE</text>
+    <text x="1076" y="164">DISTRIBUTION</text>
+    <text x="1416" y="164">CONSUMERS</text>
+  </g>
+
+  <g filter="url(#shadow)" font-family="Arial, sans-serif">
+    <rect x="60" y="198" width="250" height="112" rx="8" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+    <text x="84" y="234" font-size="20" font-weight="700" fill="#0f172a">Direct Exchanges</text>
+    <text x="84" y="263" font-size="14" fill="#334155">Binance.US / OKX / Kraken</text>
+    <text x="84" y="287" font-size="14" fill="#334155">REST / WebSocket / FIX later</text>
+
+    <rect x="60" y="354" width="250" height="100" rx="8" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+    <text x="84" y="390" font-size="20" font-weight="700" fill="#0f172a">Third-Party Feeds</text>
+    <text x="84" y="419" font-size="14" fill="#334155">Normalized or FIX market data</text>
+    <text x="84" y="441" font-size="13" fill="#64748b">future connector</text>
+
+    <rect x="60" y="498" width="250" height="100" rx="8" fill="#fae8ff" stroke="#a21caf" stroke-width="2"/>
+    <text x="84" y="534" font-size="20" font-weight="700" fill="#0f172a">Replay Store</text>
+    <text x="84" y="563" font-size="14" fill="#334155">Recorded raw market data</text>
+    <text x="84" y="585" font-size="13" fill="#64748b">deterministic input</text>
+
+    <rect x="360" y="198" width="270" height="100" rx="8" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+    <text x="384" y="234" font-size="20" font-weight="700" fill="#0f172a">Venue Connectors</text>
+    <text x="384" y="263" font-size="14" fill="#334155">subscriptions, snapshots, lifecycle</text>
+    <text x="384" y="285" font-size="13" fill="#64748b">source catalog + symbol metadata</text>
+
+    <rect x="360" y="354" width="270" height="100" rx="8" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+    <text x="384" y="390" font-size="20" font-weight="700" fill="#0f172a">RawInboundMessage</text>
+    <text x="384" y="419" font-size="14" fill="#334155">payload, source, receive time</text>
+    <text x="384" y="441" font-size="13" fill="#64748b">transport + sequence metadata</text>
+
+    <rect x="360" y="510" width="270" height="100" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="2"/>
+    <text x="384" y="546" font-size="20" font-weight="700" fill="#0f172a">Parser / Normalizer</text>
+    <text x="384" y="575" font-size="14" fill="#334155">venue protocol to Java events</text>
+    <text x="384" y="597" font-size="13" fill="#64748b">exact decimal representation</text>
+
+    <rect x="680" y="238" width="320" height="118" rx="8" fill="#ffe4e6" stroke="#e11d48" stroke-width="2"/>
+    <text x="706" y="276" font-size="21" font-weight="700" fill="#881337">Data Quality Gate</text>
+    <text x="706" y="307" font-size="14" fill="#334155">schema, values, freshness, sequence</text>
+    <text x="706" y="331" font-size="14" fill="#334155">checksum and crossed-book checks</text>
+    <rect x="895" y="255" width="82" height="26" rx="5" fill="#ffffff" stroke="#fda4af"/>
+    <text x="908" y="273" font-size="11" font-weight="700" fill="#9f1239">V20 module</text>
+
+    <rect x="680" y="414" width="320" height="118" rx="8" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+    <text x="706" y="452" font-size="21" font-weight="700" fill="#4c1d95">Local Order Books</text>
+    <text x="706" y="483" font-size="14" fill="#334155">one book per exchange + symbol</text>
+    <text x="706" y="507" font-size="14" fill="#334155">BOOTSTRAPPING / LIVE / DEGRADED</text>
+
+    <rect x="680" y="590" width="320" height="108" rx="8" fill="#fff1f2" stroke="#be123c" stroke-width="2"/>
+    <text x="706" y="628" font-size="20" font-weight="700" fill="#9f1239">Recovery Coordinator</text>
+    <text x="706" y="659" font-size="14" fill="#334155">reconnect, snapshot reload, resync</text>
+    <text x="706" y="683" font-size="13" fill="#64748b">publication blocked until LIVE</text>
+
+    <rect x="1060" y="238" width="280" height="108" rx="8" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
+    <text x="1086" y="276" font-size="21" font-weight="700" fill="#134e4a">MarketDataEngine</text>
+    <text x="1086" y="307" font-size="14" fill="#334155">single accepted-event boundary</text>
+    <text x="1086" y="331" font-size="13" fill="#64748b">cache then publish</text>
+
+    <rect x="1060" y="402" width="280" height="108" rx="8" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
+    <text x="1086" y="440" font-size="21" font-weight="700" fill="#134e4a">Cache + Event Bus</text>
+    <text x="1086" y="471" font-size="14" fill="#334155">latest state and fan-out</text>
+    <text x="1086" y="495" font-size="13" fill="#64748b">fast downstream reads</text>
+
+    <rect x="1060" y="566" width="280" height="108" rx="8" fill="#fae8ff" stroke="#a21caf" stroke-width="2"/>
+    <text x="1086" y="604" font-size="21" font-weight="700" fill="#701a75">Recorder</text>
+    <text x="1086" y="635" font-size="14" fill="#334155">persist raw + accepted events</text>
+    <text x="1086" y="659" font-size="13" fill="#64748b">feeds replay and comparison</text>
+
+    <rect x="1400" y="214" width="330" height="108" rx="8" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+    <text x="1426" y="252" font-size="21" font-weight="700" fill="#075985">Cross-Exchange View</text>
+    <text x="1426" y="283" font-size="14" fill="#334155">compare validated venue books</text>
+    <text x="1426" y="307" font-size="13" fill="#64748b">canonical symbols + freshness</text>
+
+    <rect x="1400" y="374" width="330" height="108" rx="8" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+    <text x="1426" y="412" font-size="21" font-weight="700" fill="#166534">Strategy Pipeline</text>
+    <text x="1426" y="443" font-size="14" fill="#334155">spread, depth, decision logic</text>
+    <text x="1426" y="467" font-size="13" fill="#64748b">market data only today</text>
+
+    <rect x="1400" y="534" width="330" height="108" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="2"/>
+    <text x="1426" y="572" font-size="21" font-weight="700" fill="#0f172a">Benchmark + Replay</text>
+    <text x="1426" y="603" font-size="14" fill="#334155">latency stages and parity checks</text>
+    <text x="1426" y="627" font-size="13" fill="#64748b">same input, comparable versions</text>
+
+    <rect x="1400" y="694" width="330" height="92" rx="8" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2" stroke-dasharray="8 6"/>
+    <text x="1426" y="732" font-size="20" font-weight="700" fill="#475569">Order / Risk Modules</text>
+    <text x="1426" y="761" font-size="14" fill="#64748b">future scope, separate lifecycle</text>
+  </g>
+
+  <g fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)">
+    <path d="M310 254 H360"/>
+    <path d="M310 404 H336 V268 H360"/>
+    <path d="M310 548 H336 V404 H360"/>
+    <path d="M495 298 V354"/>
+    <path d="M495 454 V510"/>
+    <path d="M630 560 H654 V297 H680"/>
+    <path d="M840 356 V414"/>
+    <path d="M1000 473 H1030 V292 H1060"/>
+    <path d="M1200 346 V402"/>
+    <path d="M1340 456 H1370 V268 H1400"/>
+    <path d="M1565 322 V374"/>
+    <path d="M1565 482 V534"/>
+  </g>
+
+  <path d="M680 318 H654 V644 H680" fill="none" stroke="#be123c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#redArrow)"/>
+  <text x="570" y="635" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#be123c">quality failure</text>
+  <path d="M680 644 H646 V818 H495 V298" fill="none" stroke="#be123c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#redArrow)"/>
+  <text x="504" y="810" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#be123c">reconnect / resnapshot</text>
+
+  <path d="M1060 620 H1028 V864 H185 V598" fill="none" stroke="#7e22ce" stroke-width="3" stroke-dasharray="10 8" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#purpleArrow)"/>
+  <text x="558" y="856" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#7e22ce">recorded data becomes deterministic replay input</text>
+
+  <rect x="60" y="916" width="1670" height="82" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="88" y="950" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#0f172a">Stable design rule</text>
+  <text x="88" y="978" font-family="Arial, sans-serif" font-size="14" fill="#475569">Strategies consume only accepted normalized state. They do not know whether input came from REST, WebSocket, FIX, a third-party provider, or replay.</text>
+</svg>

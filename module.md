@@ -532,7 +532,7 @@ The current `custom-ws-vs-baseline` app now uses `MarketDataConnector` wrappers 
 Colored local diagram:
 
 ```text
-docs/data-source-diagram.md
+docs/architecture.md
 ```
 
 ## Replay Module
@@ -654,9 +654,9 @@ The diagram now uses aligned columns and orthogonal arrows so it reads like an a
 Updated image files:
 
 ```text
-docs/data-source-architecture.png
-docs/data-source-architecture.svg
-docs/data-source-diagram.md
+docs/architecture.png
+docs/architecture.svg
+docs/architecture.md
 ```
 ## V16 Runtime Wiring
 
