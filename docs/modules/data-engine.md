@@ -4,26 +4,34 @@
 
 PNG fallback: [data-engine.png](data-engine.png)
 
-The engine is the accepted-event boundary between validated state and downstream subscribers.
+The engine is the accepted-event boundary between validated local books and downstream consumers.
 
 ## Ordering Contract
 
 ```text
-accepted canonical event
-  -> MarketDataEngine
-  -> update MarketDataCache
-  -> publish through MarketDataEventBus
-  -> listeners read coherent latest state
+AcceptedLocalBookEvent
+  -> MarketDataEngine.onEvent
+  -> MarketDataCache.update
+       key = exchange + symbol
+       value = latest accepted deep book
+  -> MarketDataEventBus.publish
+       -> AcceptedBookEventRecorder
+       -> CrossExchangeBookView
+       -> DeepBookStrategyListener
 ```
 
-Cache-first ordering matters because an event-bus listener may immediately query the latest state. Publishing before the cache update would expose two conflicting views of the same event.
+Cache-first ordering lets a listener query coherent latest state while handling the event. `MarketDataCache` retains the legacy top-of-book path and now also supports `deepBook(exchange, symbol)`.
+
+## Boundary Rule
+
+`LocalBookPublisher` constructs an accepted event only when the builder result is accepted and `LIVE`, all three session states are publishable, and message age is below the threshold. `REJECT`, `STALE`, `BOOTSTRAPPING`, disconnected, recovering, and stopped states cannot reach the engine.
 
 ## Current Code
 
 ```text
 src/main/java/com/example/hft/datasource/engine/
-  MarketDataEngine.java
-  MarketDataCache.java
-  MarketDataEventBus.java
-  MarketDataListener.java
+src/main/java/com/example/hft/datasource/deepbook/runtime/AcceptedLocalBookEvent.java
+src/main/java/com/example/hft/datasource/deepbook/runtime/LocalBookPublisher.java
+src/main/java/com/example/hft/datasource/deepbook/runtime/CrossExchangeBookView.java
+src/main/java/com/example/hft/datasource/deepbook/runtime/DeepBookStrategyListener.java
 ```

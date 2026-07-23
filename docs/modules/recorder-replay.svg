@@ -13,15 +13,15 @@
   <rect x="40" y="130" width="1420" height="500" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
   <g filter="url(#shadow)">
     <rect x="70" y="205" width="230" height="112" rx="7" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
-  <text x="90" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#075985" text-anchor="start">Live Intake</text>
-  <text x="90" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">raw receive order</text>
-  <text x="90" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">source timestamps</text>
+  <text x="90" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#075985" text-anchor="start">RawEnvelope</text>
+  <text x="90" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">snapshot / WS / lifecycle</text>
+  <text x="90" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">generation + receive clocks</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="345" y="205" width="230" height="112" rx="7" fill="#fae8ff" stroke="#a21caf" stroke-width="2"/>
-  <text x="365" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#86198f" text-anchor="start">Recording Sink</text>
-  <text x="365" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">raw + normalized + accepted</text>
-  <text x="365" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">append-only records</text>
+  <text x="365" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#86198f" text-anchor="start">AsyncRawRecorder</text>
+  <text x="365" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">bounded ordered queue</text>
+  <text x="365" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">drop marks replay unsafe</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="620" y="205" width="230" height="112" rx="7" fill="#fae8ff" stroke="#a21caf" stroke-width="2"/>
@@ -31,21 +31,21 @@
   </g>
   <g filter="url(#shadow)">
     <rect x="895" y="205" width="230" height="112" rx="7" fill="#fae8ff" stroke="#a21caf" stroke-width="2"/>
-  <text x="915" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#86198f" text-anchor="start">Replay Source</text>
-  <text x="915" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">original / accelerated</text>
-  <text x="915" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">maximum-speed clock</text>
+  <text x="915" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#86198f" text-anchor="start">RawReplayProcessor</text>
+  <text x="915" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">generation-aware rebuild</text>
+  <text x="915" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">Binance snapshot bridge</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="1170" y="205" width="230" height="112" rx="7" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
-  <text x="1190" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#115e59" text-anchor="start">Same Pipeline</text>
-  <text x="1190" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">parser, quality, books</text>
-  <text x="1190" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">engine and consumers</text>
+  <text x="1190" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#115e59" text-anchor="start">Venue Builders</text>
+  <text x="1190" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">same parse + quality rules</text>
+  <text x="1190" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">same final book state</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="895" y="430" width="230" height="112" rx="7" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
-  <text x="915" y="464" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#334155" text-anchor="start">Parity + Benchmark</text>
-  <text x="915" y="492" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">final state equality</text>
-  <text x="915" y="514" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">repeatable stage latency</text>
+  <text x="915" y="464" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#334155" text-anchor="start">Parity Check</text>
+  <text x="915" y="492" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">sequence + quality + BBO</text>
+  <text x="915" y="514" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">compare retained depth</text>
   </g>
   <path d="M300 261 H345" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
   <path d="M575 261 H620" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
@@ -55,5 +55,5 @@
   <path d="M895 486 H760 V590 H185 V317" fill="none" stroke="#a21caf" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10 8" marker-end="url(#replay-arrow)"/>
   <text x="540" y="612" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#a21caf" text-anchor="middle">repeat with identical input</text>
   <rect x="55" y="660" width="1390" height="58" rx="7" fill="#f8fafc" stroke="#cbd5e1"/>
-  <text x="82" y="695" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#334155" text-anchor="start">Rule: replay substitutes the source clock, not the downstream processing contracts.</text>
+  <text x="82" y="695" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#334155" text-anchor="start">Rule: replay-safe means no drops; replay must reconstruct the same final venue-local book.</text>
 </svg>

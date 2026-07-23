@@ -837,3 +837,23 @@ V19 adds source discovery and validation.
 It does not yet normalize OKX/Kraken into maintained local books.
 The next step is exchange-specific book builders: OKX seqId/prevSeqId, Kraken checksum, and reconnect/resubscribe rules.
 ```
+## V21 Accepted Local-Book Runtime
+
+The current implementation now follows the target source-module architecture:
+
+```text
+Depth source
+  -> RawEnvelope and AsyncRawRecorder
+  -> LiveBookSession
+  -> exchange-specific LocalOrderBookBuilder
+  -> quality/state/freshness gate
+  -> AcceptedLocalBookEvent
+  -> MarketDataEngine
+  -> deep-book cache and event-bus consumers
+```
+
+`LiveBookSession` owns one exchange-symbol lifecycle. `SessionHealth` separates transport, book, and session states. `StaleWatchdog` detects silence. `RecoveryCoordinator` owns generation-isolated reconnects with jittered exponential backoff. `LocalBookPublisher` is the only accepted-event handoff.
+
+Raw replay is production-shaped: REST snapshots, WebSocket messages, connect/disconnect/recovery records, generation, source identity, and receive clocks are retained. Recorder loss marks the file replay-unsafe. `RawReplayProcessor` recreates the same venue builders and validates final-book parity.
+
+Current downstream consumers are intentionally small examples: `AcceptedBookEventRecorder`, `CrossExchangeBookView`, and `DeepBookStrategyListener`. They demonstrate that strategy code receives accepted canonical books without knowing venue JSON or recovery details.

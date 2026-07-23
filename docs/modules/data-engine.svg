@@ -13,9 +13,9 @@
   <rect x="40" y="130" width="1420" height="500" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
   <g filter="url(#shadow)">
     <rect x="70" y="205" width="230" height="112" rx="7" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
-  <text x="90" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#5b21b6" text-anchor="start">Accepted Event</text>
-  <text x="90" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">quality-approved state</text>
-  <text x="90" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">canonical instrument id</text>
+  <text x="90" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#5b21b6" text-anchor="start">AcceptedLocalBookEvent</text>
+  <text x="90" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">LIVE + connected + fresh</text>
+  <text x="90" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">exchange + symbol + depth</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="345" y="205" width="230" height="112" rx="7" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
@@ -25,9 +25,9 @@
   </g>
   <g filter="url(#shadow)">
     <rect x="620" y="205" width="230" height="112" rx="7" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
-  <text x="640" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#115e59" text-anchor="start">MarketDataCache</text>
-  <text x="640" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">latest state by key</text>
-  <text x="640" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">fast point lookup</text>
+  <text x="640" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#115e59" text-anchor="start">DeepBookCache</text>
+  <text x="640" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">exchange + symbol key</text>
+  <text x="640" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">cache before publication</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="895" y="205" width="230" height="112" rx="7" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
@@ -38,8 +38,8 @@
   <g filter="url(#shadow)">
     <rect x="1170" y="205" width="230" height="112" rx="7" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
   <text x="1190" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#166534" text-anchor="start">Consumers</text>
-  <text x="1190" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">view / strategy / metrics</text>
-  <text x="1190" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">recorder listener</text>
+  <text x="1190" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">recorder / cross view</text>
+  <text x="1190" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">strategy listener</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="620" y="430" width="230" height="112" rx="7" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>

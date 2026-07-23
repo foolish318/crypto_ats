@@ -20,3 +20,5 @@ target/
 /data/binance-book-replay-summary-v18-*.json
 /data/deep-book-sources-v19-*.jsonl
 /data/deep-book-quality-v20-*.jsonl
+/data/multi-exchange-raw-v21-*.jsonl
+/data/multi-exchange-books-v21-*.json

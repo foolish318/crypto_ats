@@ -8,67 +8,77 @@ PNG fallback: [architecture.png](architecture.png)
 
 ## Reference Patterns
 
-The layout restores the stronger reference-inspired design introduced in V15:
-
 | Project pattern | What this project adopts |
 |---|---|
 | Hummingbot | A connector owns exchange lifecycle and subscriptions; order-book source, tracking, and state remain separate responsibilities. |
 | NautilusTrader | Adapters normalize venue APIs into domain events; the data engine updates cache before publishing through an event bus. |
 | XChange / CCXT | A common facade hides venue-specific implementations from downstream consumers. |
 
-These are architectural patterns, not copied implementations. The Java classes in this repository remain intentionally small enough to study.
+These are architectural patterns, not copied implementations.
 
-## End-To-End Flow
+## Current V21 Flow
 
 ```text
-exchange / third-party / replay source
-  -> instrument provider and venue connector
-  -> REST, WebSocket, FIX, or replay transport
-  -> immutable RawInboundMessage
-  -> venue parser and canonical normalizer
-  -> data quality gate
-  -> coordinator, sequencer, and venue-local order book
-  -> market-data engine
-  -> cache then event-bus publication
-  -> cross-exchange view, strategy, recorder, and benchmark
+Binance.US REST snapshot + WebSocket diffs
+OKX WebSocket snapshot + updates
+Kraken WebSocket snapshot + updates
+  -> RawEnvelope + AsyncRawRecorder
+  -> LiveBookSession
+  -> venue LocalOrderBookBuilder
+  -> quality and continuity gate
+  -> AcceptedLocalBookEvent
+  -> MarketDataEngine
+      -> MarketDataCache.deepBook(exchange, symbol)
+      -> MarketDataEventBus
+          -> AcceptedBookEventRecorder
+          -> CrossExchangeBookView
+          -> DeepBookStrategyListener
 ```
 
-`Data Quality Gate` is one module in the complete pipeline. `Local Order Books`, `Recovery`, `Recorder / Replay`, and `MarketDataEngine` are separate modules with their own contracts.
+`REJECT`, `STALE`, `BOOTSTRAPPING`, disconnected, recovering, expired, and stopped sources do not cross the accepted-event boundary.
+
+## State Model
+
+Availability is the conjunction of three independent state dimensions, not a single `BookQuality.LIVE` flag:
+
+```text
+TransportState == CONNECTED
+BookState      == LIVE
+SessionState   == LIVE
+messageAgeMillis < staleThresholdMillis
+```
+
+`StaleWatchdog` checks each connected session. Silence transitions the book to `STALE`, the session to `DEGRADED`, suppresses publication, and requests recovery. A source returns to `LIVE` only after a new connection, a valid snapshot/bridge when required, and a continuous quality-approved event.
+
+Recovery uses generation-isolated callbacks and exponential backoff with jitter: `300ms -> 600ms -> 1.2s -> 2.4s -> ... -> 30s maximum`. Successful return to publishable `LIVE` resets the backoff.
+
+## Replay Contract
+
+Every raw JSONL line is a `RawEnvelope` containing version, record type, generation, source identity, both receive clocks, payload, and detail. Records cover `CONNECT`, `DISCONNECT`, `RECOVERY`, `REST_SNAPSHOT`, and `WS_MESSAGE`.
+
+Binance REST snapshots are recorded before and after builder application. OKX and Kraken snapshots/updates retain callback order. If the bounded recorder drops anything, the run reports `replaySafe=false`, the first drop time/reason, and a `REPLAY_UNSAFE` marker; the file is then rejected by replay.
 
 ## Module Index
 
-| Module | Status | Detailed design |
+| Module | Current status | Detailed design |
 |---|---|---|
-| Sources and connectors | Implemented for Binance.US, OKX, and Kraken public data | [source-connector.md](modules/source-connector.md) |
-| Transport and raw intake | REST and WebSocket implemented; FIX is planned | [transport-intake.md](modules/transport-intake.md) |
-| Parser and normalizer | Implemented for current venue messages | [parser-normalizer.md](modules/parser-normalizer.md) |
-| Data quality gate | V20 implemented and deterministically tested | [data-quality.md](modules/data-quality.md) |
-| Venue-local order books | Binance continuous path implemented; OKX/Kraken expansion remains | [order-book.md](modules/order-book.md) |
-| Recovery coordinator | Binance reconnect and resnapshot implemented | [recovery.md](modules/recovery.md) |
-| Market-data engine | Cache-first event publication implemented | [data-engine.md](modules/data-engine.md) |
-| Recorder and replay | Recording and deterministic replay implemented | [recorder-replay.md](modules/recorder-replay.md) |
-| Cross-exchange view | Top-of-book comparison implemented; deep-book view remains | [cross-exchange-view.md](modules/cross-exchange-view.md) |
-| Strategy and benchmark | Java queue/pipeline decisions and stage timing implemented | [strategy-benchmark.md](modules/strategy-benchmark.md) |
-
-The future `Order / Risk` block is shown only to preserve the system boundary. It is not documented as an implemented module.
-
-## Failure And Recovery
-
-```text
-quality or transport failure
-  -> mark only the affected venue book DEGRADED
-  -> stop publishing that book
-  -> reconnect and/or reload a snapshot
-  -> bridge buffered updates
-  -> rerun quality checks
-  -> resume publication only after the book returns to LIVE
-```
+| Sources and connectors | Binance.US, OKX, Kraken public data | [source-connector.md](modules/source-connector.md) |
+| Transport and raw intake | REST/WebSocket plus immutable raw envelopes | [transport-intake.md](modules/transport-intake.md) |
+| Parser and normalizer | Venue JSON to exact-decimal Java state | [parser-normalizer.md](modules/parser-normalizer.md) |
+| Data quality gate | Common and venue continuity checks | [data-quality.md](modules/data-quality.md) |
+| Venue-local order books | Six continuous independent books | [order-book.md](modules/order-book.md) |
+| Recovery and health | Three state dimensions, watchdog, backoff, generations | [recovery.md](modules/recovery.md) |
+| Market-data engine | Accepted deep-book cache and event-bus fan-out | [data-engine.md](modules/data-engine.md) |
+| Recorder and replay | Full lifecycle recording and final-book parity | [recorder-replay.md](modules/recorder-replay.md) |
+| Cross-exchange view | Latest accepted deep book by venue and symbol | [cross-exchange-view.md](modules/cross-exchange-view.md) |
+| Strategy and benchmark | Accepted-event consumer and stage timing | [strategy-benchmark.md](modules/strategy-benchmark.md) |
 
 ## Stable Design Rules
 
 1. Strategies consume accepted canonical state, never venue wire formats.
-2. Each `exchange + symbol` owns a separate book.
-3. Cache is updated before event-bus publication.
-4. Raw evidence is retained for replay and debugging.
-5. Replay replaces the source and clock, not downstream processing contracts.
-6. Network, parse, book, queue, processor, and end-to-end latency are reported separately.
+2. Each `exchange + symbol` owns a separate book and recovery lifecycle.
+3. Exact decimal prices and quantities are retained in the source-to-book path.
+4. Cache is updated before event-bus publication.
+5. Raw evidence is retained without blocking book processing; any loss is explicit.
+6. Replay replaces intake, not builder or validation semantics.
+7. Network, parse, book, queue, processor, and end-to-end latency remain separate measurements.

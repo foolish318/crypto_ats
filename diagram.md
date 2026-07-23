@@ -1773,3 +1773,48 @@ sources=6 connected=6 qualityAccepted=6 rejected=0
 ```
 
 The next continuous OKX/Kraken book work expands the existing `Local Order Books` block rather than creating another architecture.
+## V21: Accepted Multi-Exchange Local Books
+
+V21 completes the current source-to-engine path without changing the canonical module boundaries:
+
+```mermaid
+flowchart LR
+    Sources["Binance.US / OKX / Kraken"] --> Raw["RawEnvelope<br/>payload + generation + clocks"]
+    Raw --> Session["LiveBookSession"]
+    Session --> Builder["Venue LocalOrderBookBuilder"]
+    Builder --> Gate{"quality + state + freshness"}
+    Gate -->|ACCEPT/APPLIED + LIVE| Accepted["AcceptedLocalBookEvent"]
+    Gate -->|reject/stale/bootstrap| Recovery["StaleWatchdog + RecoveryCoordinator"]
+    Recovery --> Session
+    Accepted --> Engine["MarketDataEngine"]
+    Engine --> Cache["DeepBookCache<br/>exchange + symbol"]
+    Engine --> Bus["MarketDataEventBus"]
+    Bus --> Recorder["Accepted event recorder"]
+    Bus --> View["CrossExchangeBookView"]
+    Bus --> Strategy["DeepBookStrategyListener"]
+    Raw --> RawRecorder["AsyncRawRecorder"]
+    RawRecorder -. replay .-> Replay["RawReplayProcessor"]
+    Replay -. same final book .-> Builder
+```
+
+Independent availability dimensions:
+
+```text
+TransportState: DISCONNECTED / CONNECTING / CONNECTED
+BookState: EMPTY / BOOTSTRAPPING / LIVE / STALE / GAP_DETECTED /
+           CHECKSUM_FAILED / CROSSED / DEGRADED
+SessionState: STARTING / LIVE / DEGRADED / RECOVERING / STOPPED
+```
+
+Publication requires `CONNECTED + LIVE book + LIVE session + fresh last message`. Recovery uses generation isolation, jittered exponential backoff capped at 30 seconds, and resumes publication only after accepted continuous state.
+
+Replay records REST snapshots, WebSocket messages, lifecycle, recovery reason, and generation. Any recorder drop marks the file unsafe. Deterministic tests and the live runner compare final sequence, quality, best bid/ask, and the retained depth levels.
+
+Latest live proof:
+
+```text
+6/6 publishable books, 984 messages, 965 accepted publications,
+0 rejects, 0 recorder drops, replaySafe=true, replayParity=true.
+```
+
+The canonical image is `docs/architecture.svg`; focused images are under `docs/modules/`.

@@ -4,6 +4,7 @@ import com.example.hft.datasource.book.BookQuality;
 import com.example.hft.datasource.book.DepthUpdateApplyResult;
 import com.example.hft.datasource.book.SequencedLocalOrderBook;
 import com.example.hft.datasource.deepbook.quality.DeepBookQualityValidatorSelfTest;
+import com.example.hft.datasource.deepbook.runtime.StreamingLocalOrderBookSelfTest;
 import com.example.hft.exchange.binance.BinanceDepthParser;
 import com.example.hft.marketdata.model.DepthBookTop;
 import com.example.hft.marketdata.model.Price;
@@ -23,6 +24,7 @@ public final class SelfTestMain {
         testDecisionEngine();
         testSequencedLocalOrderBook();
         DeepBookQualityValidatorSelfTest.runAll();
+        StreamingLocalOrderBookSelfTest.runAll();
         System.out.println("self-tests passed");
     }
 

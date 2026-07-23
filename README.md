@@ -54,10 +54,18 @@ Validate custom WebSocket adapters against REST/XChange baselines:
 ./scripts/custom-ws-vs-baseline.sh
 ```
 
-Compile everything:
+Build six continuous Binance.US, OKX, and Kraken local books for a short configurable smoke run:
 
 ```bash
+./scripts/multi-exchange-local-books.sh 15 data 10
+```
+
+Compile and test everything:
+
+```bash
+mvn test
 mvn -q compile
+./scripts/test.sh
 ```
 
 Design history is recorded in `diagram.md`, setup and run commands in `runbook.md`, measured outputs in `benchmark-results.md`, data-source module design in `module.md`, the colored data-source diagram in `docs/architecture.md`, and actual image files in `docs/architecture.png` / `docs/architecture.svg`.

@@ -1367,3 +1367,78 @@ docs/modules/order-book.md
 ```
 
 Git commands remain centralized in `gitcommand.md`.
+## V21 Runbook: Accepted Multi-Exchange Local Books
+
+Purpose:
+
+```text
+Run six Binance.US, OKX, and Kraken source-to-local-book sessions concurrently.
+Process every received book message without application sampling.
+Publish only fresh, quality-approved books through MarketDataEngine.
+Record enough raw lifecycle evidence for deterministic reconstruction.
+```
+
+Required verification:
+
+```bash
+mvn test
+mvn -q compile
+./scripts/test.sh
+```
+
+Run with defaults (`15s` smoke window, `data`, `10s` stale threshold):
+
+```bash
+./scripts/multi-exchange-local-books.sh
+```
+
+Run with explicit values:
+
+```bash
+./scripts/multi-exchange-local-books.sh 12 data 10
+```
+
+Arguments:
+
+```text
+1: duration in seconds, default 15
+2: output directory, default data
+3: no-message stale threshold in seconds, default 10
+```
+
+The duration is only a smoke-test window. It is not a 30-minute connection or retention requirement.
+
+Generated files:
+
+```text
+data/multi-exchange-raw-v21-<run-id>.jsonl
+  RawEnvelope records for REST_SNAPSHOT, WS_MESSAGE, CONNECT, DISCONNECT,
+  and RECOVERY, including generation and receive clocks.
+
+data/multi-exchange-books-v21-<run-id>.json
+  Session states, health/recovery counters, latency, final books, recorder safety,
+  engine/event-bus counts, and live-vs-replay parity.
+```
+
+Important success fields:
+
+```text
+publishableBooksAtRunEnd == configured source count
+droppedRecords == 0
+replaySafe == true
+replayParity == true
+finalSessionState == STOPPED
+```
+
+A run may legitimately be degraded because of exchange/network conditions. In that case inspect `transportState`, `bookState`, `sessionState`, `messageAgeMillis`, `recoveryReason`, reconnect counters, and `lastFailure` per source.
+
+Latest validation on 2026-07-23:
+
+```text
+sources=6 publishableBooks=6 messages=984 published=965 rejected=0
+reconnectAttempts=0 deepBookCache=6 eventRecorder=965 crossExchangeView=6
+recordedRecords=1006 droppedRecords=0 replaySafe=true replayParity=true
+JUnit tests=11 failures=0; scripts/test.sh=self-tests passed
+```
+
+Git commands remain centralized in `gitcommand.md`.

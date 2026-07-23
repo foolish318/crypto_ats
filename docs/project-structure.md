@@ -26,7 +26,7 @@ com.example.hft.datasource.normalizer
   Canonical events consumed by books and strategies.
 
 com.example.hft.datasource.book
-  Binance local-book sequencing, quality state, and update results.
+  Legacy Binance sequencing contracts and shared quality lifecycle enum.
 
 com.example.hft.datasource.deepbook
   Multi-exchange deep-book source definitions and source catalog.
@@ -34,6 +34,10 @@ com.example.hft.datasource.deepbook
 com.example.hft.datasource.deepbook.quality
   V20 common and venue-specific quality gates:
   sequence continuity, freshness, ordering, crossed-book, and Kraken CRC32.
+
+com.example.hft.datasource.deepbook.runtime
+  V21 live sessions, exact-decimal venue builders, three-dimensional health state,
+  watchdog/recovery, accepted-event publication, raw recording, and deterministic replay.
 
 com.example.hft.datasource.instrument
   Instrument metadata and venue-to-canonical symbol mapping.
@@ -63,16 +67,16 @@ com.example.hft.benchmark
 Binance.US REST snapshot + WebSocket diff depth
 OKX WebSocket books snapshot + updates
 Kraken WebSocket v2 book snapshot + updates
-  -> raw payload capture
-  -> exact decimal parsing
-  -> temporary venue-local book
-  -> common data-quality checks
-  -> venue sequence/checksum checks
-  -> quality accepted local book
-  -> future cross-exchange view and strategy
+  -> RawEnvelope + AsyncRawRecorder
+  -> LiveBookSession + venue builder
+  -> exact-decimal local book + quality gate
+  -> AcceptedLocalBookEvent
+  -> MarketDataEngine
+  -> deep-book cache then event bus
+  -> recorder, cross-exchange view, and strategy listeners
 ```
 
-Rejected data does not cross the quality boundary. A production connector will reconnect or reload its snapshot before publishing again.
+Rejected, stale, bootstrapping, disconnected, recovering, expired, and stopped sources do not cross the accepted-event boundary. Recovery and replay use the same venue builder rules.
 
 ## Stable Scripts
 
@@ -86,6 +90,7 @@ scripts/binance-depth-book-30m.sh      30-minute raw depth capture
 scripts/binance-depth-book-1h.sh       1-hour raw depth capture
 scripts/binance-depth-book-replay.sh   deterministic depth replay
 scripts/deep-book-sources.sh           V20 live quality validation
+scripts/multi-exchange-local-books.sh  V21 continuous multi-exchange local books
 ```
 
 ## V17 Raw Depth Book

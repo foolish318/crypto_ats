@@ -33,15 +33,15 @@
   </g>
   <g filter="url(#shadow)">
     <rect x="895" y="205" width="250" height="112" rx="7" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
-  <text x="915" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#334155" text-anchor="start">RawInboundMessage</text>
+  <text x="915" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#334155" text-anchor="start">RawEnvelope</text>
   <text x="915" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">payload + venue + symbol</text>
-  <text x="915" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">transport + receiveNanos</text>
+  <text x="915" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">generation + clocks + lifecycle</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="1190" y="205" width="230" height="112" rx="7" fill="#fae8ff" stroke="#a21caf" stroke-width="2"/>
-  <text x="1210" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#86198f" text-anchor="start">Raw Recorder</text>
-  <text x="1210" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">append-only evidence</text>
-  <text x="1210" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">lossless replay input</text>
+  <text x="1210" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#86198f" text-anchor="start">AsyncRawRecorder</text>
+  <text x="1210" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">bounded append-only JSONL</text>
+  <text x="1210" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">drop explicitly marks unsafe</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="895" y="430" width="250" height="112" rx="7" fill="#ffe4e6" stroke="#e11d48" stroke-width="2"/>
@@ -57,5 +57,5 @@
   <path d="M895 486 H845 V350 H1020 V317" fill="none" stroke="#be123c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#failure-arrow)"/>
   <text x="780" y="370" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#be123c" text-anchor="middle">pressure signal</text>
   <rect x="55" y="660" width="1390" height="58" rx="7" fill="#f8fafc" stroke="#cbd5e1"/>
-  <text x="82" y="695" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#334155" text-anchor="start">Rule: raw capture is immutable; parsing failures never erase the source evidence.</text>
+  <text x="82" y="695" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#334155" text-anchor="start">Rule: raw capture includes lifecycle and generation; any recorder loss makes replay explicitly unsafe.</text>
 </svg>
