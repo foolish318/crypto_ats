@@ -1309,3 +1309,6 @@ git add .gitignore diagram.md docs/project-structure.md module.md runbook.md scr
 git commit -m "Add multi-exchange deep book sources"
 git push origin main
 ```
+## Git Command Reference
+
+Git push commands are centralized in `gitcommand.md`. Future version notes should reference that file instead of repeating long git command blocks.
