@@ -1,40 +1,24 @@
-# Strategy And Benchmark Module
+# Strategy And Performance Baseline Module
 
 ![Strategy and benchmark module](strategy-benchmark.svg)
 
 PNG fallback: [strategy-benchmark.png](strategy-benchmark.png)
 
-Strategy consumes immutable accepted snapshots. Benchmarking measures the cost of each local stage rather than reporting only one total.
+Strategies consume only immutable LIVE accepted or consolidated snapshots. Availability events remove inactive generations immediately.
 
-## Decision Examples
+## JMH Microbenchmarks
 
-```text
-spread validity
-top-5 and top-10 depth imbalance
-cross-venue best bid and ask
-freshness and quality eligibility
-```
+`DeepBookJmhBenchmark` measures venue classification, Jackson JSON parsing, book mutation, snapshot creation, `LocalBookPublisher`, and cache/event publication. Defaults include three warmups, five measurements, one fork, sample-time and throughput modes, and GC allocation profiling.
 
-The current `TradingSignal` is a decision result, not an exchange order. Order submission and risk remain a future separate lifecycle.
+## Full Replay Benchmark
 
-## Latency Distributions
+`FullPipelineReplayBenchmark` uses the production-shaped path:
 
 ```text
-exchange -> local receive
-parse
-quality and book update
-queue handoff
-processor
-local receive -> decision complete
-exchange event -> decision complete
+ingress -> recorder offer -> protocol -> parse -> book mutation -> quality
+-> snapshot -> engine -> cache -> core listeners -> async side output
 ```
 
-Average, median, p95, p99, maximum, throughput, and rejection counts describe different behavior. Replay is required for fair Java implementation comparisons.
+It separately reports bootstrap and incremental latency, per-stage p50/p95/p99/p99.9/max, corrected end-to-end latency, throughput, allocation bytes/message, GC count/pause, recorder and listener lag/drop state, rejected messages, and final replay parity. JSON and Markdown artifacts are generated.
 
-## Current Code
-
-```text
-src/main/java/com/example/hft/strategy/
-src/main/java/com/example/hft/pipeline/
-src/main/java/com/example/hft/benchmark/
-```
+The existing direct-versus-partitioned replay remains a capacity experiment. It must not be interpreted as the complete live pipeline.

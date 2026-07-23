@@ -15,6 +15,7 @@ abstract class AbstractLocalOrderBookBuilder implements LocalOrderBookBuilder {
     private static final Duration MAX_FUTURE_CLOCK_SKEW = Duration.ofSeconds(5);
 
     protected final DeepBookSourceDefinition source;
+    protected final String canonicalInstrumentId;
     protected final MutableDecimalOrderBook book;
     protected final ObjectMapper mapper = new ObjectMapper()
             .setNodeFactory(JsonNodeFactory.withExactBigDecimals(true))
@@ -42,6 +43,9 @@ abstract class AbstractLocalOrderBookBuilder implements LocalOrderBookBuilder {
             throw new IllegalArgumentException("instrument metadata does not match source");
         }
         this.source = source;
+        this.canonicalInstrumentId = instrument == null
+                ? source.symbol()
+                : instrument.canonicalSymbol();
         this.maxEventAge = maxEventAge;
         this.book = new MutableDecimalOrderBook(instrument);
     }
@@ -49,6 +53,11 @@ abstract class AbstractLocalOrderBookBuilder implements LocalOrderBookBuilder {
     @Override
     public final DeepBookSourceDefinition source() {
         return source;
+    }
+
+    @Override
+    public final String canonicalInstrumentId() {
+        return canonicalInstrumentId;
     }
 
     @Override

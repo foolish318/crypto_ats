@@ -11,7 +11,7 @@ import java.util.function.LongConsumer;
 import java.util.function.LongSupplier;
 
 
-public final class VenueSessionProtocol implements AutoCloseable {
+public final class VenueSessionProtocol implements VenueProtocolStateMachine {
     private static final Duration DEFAULT_ACK_TIMEOUT = Duration.ofSeconds(5);
     private static final Duration BINANCE_MAX_CONNECTION_AGE = Duration.ofHours(23)
             .plusMinutes(55);

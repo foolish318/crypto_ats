@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1500" height="760" viewBox="0 0 1500 760" role="img" aria-labelledby="title desc">
-  <title id="title">Recovery Coordinator Module</title>
-  <desc id="desc">Return a degraded connector and book to a validated LIVE state.</desc>
+  <title id="title">Recovery And Availability Module</title>
+  <desc id="desc">Withdraw invalid state immediately, then rebuild behind a generation fence.</desc>
   <defs>
     <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M1 1 L11 6 L1 11 Z" fill="#475569"/></marker>
     <marker id="failure-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M1 1 L11 6 L1 11 Z" fill="#be123c"/></marker>
@@ -8,44 +8,48 @@
     <filter id="shadow" x="-15%" y="-15%" width="130%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/></filter>
   </defs>
   <rect width="1500" height="760" fill="#f8fafc"/>
-  <text x="55" y="58" font-family="Arial, sans-serif" font-size="32" font-weight="700" fill="#0f172a" text-anchor="start">Recovery Coordinator Module</text>
-  <text x="55" y="89" font-family="Arial, sans-serif" font-size="15" font-weight="400" fill="#475569" text-anchor="start">Return a degraded connector and book to a validated LIVE state.</text>
+  <text x="55" y="58" font-family="Arial, sans-serif" font-size="32" font-weight="700" fill="#0f172a" text-anchor="start">Recovery And Availability Module</text>
+  <text x="55" y="89" font-family="Arial, sans-serif" font-size="15" font-weight="400" fill="#475569" text-anchor="start">Withdraw invalid state immediately, then rebuild behind a generation fence.</text>
   <rect x="40" y="130" width="1420" height="500" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
   <g filter="url(#shadow)">
     <rect x="70" y="205" width="230" height="112" rx="7" fill="#ffe4e6" stroke="#e11d48" stroke-width="2"/>
-  <text x="90" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#9f1239" text-anchor="start">Three State Model</text>
+  <text x="90" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#9f1239" text-anchor="start">Session Health</text>
   <text x="90" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">transport / book / session</text>
-  <text x="90" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">publication needs all LIVE</text>
+  <text x="90" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">freshness predicate</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="345" y="205" width="230" height="112" rx="7" fill="#ffe4e6" stroke="#e11d48" stroke-width="2"/>
-  <text x="365" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#9f1239" text-anchor="start">StaleWatchdog</text>
-  <text x="365" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">last message age</text>
-  <text x="365" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">STALE + DEGRADED</text>
+  <text x="365" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#9f1239" text-anchor="start">BookAvailabilityEvent</text>
+  <text x="365" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">STALE / RECOVERING</text>
+  <text x="365" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">DISCONNECTED / INVALID</text>
+    <rect x="489" y="217" width="74" height="23" rx="4" fill="#ffffff" stroke="#e11d48" stroke-opacity="0.45"/>
+  <text x="526" y="233" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#9f1239" text-anchor="middle">V24</text>
   </g>
   <g filter="url(#shadow)">
-    <rect x="620" y="205" width="230" height="112" rx="7" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
-  <text x="640" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#92400e" text-anchor="start">RecoveryCoordinator</text>
-  <text x="640" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">300ms exponential backoff</text>
-  <text x="640" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">jitter + 30s cap</text>
+    <rect x="620" y="205" width="230" height="112" rx="7" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
+  <text x="640" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#115e59" text-anchor="start">Cache Tombstone</text>
+  <text x="640" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">remove stale venue now</text>
+  <text x="640" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">block old generation</text>
+    <rect x="764" y="217" width="74" height="23" rx="4" fill="#ffffff" stroke="#0f766e" stroke-opacity="0.45"/>
+  <text x="801" y="233" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#115e59" text-anchor="middle">P0</text>
   </g>
   <g filter="url(#shadow)">
-    <rect x="895" y="205" width="230" height="112" rx="7" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
-  <text x="915" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#075985" text-anchor="start">New Generation</text>
-  <text x="915" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">isolate old callbacks</text>
-  <text x="915" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">reconnect / resnapshot</text>
+    <rect x="895" y="205" width="230" height="112" rx="7" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+  <text x="915" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#92400e" text-anchor="start">RecoveryCoordinator</text>
+  <text x="915" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">300ms exponential backoff</text>
+  <text x="915" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">jitter + 30s cap</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="1170" y="205" width="230" height="112" rx="7" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
-  <text x="1190" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#5b21b6" text-anchor="start">Rebuild + Validate</text>
-  <text x="1190" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">snapshot + continuous updates</text>
-  <text x="1190" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">quality gate again</text>
+  <text x="1190" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#5b21b6" text-anchor="start">New Generation</text>
+  <text x="1190" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">snapshot / bridge</text>
+  <text x="1190" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">continuity + quality</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="1170" y="430" width="230" height="112" rx="7" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
-  <text x="1190" y="464" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#166534" text-anchor="start">Return LIVE</text>
-  <text x="1190" y="492" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">resume publication</text>
-  <text x="1190" y="514" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">record recovery metrics</text>
+  <text x="1190" y="464" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#166534" text-anchor="start">Accepted LIVE</text>
+  <text x="1190" y="492" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">restore cache and venue</text>
+  <text x="1190" y="514" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">reset recovery backoff</text>
   </g>
   <path d="M300 261 H345" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
   <path d="M575 261 H620" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
@@ -53,7 +57,7 @@
   <path d="M1125 261 H1170" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
   <path d="M1285 317 V430" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
   <path d="M1170 486 H1080 V590 H460 V317" fill="none" stroke="#be123c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#failure-arrow)"/>
-  <text x="770" y="612" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#be123c" text-anchor="middle">retry with backoff</text>
+  <text x="770" y="612" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#be123c" text-anchor="middle">retry; old callbacks rejected</text>
   <rect x="55" y="660" width="1390" height="58" rx="7" fill="#f8fafc" stroke="#cbd5e1"/>
-  <text x="82" y="695" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#334155" text-anchor="start">Rule: reconnect alone is insufficient; reset backoff only after fresh accepted data returns the session to LIVE.</text>
+  <text x="82" y="695" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#334155" text-anchor="start">Rule: a health-only LIVE signal cannot restore a book; only a quality-approved accepted generation can.</text>
 </svg>

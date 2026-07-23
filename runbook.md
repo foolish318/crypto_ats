@@ -1607,3 +1607,93 @@ recordedRecords=5826 droppedRecords=0 replaySafe=true replayParity=true
 ```
 
 This replays the newest V23/V22/V21 capture through both direct and source-partitioned modes. Keep `processing p99`, `queue p99`, `end-to-end p99`, throughput, and final-book parity separate when interpreting the result.
+
+## V24 Runbook: Availability, Consolidation, Journal, And Baselines
+
+V24 retains the V23 `DIRECT_SINGLE_WRITER` default. It does not introduce a processing queue into the realtime book path.
+
+### Build And Verify
+
+```bash
+mvn test
+mvn -q compile
+./scripts/test.sh
+git diff --check
+```
+
+### Live Smoke Test
+
+```bash
+./scripts/multi-exchange-local-books.sh 10 data 10
+```
+
+Expected artifacts:
+
+```text
+data/multi-exchange-raw-v24-<run-id>.jsonl
+data/multi-exchange-raw-v24-<run-id>.segment-000001.jsonl   # after rotation
+data/multi-exchange-raw-v24-<run-id>.jsonl.index
+data/multi-exchange-books-v24-<run-id>.json
+```
+
+Key success fields:
+
+```text
+processingMode == DIRECT_SINGLE_WRITER
+processingQueueEnabled == false
+droppedRecords == 0
+replaySafe == true
+replayParity == true
+coreListenerErrors == 0
+asyncListenerDrops == 0
+recorderQueueDepth / recorderMaxQueueDepth observable
+recorderLastWriteLagNanos / recorderMaxWriteLagNanos observable
+recorderCurrentSegment / recorderDiskUsageBytes observable
+```
+
+`crossExchangeBooks` may be zero after orderly stop because STOPPED availability immediately withdraws venues. Inspect the captured run-end sessions and replay parity for final local-book correctness.
+
+### Journal Policy
+
+Default rotation is 128 MiB or 15 minutes; retention is 24 hours; minimum free disk is 64 MiB. The writer flushes every 256 records and fsyncs every 4096 records plus rotation/close. A crash can lose accepted records after the most recent fsync; an orderly close drains, flushes, fsyncs, closes, and indexes. Overflow or writer failure makes the journal replay-unsafe.
+
+### Full Pipeline Benchmark
+
+```bash
+./scripts/full-pipeline-benchmark.sh "" 3
+```
+
+The empty first argument selects the newest V24/V23/V22 base capture and excludes segment siblings. Outputs are machine-readable JSON and a short Markdown report. One warmup run precedes measured runs.
+
+### JMH
+
+```bash
+./scripts/jmh-deep-book.sh data/jmh-deep-book-v24.json
+```
+
+For a quick validation only:
+
+```bash
+./scripts/jmh-deep-book.sh data/jmh-deep-book-v24.json -wi 1 -i 2 -w 300ms -r 300ms -f 1
+```
+
+Use the default annotation settings for serious comparison. Record CPU model, power mode, JVM arguments, and background load; do not compare runs from different environments as though they were controlled.
+
+### Capacity Experiment
+
+```bash
+./scripts/deep-book-latency-benchmark.sh "" 4 500000 3
+```
+
+This measures direct versus bounded source partitions only. It excludes the complete live path and does not change the runtime default.
+
+### Latest V24 Validation (2026-07-23)
+
+```text
+live: sources=6, publishableBooks=6, messages=1910, published=1887
+quality: rejected=0, reconnectAttempts=0
+shutdown invalidation: deepBookCache=0, crossExchangeView=0
+journal: recordedRecords=1932, droppedRecords=0, replaySafe=true
+replayParity=true, asyncDrops=0
+JUnit: 47 tests, 0 failures/errors/skips
+```

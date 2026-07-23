@@ -28,3 +28,10 @@ target/
 /data/multi-exchange-raw-v23-*.jsonl
 /data/multi-exchange-books-v23-*.json
 /data/deep-book-latency-v23-*.json
+/data/multi-exchange-raw-v24-*.jsonl
+/data/multi-exchange-raw-v24-*.jsonl.index
+/data/multi-exchange-raw-v24-*.segment-*.jsonl
+/data/multi-exchange-books-v24-*.json
+/data/deep-book-latency-v24-*.json
+/data/full-pipeline-v24-*
+/data/jmh-deep-book-v24.json

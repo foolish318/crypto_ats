@@ -9,6 +9,7 @@ public record AcceptedLocalBookEvent(
         String source,
         String exchange,
         String symbol,
+        String canonicalInstrumentId,
         TransportType transport,
         long receivedNanos,
         long exchangeTimeMillis,
@@ -20,8 +21,10 @@ public record AcceptedLocalBookEvent(
     public AcceptedLocalBookEvent {
         if (source == null || source.isBlank()
                 || exchange == null || exchange.isBlank()
-                || symbol == null || symbol.isBlank()) {
-            throw new IllegalArgumentException("accepted book event requires source, exchange, and symbol");
+                || symbol == null || symbol.isBlank()
+                || canonicalInstrumentId == null || canonicalInstrumentId.isBlank()) {
+            throw new IllegalArgumentException(
+                    "accepted book event requires source, exchange, symbol, and canonical instrument");
         }
         if (book == null || book.quality() != BookQuality.LIVE) {
             throw new IllegalArgumentException("accepted book event requires a LIVE local book");

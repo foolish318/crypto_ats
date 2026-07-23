@@ -4,34 +4,34 @@
 
 PNG fallback: [data-engine.png](data-engine.png)
 
-The engine is the accepted-event boundary between validated local books and downstream consumers.
+`MarketDataEngine` is the accepted-state and availability boundary.
 
-## Ordering Contract
+## Accepted Path
 
 ```text
 AcceptedLocalBookEvent
-  -> MarketDataEngine.onEvent
-  -> MarketDataCache.update
-       key = exchange + symbol
-       value = latest accepted deep book
-  -> MarketDataEventBus.publish
-       -> AcceptedBookEventRecorder
-       -> CrossExchangeBookView
-       -> DeepBookStrategyListener
+  -> MarketDataCache.updateAccepted
+       generation fence + LIVE state
+       cache by exchange + venueSymbol
+  -> MarketDataEventBus
+       inline deterministic listeners
+       bounded asynchronous side listeners
 ```
 
-Cache-first ordering lets a listener query coherent latest state while handling the event. `MarketDataCache` retains the legacy top-of-book path and now also supports `deepBook(exchange, symbol)`.
+Cache update happens before listeners run. A rejected old generation never reaches any listener.
 
-## Boundary Rule
-
-`LocalBookPublisher` constructs an accepted event only when the builder result is accepted and `LIVE`, all three session states are publishable, and message age is below the threshold. `REJECT`, `STALE`, `BOOTSTRAPPING`, disconnected, recovering, and stopped states cannot reach the engine.
-
-## Current Code
+## Invalidation Path
 
 ```text
-src/main/java/com/example/hft/datasource/engine/
-src/main/java/com/example/hft/datasource/deepbook/runtime/AcceptedLocalBookEvent.java
-src/main/java/com/example/hft/datasource/deepbook/runtime/LocalBookPublisher.java
-src/main/java/com/example/hft/datasource/deepbook/runtime/CrossExchangeBookView.java
-src/main/java/com/example/hft/datasource/deepbook/runtime/DeepBookStrategyListener.java
+BookAvailabilityEvent(STALE / RECOVERING / DISCONNECTED / INVALID / STOPPED)
+  -> cache tombstone and remove latest book
+  -> publish availability to every listener
+  -> consolidated view removes venue
+  -> strategy removes active generation
 ```
+
+`MarketDataEngine.onHealth()` maps source health to domain availability, and `onError()` invalidates a known source as `INVALID`. A standalone LIVE health callback cannot clear a tombstone. Recovery requires a newer, quality-approved accepted book.
+
+## Listener Classes
+
+`subscribe()` is for short deterministic in-process listeners. `subscribeAsync(name, listener, capacity)` owns a bounded queue and thread for persistence, analytics, or external I/O. Metrics include queue/max depth, accepted/dropped events, last/max lag, errors, and last error. Exceptions are isolated per listener.

@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1500" height="760" viewBox="0 0 1500 760" role="img" aria-labelledby="title desc">
-  <title id="title">Strategy and Benchmark Module</title>
-  <desc id="desc">Run decision logic while measuring each local processing stage separately.</desc>
+  <title id="title">Strategy And Performance Baselines</title>
+  <desc id="desc">Separate deterministic decisions, side-output pressure, micro-costs, and full-path latency.</desc>
   <defs>
     <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M1 1 L11 6 L1 11 Z" fill="#475569"/></marker>
     <marker id="failure-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M1 1 L11 6 L1 11 Z" fill="#be123c"/></marker>
@@ -8,44 +8,46 @@
     <filter id="shadow" x="-15%" y="-15%" width="130%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/></filter>
   </defs>
   <rect width="1500" height="760" fill="#f8fafc"/>
-  <text x="55" y="58" font-family="Arial, sans-serif" font-size="32" font-weight="700" fill="#0f172a" text-anchor="start">Strategy and Benchmark Module</text>
-  <text x="55" y="89" font-family="Arial, sans-serif" font-size="15" font-weight="400" fill="#475569" text-anchor="start">Run decision logic while measuring each local processing stage separately.</text>
+  <text x="55" y="58" font-family="Arial, sans-serif" font-size="32" font-weight="700" fill="#0f172a" text-anchor="start">Strategy And Performance Baselines</text>
+  <text x="55" y="89" font-family="Arial, sans-serif" font-size="15" font-weight="400" fill="#475569" text-anchor="start">Separate deterministic decisions, side-output pressure, micro-costs, and full-path latency.</text>
   <rect x="40" y="130" width="1420" height="500" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
   <g filter="url(#shadow)">
     <rect x="70" y="205" width="230" height="112" rx="7" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
-  <text x="90" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#075985" text-anchor="start">Market Snapshot</text>
-  <text x="90" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">top 5 / top 10 depth</text>
-  <text x="90" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">venue and freshness</text>
+  <text x="90" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#075985" text-anchor="start">Accepted / Consolidated</text>
+  <text x="90" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">immutable LIVE snapshot</text>
+  <text x="90" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">canonical venue attribution</text>
   </g>
   <g filter="url(#shadow)">
-    <rect x="345" y="205" width="230" height="112" rx="7" fill="#ffe4e6" stroke="#e11d48" stroke-width="2"/>
-  <text x="365" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#9f1239" text-anchor="start">Quote Validator</text>
-  <text x="365" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">spread and value checks</text>
-  <text x="365" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">reject unusable input</text>
+    <rect x="345" y="205" width="230" height="112" rx="7" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <text x="365" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#166534" text-anchor="start">Core Strategy</text>
+  <text x="365" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">inline deterministic listener</text>
+  <text x="365" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">no network or database I/O</text>
   </g>
   <g filter="url(#shadow)">
-    <rect x="620" y="205" width="230" height="112" rx="7" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
-  <text x="640" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#166534" text-anchor="start">Decision Engine</text>
-  <text x="640" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">depth imbalance</text>
-  <text x="640" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">cross-venue opportunity</text>
+    <rect x="620" y="205" width="230" height="112" rx="7" fill="#fae8ff" stroke="#a21caf" stroke-width="2"/>
+  <text x="640" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#86198f" text-anchor="start">Bounded Side Output</text>
+  <text x="640" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">recorder / analytics</text>
+  <text x="640" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">depth + lag + drops</text>
   </g>
   <g filter="url(#shadow)">
-    <rect x="895" y="205" width="230" height="112" rx="7" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
-  <text x="915" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#166534" text-anchor="start">TradingSignal</text>
-  <text x="915" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">decision only today</text>
-  <text x="915" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">no order submission</text>
+    <rect x="895" y="205" width="230" height="112" rx="7" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+  <text x="915" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#334155" text-anchor="start">JMH Stages</text>
+  <text x="915" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">classify / parse / mutate</text>
+  <text x="915" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">snapshot / publish / cache</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="1170" y="205" width="230" height="112" rx="7" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
-  <text x="1190" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#334155" text-anchor="start">Metrics Result</text>
-  <text x="1190" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">count + throughput</text>
-  <text x="1190" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">latency percentiles</text>
+  <text x="1190" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#334155" text-anchor="start">Full Pipeline Replay</text>
+  <text x="1190" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">p50 to p99.9 + max</text>
+  <text x="1190" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">allocation + GC + parity</text>
+    <rect x="1314" y="217" width="74" height="23" rx="4" fill="#ffffff" stroke="#64748b" stroke-opacity="0.45"/>
+  <text x="1351" y="233" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#334155" text-anchor="middle">V24</text>
   </g>
   <g filter="url(#shadow)">
-    <rect x="620" y="430" width="230" height="112" rx="7" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
-  <text x="640" y="464" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#334155" text-anchor="start">Stage Timers</text>
-  <text x="640" y="492" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">parse / book / queue</text>
-  <text x="640" y="514" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">processor / local E2E</text>
+    <rect x="620" y="430" width="230" height="112" rx="7" fill="#f8fafc" stroke="#94a3b8" stroke-width="2" stroke-dasharray="8 6"/>
+  <text x="640" y="464" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#475569" text-anchor="start">Capacity Experiment</text>
+  <text x="640" y="492" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">direct vs partitioned</text>
+  <text x="640" y="514" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">not the live pipeline</text>
   </g>
   <path d="M300 261 H345" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
   <path d="M575 261 H620" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
@@ -54,5 +56,5 @@
   <path d="M735 317 V430" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
   <path d="M850 486 H1010 V317" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
   <rect x="55" y="660" width="1390" height="58" rx="7" fill="#f8fafc" stroke="#cbd5e1"/>
-  <text x="82" y="695" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#334155" text-anchor="start">Rule: measure network, parse, book, queue, processor, and end-to-end time as separate distributions.</text>
+  <text x="82" y="695" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#334155" text-anchor="start">Rule: keep DIRECT_SINGLE_WRITER until complete-path evidence proves another design meets the budget.</text>
 </svg>

@@ -61,8 +61,8 @@ public final class MultiExchangeLocalBookMain {
         Files.createDirectories(outputDir);
 
         String runId = runId();
-        Path rawFile = outputDir.resolve("multi-exchange-raw-v23-" + runId + ".jsonl");
-        Path summaryFile = outputDir.resolve("multi-exchange-books-v23-" + runId + ".json");
+        Path rawFile = outputDir.resolve("multi-exchange-raw-v24-" + runId + ".jsonl");
+        Path summaryFile = outputDir.resolve("multi-exchange-books-v24-" + runId + ".json");
         ObjectMapper mapper = new ObjectMapper();
         List<DeepBookSourceDefinition> sources = DeepBookSourceCatalog.defaultSources();
 
@@ -72,7 +72,7 @@ public final class MultiExchangeLocalBookMain {
         AcceptedBookEventRecorder acceptedRecorder = new AcceptedBookEventRecorder();
         CrossExchangeBookView crossExchangeView = new CrossExchangeBookView();
         DeepBookStrategyListener strategy = new DeepBookStrategyListener();
-        eventBus.subscribe(acceptedRecorder);
+        eventBus.subscribeAsync("accepted-recorder", acceptedRecorder, 8_192);
         eventBus.subscribe(crossExchangeView);
         eventBus.subscribe(strategy);
 
@@ -122,6 +122,7 @@ public final class MultiExchangeLocalBookMain {
             runEndBooks = Map.copyOf(snapshots);
         } finally {
             sessions.forEach(LiveBookSession::close);
+            eventBus.close();
             rawRecorder.awaitDrained(10_000L);
             rawRecorder.close();
             scheduler.shutdownNow();
@@ -168,6 +169,7 @@ public final class MultiExchangeLocalBookMain {
                 rawFile,
                 summaryFile,
                 cache,
+                eventBus,
                 acceptedRecorder,
                 crossExchangeView,
                 strategy,
@@ -253,6 +255,11 @@ public final class MultiExchangeLocalBookMain {
                         TimeUnit.SECONDS.toMillis(staleThresholdSeconds))).count());
         root.put("deepBookCacheEntries", cache.deepBookCount());
         root.put("eventBusListeners", eventBus.listenerCount());
+        root.put("coreListenerErrors", eventBus.coreListenerErrors());
+        root.put("asyncListenerDrops", eventBus.asyncSnapshots().stream()
+                .mapToLong(item -> item.droppedEvents()).sum());
+        root.put("asyncListenerErrors", eventBus.asyncSnapshots().stream()
+                .mapToLong(item -> item.errors()).sum());
         root.put("acceptedEventsRecorded", acceptedRecorder.recorded());
         root.put("crossExchangeBooks", crossExchangeView.size());
         root.put("strategyAcceptedBooks", strategy.acceptedBooks());
@@ -297,6 +304,13 @@ public final class MultiExchangeLocalBookMain {
         root.put("firstDropEpochMillis", recorder.firstDropEpochMillis());
         root.put("firstDropReason", recorder.firstDropReason());
         root.put("recorderFailure", recorder.failure());
+        root.put("recorderQueueCapacity", recorder.queueCapacity());
+        root.put("recorderQueueDepth", recorder.queueDepth());
+        root.put("recorderMaxQueueDepth", recorder.maxQueueDepth());
+        root.put("recorderLastWriteLagNanos", recorder.lastWriteLagNanos());
+        root.put("recorderMaxWriteLagNanos", recorder.maxWriteLagNanos());
+        root.put("recorderCurrentSegment", recorder.currentSegment());
+        root.put("recorderDiskUsageBytes", recorder.diskUsageBytes());
     }
 
     private static void addSession(ObjectNode node, LiveBookSessionSnapshot session) {
@@ -354,6 +368,7 @@ public final class MultiExchangeLocalBookMain {
             Path rawFile,
             Path summaryFile,
             MarketDataCache cache,
+            MarketDataEventBus eventBus,
             AcceptedBookEventRecorder acceptedRecorder,
             CrossExchangeBookView crossExchangeView,
             DeepBookStrategyListener strategy,
@@ -386,6 +401,8 @@ public final class MultiExchangeLocalBookMain {
                 + " eventRecorder=" + acceptedRecorder.recorded()
                 + " crossExchangeView=" + crossExchangeView.size()
                 + " strategyEvents=" + strategy.acceptedBooks()
+                + " asyncDrops=" + eventBus.asyncSnapshots().stream()
+                        .mapToLong(item -> item.droppedEvents()).sum()
                 + " recordedRecords=" + recorder.recordedRecords()
                 + " droppedRecords=" + recorder.droppedRecords()
                 + " replaySafe=" + recorder.replaySafe()

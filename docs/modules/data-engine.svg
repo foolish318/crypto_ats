@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1500" height="760" viewBox="0 0 1500 760" role="img" aria-labelledby="title desc">
   <title id="title">Market-Data Engine Module</title>
-  <desc id="desc">Create one accepted-event boundary with cache-first publication.</desc>
+  <desc id="desc">Cache-first accepted publication plus immediate generation-safe invalidation.</desc>
   <defs>
     <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M1 1 L11 6 L1 11 Z" fill="#475569"/></marker>
     <marker id="failure-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M1 1 L11 6 L1 11 Z" fill="#be123c"/></marker>
@@ -9,49 +9,58 @@
   </defs>
   <rect width="1500" height="760" fill="#f8fafc"/>
   <text x="55" y="58" font-family="Arial, sans-serif" font-size="32" font-weight="700" fill="#0f172a" text-anchor="start">Market-Data Engine Module</text>
-  <text x="55" y="89" font-family="Arial, sans-serif" font-size="15" font-weight="400" fill="#475569" text-anchor="start">Create one accepted-event boundary with cache-first publication.</text>
+  <text x="55" y="89" font-family="Arial, sans-serif" font-size="15" font-weight="400" fill="#475569" text-anchor="start">Cache-first accepted publication plus immediate generation-safe invalidation.</text>
   <rect x="40" y="130" width="1420" height="500" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
   <g filter="url(#shadow)">
-    <rect x="70" y="205" width="230" height="112" rx="7" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
-  <text x="90" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#5b21b6" text-anchor="start">AcceptedLocalBookEvent</text>
-  <text x="90" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">LIVE + connected + fresh</text>
-  <text x="90" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">exchange + symbol + depth</text>
+    <rect x="70" y="185" width="230" height="112" rx="7" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+  <text x="90" y="219" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#5b21b6" text-anchor="start">Accepted Book</text>
+  <text x="90" y="247" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">canonical id + generation</text>
+  <text x="90" y="269" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">immutable LIVE depth</text>
   </g>
   <g filter="url(#shadow)">
-    <rect x="345" y="205" width="230" height="112" rx="7" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
-  <text x="365" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#115e59" text-anchor="start">MarketDataEngine</text>
-  <text x="365" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">single ingest method</text>
-  <text x="365" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">ordering boundary</text>
+    <rect x="70" y="405" width="230" height="112" rx="7" fill="#ffe4e6" stroke="#e11d48" stroke-width="2"/>
+  <text x="90" y="439" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#9f1239" text-anchor="start">Availability Event</text>
+  <text x="90" y="467" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">stale / recover / stop</text>
+  <text x="90" y="489" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">reason + observed time</text>
   </g>
   <g filter="url(#shadow)">
-    <rect x="620" y="205" width="230" height="112" rx="7" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
-  <text x="640" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#115e59" text-anchor="start">DeepBookCache</text>
-  <text x="640" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">exchange + symbol key</text>
-  <text x="640" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">cache before publication</text>
+    <rect x="370" y="265" width="240" height="112" rx="7" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
+  <text x="390" y="299" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#115e59" text-anchor="start">MarketDataEngine</text>
+  <text x="390" y="327" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">accepted + health + error</text>
+  <text x="390" y="349" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">single domain boundary</text>
+    <rect x="524" y="277" width="74" height="23" rx="4" fill="#ffffff" stroke="#0f766e" stroke-opacity="0.45"/>
+  <text x="561" y="293" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#115e59" text-anchor="middle">V24</text>
   </g>
   <g filter="url(#shadow)">
-    <rect x="895" y="205" width="230" height="112" rx="7" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
-  <text x="915" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#115e59" text-anchor="start">MarketDataEventBus</text>
-  <text x="915" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">listener fan-out</text>
-  <text x="915" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">subscriber isolation</text>
+    <rect x="680" y="185" width="240" height="112" rx="7" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
+  <text x="700" y="219" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#115e59" text-anchor="start">Fenced Cache</text>
+  <text x="700" y="247" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">update or tombstone</text>
+  <text x="700" y="269" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">reject old generation</text>
   </g>
   <g filter="url(#shadow)">
-    <rect x="1170" y="205" width="230" height="112" rx="7" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
-  <text x="1190" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#166534" text-anchor="start">Consumers</text>
-  <text x="1190" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">recorder / cross view</text>
-  <text x="1190" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">strategy listener</text>
+    <rect x="680" y="405" width="240" height="112" rx="7" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
+  <text x="700" y="439" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#115e59" text-anchor="start">EventBus</text>
+  <text x="700" y="467" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">core inline ordering</text>
+  <text x="700" y="489" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">bounded async channels</text>
   </g>
   <g filter="url(#shadow)">
-    <rect x="620" y="430" width="230" height="112" rx="7" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
-  <text x="640" y="464" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#334155" text-anchor="start">Engine Metrics</text>
-  <text x="640" y="492" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">ingest and publish counts</text>
-  <text x="640" y="514" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">ETL latency</text>
+    <rect x="990" y="185" width="240" height="112" rx="7" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+  <text x="1010" y="219" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#075985" text-anchor="start">Consolidated View</text>
+  <text x="1010" y="247" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">canonical NBBO</text>
+  <text x="1010" y="269" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">freshness + coherence</text>
   </g>
-  <path d="M300 261 H345" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
-  <path d="M575 261 H620" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
-  <path d="M850 261 H895" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
-  <path d="M1125 261 H1170" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
-  <path d="M735 317 V430" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <g filter="url(#shadow)">
+    <rect x="990" y="405" width="240" height="112" rx="7" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <text x="1010" y="439" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#166534" text-anchor="start">Strategy + Side Output</text>
+  <text x="1010" y="467" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">inline deterministic strategy</text>
+  <text x="1010" y="489" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">async recorder / analytics</text>
+  </g>
+  <path d="M300 241 H335 V321 H370" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M300 461 H335 V321 H370" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M610 321 H650 V241 H680" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M610 321 H650 V461 H680" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M920 241 H990" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M920 461 H990" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
   <rect x="55" y="660" width="1390" height="58" rx="7" fill="#f8fafc" stroke="#cbd5e1"/>
-  <text x="82" y="695" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#334155" text-anchor="start">Rule: update cache before event-bus publication so every listener sees a coherent latest state.</text>
+  <text x="82" y="695" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#334155" text-anchor="start">Rule: accepted data restores state; unavailable data tombstones it; no old generation reaches a consumer.</text>
 </svg>

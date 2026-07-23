@@ -1,8 +1,10 @@
 package com.example.hft.datasource.deepbook.runtime;
 
 import com.example.hft.datasource.book.BookQuality;
+import com.example.hft.datasource.engine.EnginePublishResult;
 import com.example.hft.datasource.engine.MarketDataEngine;
 import com.example.hft.datasource.transport.TransportType;
+import java.time.Instant;
 import java.util.function.LongSupplier;
 
 
@@ -12,11 +14,7 @@ public final class LocalBookPublisher {
     private final int publishedDepth;
     private final LongSupplier clock;
 
-    public LocalBookPublisher(
-            MarketDataEngine engine,
-            long staleThresholdMillis,
-            int publishedDepth
-    ) {
+    public LocalBookPublisher(MarketDataEngine engine, long staleThresholdMillis, int publishedDepth) {
         this(engine, staleThresholdMillis, publishedDepth, System::currentTimeMillis);
     }
 
@@ -43,27 +41,56 @@ public final class LocalBookPublisher {
             long receivedNanos,
             long acceptedEpochMillis
     ) {
+        return publish(
+                builder, result, health, generation, receivedNanos, acceptedEpochMillis
+        ).published();
+    }
+
+    public BookPublishResult publish(
+            LocalOrderBookBuilder builder,
+            BookUpdateResult result,
+            SessionHealth health,
+            long generation,
+            long receivedNanos,
+            long acceptedEpochMillis
+    ) {
         if (!result.accepted()
                 || result.quality() != BookQuality.LIVE
                 || !health.publishable(clock.getAsLong(), staleThresholdMillis)) {
-            return false;
+            return BookPublishResult.notPublished();
         }
+        long snapshotStarted = System.nanoTime();
         LocalBookSnapshot snapshot = builder.snapshot(publishedDepth);
+        long snapshotNanos = System.nanoTime() - snapshotStarted;
         if (snapshot.quality() != BookQuality.LIVE) {
-            return false;
+            return BookPublishResult.notPublished();
         }
-        engine.onEvent(new AcceptedLocalBookEvent(
-                snapshot.sourceId(),
-                snapshot.exchange(),
-                snapshot.symbol(),
-                TransportType.WEBSOCKET,
-                receivedNanos,
-                result.eventTimeMillis(),
-                result.sequence(),
-                generation,
-                acceptedEpochMillis,
-                snapshot
+        EnginePublishResult engineResult = engine.publishAccepted(new AcceptedLocalBookEvent(
+                snapshot.sourceId(), snapshot.exchange(), snapshot.symbol(),
+                builder.canonicalInstrumentId(), TransportType.WEBSOCKET,
+                receivedNanos, result.eventTimeMillis(), result.sequence(), generation,
+                acceptedEpochMillis, snapshot
         ));
-        return true;
+        return new BookPublishResult(
+                engineResult.published(),
+                snapshotNanos,
+                engineResult.cacheNanos(),
+                engineResult.coreListenerNanos(),
+                engineResult.asyncOfferNanos()
+        );
+    }
+
+    public void availability(
+            LocalOrderBookBuilder builder,
+            long generation,
+            BookAvailabilityState state,
+            String reason
+    ) {
+        LocalBookSnapshot snapshot = builder.snapshot(1);
+        engine.onAvailability(new BookAvailabilityEvent(
+                snapshot.sourceId(), snapshot.exchange(), snapshot.symbol(),
+                builder.canonicalInstrumentId(), generation, state, reason,
+                Instant.ofEpochMilli(clock.getAsLong())
+        ));
     }
 }

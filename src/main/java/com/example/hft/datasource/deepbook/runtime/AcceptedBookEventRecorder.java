@@ -20,6 +20,16 @@ public final class AcceptedBookEventRecorder implements MarketDataListener {
         }
     }
 
+
+    @Override
+    public void onBookAvailability(BookAvailabilityEvent event) {
+        if (event.live()) {
+            return;
+        }
+        String key = key(event.exchange(), event.venueSymbol());
+        latestByVenueSymbol.computeIfPresent(key, (ignored, current) ->
+                event.generation() >= current.generation() ? null : current);
+    }
     public long recorded() {
         return recorded.get();
     }

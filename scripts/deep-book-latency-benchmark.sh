@@ -10,9 +10,14 @@ runs="${4:-5}"
 output_file="${5:-}"
 
 if [[ -z "$raw_file" ]]; then
-  raw_file="$(find data -maxdepth 1 -type f \( -name 'multi-exchange-raw-v23-*.jsonl' -o -name 'multi-exchange-raw-v22-*.jsonl' -o -name 'multi-exchange-raw-v21-*.jsonl' \) -printf '%T@ %p\n' | sort -nr | head -1 | cut -d' ' -f2-)"
-fi
-if [[ -z "$raw_file" || ! -f "$raw_file" ]]; then
+  raw_file="$(find data -maxdepth 1 -type f \
+    \( -name 'multi-exchange-raw-v24-*.jsonl' \
+       -o -name 'multi-exchange-raw-v23-*.jsonl' \
+       -o -name 'multi-exchange-raw-v22-*.jsonl' \
+       -o -name 'multi-exchange-raw-v21-*.jsonl' \) \
+    ! -name '*.segment-*.jsonl' \
+    -printf '%T@ %p\n' | sort -nr | head -1 | cut -d' ' -f2-)"
+fiif [[ -z "$raw_file" || ! -f "$raw_file" ]]; then
   echo "No multi-exchange raw replay file found" >&2
   exit 1
 fi

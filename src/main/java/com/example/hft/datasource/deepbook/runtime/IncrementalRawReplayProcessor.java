@@ -119,6 +119,14 @@ public final class IncrementalRawReplayProcessor {
         }
     }
 
+
+    public long appliedRecords() {
+        return applied;
+    }
+
+    public long ignoredRecords() {
+        return ignored;
+    }
     public RawReplayResult result() {
         Map<String, LocalBookSnapshot> books = new LinkedHashMap<>();
         for (Map.Entry<String, ReplayState> entry : states.entrySet()) {

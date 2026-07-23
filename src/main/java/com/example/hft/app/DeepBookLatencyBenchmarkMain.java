@@ -4,6 +4,7 @@ import com.example.hft.datasource.deepbook.DeepBookSourceCatalog;
 import com.example.hft.datasource.deepbook.DeepBookSourceDefinition;
 import com.example.hft.datasource.deepbook.runtime.DeepBookReplayBenchmark;
 import com.example.hft.datasource.deepbook.runtime.RawEnvelope;
+import com.example.hft.datasource.deepbook.runtime.RawJournalRecordReader;
 import com.example.hft.datasource.deepbook.runtime.ReplayBenchmarkResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -38,17 +39,13 @@ public final class DeepBookLatencyBenchmarkMain {
                 : DEFAULT_TARGET_RECORDS;
         int runs = args.length > 3 ? positiveInt(args[3], "runs") : DEFAULT_RUNS;
         Path output = args.length > 4 ? Path.of(args[4]) : Path.of(
-                "data/deep-book-latency-v23-"
+                "data/deep-book-latency-v24-"
                         + Instant.now().toString().replace(":", "").replace(".", "")
                         + ".json");
 
         ObjectMapper mapper = new ObjectMapper();
-        List<RawEnvelope> records;
-        try (var lines = Files.lines(rawPath)) {
-            records = lines.filter(line -> !line.isBlank())
-                    .map(line -> read(mapper, line))
-                    .toList();
-        }
+        List<RawEnvelope> records = RawJournalRecordReader.readAll(rawPath, mapper);
+
         int cycles = Math.toIntExact(Math.max(1L,
                 (targetRecords + records.size() - 1L) / records.size()));
         long measuredRecords = Math.multiplyExact((long) records.size(), cycles);
@@ -129,14 +126,6 @@ public final class DeepBookLatencyBenchmarkMain {
                 result.endToEndLatency().p99Micros(),
                 result.backpressureEvents(),
                 result.producerBlockedMillis());
-    }
-
-    private static RawEnvelope read(ObjectMapper mapper, String line) {
-        try {
-            return mapper.readValue(line, RawEnvelope.class);
-        } catch (Exception error) {
-            throw new IllegalArgumentException("invalid raw benchmark line", error);
-        }
     }
 
     private static int positiveInt(String value, String label) {

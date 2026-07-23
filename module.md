@@ -873,3 +873,13 @@ The default live module now hands each recorded ingress envelope directly to `Ve
 `PartitionedBookEventDispatcher` and `DeepBookReplayBenchmark` remain available for identical-record capacity experiments. They are not dependencies of `MultiExchangeLocalBookMain`. `AsyncRawRecorder` remains asynchronous because durable evidence is a side-path responsibility and must not block book mutation.
 
 The complete framework comparison and the conditions for adding Aeron, Disruptor, Chronicle Queue, Kafka, Redis, SBE, extra JVMs, or extra hosts are maintained in [`reference-frameworks.md`](reference-frameworks.md).
+
+## V24 Availability, Consolidation, Isolation, And Journal
+
+V24 keeps the same data-source module and default direct single-writer runtime. New domain contracts are `BookAvailabilityEvent`, immutable `VenueBookSnapshot`, and immutable `ConsolidatedBookSnapshot`.
+
+`MarketDataCache` now maintains generation fences/tombstones. `CrossExchangeBookView` aggregates by canonical instrument, excludes unavailable or expired venues, calculates NBBO and spread state, and exposes watermark/coherence instead of claiming simultaneous venue observations.
+
+`LiveBookSession` now depends on injectable `VenueTransport` and `SnapshotProvider`; protocol, recovery policy, builder/publisher pipeline, and health are separate testable responsibilities. Deterministic listeners remain inline while side outputs use bounded per-listener async channels with pressure/error metrics.
+
+Raw persistence is a segmented, checksummed journal. Streaming replay uses incremental builders and preserves snapshot/update/lifecycle order. The JMH and full-pipeline benchmarks make allocation, GC, stage latency, queue lag, drops, and parity visible before any new framework is selected.

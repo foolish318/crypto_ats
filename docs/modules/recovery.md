@@ -1,55 +1,20 @@
-# Session Health And Recovery Module
+# Session Health, Availability, And Recovery Module
 
 ![Recovery coordinator module](recovery.svg)
 
 PNG fallback: [recovery.png](recovery.png)
 
-Recovery is a state rebuild, not merely a socket reconnect.
-
-## Independent States
+Recovery is a generation-fenced state rebuild, not merely a socket reconnect.
 
 ```text
 TransportState: DISCONNECTED, CONNECTING, CONNECTED
-BookState:      EMPTY, BOOTSTRAPPING, LIVE, STALE, GAP_DETECTED,
-                CHECKSUM_FAILED, CROSSED, DEGRADED
-SessionState:   STARTING, LIVE, DEGRADED, RECOVERING, STOPPED
+BookState: EMPTY, BOOTSTRAPPING, LIVE, STALE, GAP_DETECTED,
+           CHECKSUM_FAILED, CROSSED, DEGRADED
+SessionState: STARTING, LIVE, DEGRADED, RECOVERING, STOPPED
 ```
 
-Publication requires all four predicates:
+Publication requires `CONNECTED + LIVE book + LIVE session + fresh message`. Any departure emits `BookAvailabilityEvent`, tombstones cache state, and removes the venue from downstream views.
 
-```text
-transport == CONNECTED
-book == LIVE
-session == LIVE
-last message age < stale threshold
-```
+`StaleWatchdog` marks silence STALE/DEGRADED and requests recovery. `RecoveryCoordinator` uses thread-safe scheduling, jittered exponential backoff from 300 ms to 30 seconds, and clears the scheduling gate before a reconnect attempt so a fast failure can retry. `generation` rejects callbacks from superseded sockets. `stop()` cancels pending reconnects.
 
-Disconnect, `stop()`, expiry, and recovery immediately make publication ineligible.
-
-## Watchdog
-
-`StaleWatchdog` periodically reads `lastMessageTime`. When a connected source is silent beyond the configurable threshold it:
-
-1. changes the book to `STALE`;
-2. changes the session to `DEGRADED`;
-3. suppresses downstream publication;
-4. records the recovery reason and increments `staleTransitions`;
-5. triggers reconnect/resnapshot recovery.
-
-A later transport connection alone is insufficient. The session returns to `LIVE` only after continuous, quality-approved data is accepted.
-
-## Recovery Coordinator
-
-```text
-failure
-  -> RECOVERING and generation record
-  -> jittered exponential delay
-  -> new generation and connection
-  -> snapshot/stream rebuild
-  -> quality-approved LIVE event
-  -> reset backoff
-```
-
-Backoff bases are `300ms`, `600ms`, `1.2s`, `2.4s`, and so on, capped at `30s`; jitter is applied around each base. The scheduled flag is cleared before invoking the new connection, so a fast failure can schedule the next attempt. Old generation callbacks are ignored. `stop()` cancels pending work and permanently prevents new reconnect scheduling.
-
-Metrics: `lastMessageTime`, `lastAcceptedTime`, `messageAgeMillis`, `staleTransitions`, `recoveryReason`, `reconnectAttempts`, `reconnectSuccesses`, `reconnectFailures`, and `recoveryDurationMillis`.
+A newer generation remains unavailable until snapshot/bridge, continuity, and quality checks produce an accepted LIVE book. Successful return to accepted LIVE resets backoff. Metrics include message/accepted times, age, stale transitions, reason, reconnect attempts/successes/failures, and recovery duration.

@@ -1893,3 +1893,31 @@ PartitionedBookEventDispatcher remains only in DeepBookReplayBenchmark.
 ```
 
 This is the current runtime flow. The V22 diagram above remains the historical experiment that produced the evidence for this decision.
+
+## V24: Availability-Safe Consolidated Books And Journal Baseline
+
+```mermaid
+flowchart LR
+    Source["Binance.US / OKX / Kraken"] --> Transport["VenueTransport + SnapshotProvider"]
+    Transport --> Raw["RawEnvelope"]
+    Raw -. bounded offer .-> Journal["Segmented checksummed journal"]
+    Raw --> Protocol["VenueProtocolStateMachine"]
+    Protocol --> Pipeline["BookPipeline / single writer"]
+    Pipeline --> Gate{"continuity + quality + freshness"}
+    Gate -->|accepted| Event["AcceptedLocalBookEvent + canonical id + generation"]
+    Gate -->|failure| Availability["BookAvailabilityEvent"]
+    Event --> Engine["MarketDataEngine"]
+    Availability --> Engine
+    Engine --> Cache["generation-fenced cache / tombstone"]
+    Engine --> Bus["MarketDataEventBus"]
+    Bus -->|inline| Consolidated["immutable ConsolidatedBookSnapshot / NBBO"]
+    Bus -->|inline| Strategy["Strategy"]
+    Bus -. bounded async .-> Side["Recorder / analytics / external I/O"]
+    Availability --> Recovery["watchdog + jittered backoff + new generation"]
+    Recovery --> Transport
+    Journal -. streaming replay .-> Protocol
+```
+
+V24 closes the stale-data hole: leaving LIVE removes a venue from cache, consolidated NBBO, and strategy immediately. A health-only LIVE event cannot restore it; a new accepted generation must complete snapshot/bridge, continuity, and quality checks.
+
+The journal adds segment headers, frame checksums, index/cursor, rotation, retention, disk monitoring, explicit flush/fsync policy, truncated-tail handling, and replay-safe loss semantics. Performance evidence is split into JMH stage costs, a complete replay pipeline, and the retained direct-versus-partitioned capacity experiment.

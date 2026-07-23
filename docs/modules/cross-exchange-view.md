@@ -1,26 +1,29 @@
-# Cross-Exchange Market View Module
+# Consolidated Cross-Exchange Book Module
 
-![Cross-exchange market view](cross-exchange-view.svg)
+![Consolidated book](cross-exchange-view.svg)
 
 PNG fallback: [cross-exchange-view.png](cross-exchange-view.png)
 
-The view compares independently validated venue books through a canonical instrument identity.
+`CrossExchangeBookView` aggregates validated venue books by `canonicalInstrumentId`. Venue symbols such as `BTCUSDT`, `BTC-USDT`, and `BTC/USD` can therefore contribute to the same instrument.
 
-## Input Rules
+## Venue State
 
-Each input keeps:
+Each immutable `VenueBookSnapshot` retains source, exchange, venue symbol, canonical id, availability state, generation, sequence, event time, receive time, age, BBO, and depth snapshot. STALE, INVALID, DISCONNECTED, RECOVERING, STOPPED, old-generation, and freshness-expired venues are excluded.
+
+## Consolidated Snapshot
+
+`ConsolidatedBookSnapshot` reports:
 
 ```text
-venue identity
-venue and canonical symbol
-quality/lifecycle state
-exchange timestamp
-local receive timestamp
-top levels and configured depth
+best bid + venue
+best ask + venue
+NBBO spread
+normal / locked / crossed state
+valid venue count
+immutable ordered venue snapshots
+event-time watermark
+maximum venue skew
+coherent flag
 ```
 
-Stale or degraded books are excluded from actionable comparisons, but remain visible to monitoring. The view does not mutate source books and does not hide which venue supplied a price.
-
-## Current Scope
-
-Top-of-book comparison exists for the current exchanges. A full deep-book view will aggregate comparable depth metrics while preserving separate source books.
+`coherent=false` makes time inconsistency explicit; it never presents asynchronous venue states as one synchronized observation. Availability events withdraw a venue immediately. Re-entry requires a new accepted generation, not a health-only LIVE notification.

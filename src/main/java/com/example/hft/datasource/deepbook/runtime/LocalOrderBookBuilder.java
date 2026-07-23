@@ -7,6 +7,8 @@ import com.example.hft.datasource.deepbook.DeepBookSourceDefinition;
 public interface LocalOrderBookBuilder {
     DeepBookSourceDefinition source();
 
+    String canonicalInstrumentId();
+
     BookUpdateResult loadSnapshot(String payload, long receivedEpochMillis);
 
     BookUpdateResult onMessage(String payload, long receivedEpochMillis);

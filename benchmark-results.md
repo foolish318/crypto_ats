@@ -285,3 +285,27 @@ The source-partitioned experiment improved saturated throughput by `2.144x`, but
 Result artifact: `data/deep-book-latency-v23-2026-07-23T140302880339268Z.json`.
 
 Future comparisons must replay identical captured records, report final-book parity, and separate processing, queue, and end-to-end latency.
+
+## V24 Full-Pipeline And JMH Baseline
+
+Two one-run regression validations exercised the production-shaped path. These are local baselines, not hardware claims.
+
+| Input | Records | Throughput | Corrected E2E p99 | p99.9 | Allocation | GC | Drops | Parity |
+|---|---:|---:|---:|---:|---:|---:|---:|---|
+| V23 retained capture | 5,826 | 32,781/s | 1,215.38 us | 2,240.06 us | 36,461.4 B/msg | 2 / 3 ms | 0 | true |
+| Fresh V24 journal | 1,932 | 26,306/s | 188.06 us | 2,561.33 us | 38,857.4 B/msg | 1 / 1 ms | 0 | true |
+
+The full path includes recorder offer, protocol, parse, mutation, quality, snapshot, cache, core listeners, and async side-output offer. Different input mixes explain much of the percentile difference; this is not a version speedup comparison.
+
+Default forked JMH used JDK 17.0.19, one thread, one fork, three 1-second warmups, five 1-second measurements, throughput and sample-time modes, and the GC profiler:
+
+| Operation | Throughput (ops/us) | p50 us | p99 us | p99.9 us | bytes/op |
+|---|---:|---:|---:|---:|---:|
+| venue classification | 0.828 | 0.940 | 4.242 | 69.651 | 3,840 |
+| JSON parse | 0.814 | 1.592 | 6.793 | 78.596 | 3,817 |
+| book mutation | 15.037 | 0.073 | 0.307 | 8.450 | 416 |
+| snapshot creation | 5.990 | 0.200 | 0.667 | 24.947 | 1,264 |
+| LocalBookPublisher | 2.144 | 0.372 | 1.340 | 29.620 | 1,472 |
+| cache + event publication | 3.093 | 0.220 | 0.599 | 21.917 | 128 |
+
+The evidence prioritizes reducing repeated JSON tree parsing and full snapshot/object allocation. Replacing `BigDecimal` is not justified yet because exactness is part of correctness and isolated mutation is already much cheaper than parse/publication. The default remains `DIRECT_SINGLE_WRITER`.

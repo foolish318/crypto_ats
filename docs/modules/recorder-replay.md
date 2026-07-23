@@ -1,45 +1,23 @@
-# Recorder And Replay Module
+# Recorder And Replay Journal Module
 
-![Recorder and replay module](recorder-replay.svg)
+![Recorder and replay journal](recorder-replay.svg)
 
 PNG fallback: [recorder-replay.png](recorder-replay.png)
 
-Replay preserves enough source evidence to reconstruct the same final local book, not merely reparse selected WebSocket payloads.
+V24 turns raw capture into a bounded, segmented, checksummed journal while preserving legacy JSONL replay.
 
-## Raw Envelope
+## Envelope And Frame
 
-Each JSONL line has this schema:
+`RawEnvelope` contains application version, record type, generation, source/exchange/symbol, epoch and monotonic receive clocks, payload, and lifecycle detail. It records `CONNECT`, `DISCONNECT`, `RECOVERY`, `REST_SNAPSHOT`, and `WS_MESSAGE`. Binance REST snapshots are recorded before and after apply; OKX/Kraken callback order is retained.
 
-```json
-{
-  "version": "V22-p0-hardened-local-books",
-  "recordType": "REST_SNAPSHOT | WS_MESSAGE | CONNECT | DISCONNECT | RECOVERY",
-  "generation": 1,
-  "sourceId": "okx-BTC-USDT",
-  "exchange": "OKX",
-  "symbol": "BTC-USDT",
-  "receivedEpochMillis": 0,
-  "receivedNanos": 0,
-  "payload": "...",
-  "detail": "..."
-}
-```
+Each journal segment starts with a versioned metadata header. Record frames include segment/frame indexes and SHA-256 checksum. The sidecar index records segment range, record count, byte count, and open/close times. `RawReplayCursor` exposes replay progress.
 
-Binance REST snapshots are written with `BEFORE_APPLY` and `AFTER_APPLY` details. Replay applies only the former, buffers pre-snapshot Binance deltas, then bridges them in recorded order. All WebSocket envelopes are recorded at connector ingress before dispatcher handoff, so OKX/Kraken snapshot/update order and pre-snapshot Binance diff order are retained. Generation changes start a fresh builder and isolate stale callbacks.
+## Rotation And Durability
 
-## Loss Contract
+Defaults are 128 MiB or 15 minutes per segment, 24-hour retention, 64 MiB minimum free disk, flush every 256 records, and fsync every 4096 records plus rotation/close. The acknowledged-but-not-fsynced interval is the explicit crash-loss window.
 
-`AsyncRawRecorder` uses a bounded queue so disk I/O does not block the WebSocket callback. Recorder queue overflow, processing queue overflow, or writer failure is never hidden:
+`AsyncRawRecorder` drains its bounded queue on normal close. Queue depth, maximum depth, write lag, drops, current segment, disk usage, and replay safety are available in summary output. Any dropped record or writer failure makes the journal replay-unsafe.
 
-```text
-droppedRecords > 0
-replaySafe = false
-firstDropEpochMillis and firstDropReason populated
-REPLAY_UNSAFE marker appended when the writer drains
-```
+## Streaming Replay
 
-`RawReplayProcessor` rejects an unsafe file. A file with missing evidence must never look complete.
-
-## Deterministic Parity
-
-JUnit builds live-style Binance, OKX, and Kraken books, replays the corresponding envelopes, and compares final sequence, quality, best bid, best ask, bids, and asks. The live V22 runner performs the same top-10 parity check at the end of every replay-safe smoke run.
+`RawReplayProcessor` reads segments line by line into `IncrementalRawReplayProcessor`; memory does not scale with total file size. It validates version, segment order, checksums, unsafe markers, and incomplete tails. Deterministic tests compare final sequence, quality, best bid/ask, and retained depth after segmented replay.

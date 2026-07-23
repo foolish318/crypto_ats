@@ -140,3 +140,8 @@ regulatory or operational separation of risk/order services
 ```
 
 Start with same-host Aeron IPC and benchmark the complete receive-to-decision path. Add cross-host transport or consensus only when HA or horizontal scaling justifies the measured latency cost.
+## V24 Evidence Update
+
+V24 deliberately adds no Disruptor, Kafka, Aeron, Chronicle Queue, or SBE dependency to the live path. It first makes invalidation, bounded listener pressure, journal durability, replay parity, allocation, and complete stage latency observable.
+
+The short full-pipeline baseline measured about 30.8k records/s with true parity and zero side-listener drops, while allocating about 37 KB/message. JMH isolates classification/JSON parsing and snapshot/publication allocation as clearer optimization targets than another transport or queue. Revisit external frameworks only after those costs or an explicit process/HA boundary are measured against an end-to-end budget.

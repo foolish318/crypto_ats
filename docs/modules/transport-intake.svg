@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1500" height="760" viewBox="0 0 1500 760" role="img" aria-labelledby="title desc">
   <title id="title">Transport and Raw Intake Module</title>
-  <desc id="desc">Preserve the original message and receive metadata before parsing.</desc>
+  <desc id="desc">Injectable live I/O and bounded evidence capture before direct processing.</desc>
   <defs>
     <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M1 1 L11 6 L1 11 Z" fill="#475569"/></marker>
     <marker id="failure-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M1 1 L11 6 L1 11 Z" fill="#be123c"/></marker>
@@ -9,55 +9,59 @@
   </defs>
   <rect width="1500" height="760" fill="#f8fafc"/>
   <text x="55" y="58" font-family="Arial, sans-serif" font-size="32" font-weight="700" fill="#0f172a" text-anchor="start">Transport and Raw Intake Module</text>
-  <text x="55" y="89" font-family="Arial, sans-serif" font-size="15" font-weight="400" fill="#475569" text-anchor="start">Preserve the original message and receive metadata before parsing.</text>
+  <text x="55" y="89" font-family="Arial, sans-serif" font-size="15" font-weight="400" fill="#475569" text-anchor="start">Injectable live I/O and bounded evidence capture before direct processing.</text>
   <rect x="40" y="130" width="1420" height="500" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
   <g filter="url(#shadow)">
     <rect x="70" y="205" width="230" height="112" rx="7" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
-  <text x="90" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#075985" text-anchor="start">REST Client</text>
-  <text x="90" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">snapshot request</text>
-  <text x="90" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">HTTP response bytes</text>
+  <text x="90" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#075985" text-anchor="start">VenueTransport</text>
+  <text x="90" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">JDK WebSocket live adapter</text>
+  <text x="90" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">deterministic fake in tests</text>
+    <rect x="214" y="217" width="74" height="23" rx="4" fill="#ffffff" stroke="#0284c7" stroke-opacity="0.45"/>
+  <text x="251" y="233" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#075985" text-anchor="middle">V24</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="345" y="205" width="230" height="112" rx="7" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
-  <text x="365" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#075985" text-anchor="start">WebSocket Client</text>
-  <text x="365" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">continuous updates</text>
-  <text x="365" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">callback receive time</text>
+  <text x="365" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#075985" text-anchor="start">SnapshotProvider</text>
+  <text x="365" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">JDK HTTP snapshot adapter</text>
+  <text x="365" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">delayed/failing fake in tests</text>
+    <rect x="489" y="217" width="74" height="23" rx="4" fill="#ffffff" stroke="#0284c7" stroke-opacity="0.45"/>
+  <text x="526" y="233" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#075985" text-anchor="middle">V24</text>
   </g>
   <g filter="url(#shadow)">
-    <rect x="620" y="205" width="230" height="112" rx="7" fill="#f8fafc" stroke="#94a3b8" stroke-width="2" stroke-dasharray="8 6"/>
-  <text x="640" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#475569" text-anchor="start">FIX / Third Party</text>
-  <text x="640" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">future binary or FIX</text>
-  <text x="640" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">same intake boundary</text>
-    <rect x="764" y="217" width="74" height="23" rx="4" fill="#ffffff" stroke="#94a3b8" stroke-opacity="0.45"/>
-  <text x="801" y="233" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#475569" text-anchor="middle">planned</text>
+    <rect x="620" y="205" width="230" height="112" rx="7" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+  <text x="640" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#334155" text-anchor="start">RawEnvelope</text>
+  <text x="640" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">payload + lifecycle</text>
+  <text x="640" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">source + generation + clocks</text>
   </g>
   <g filter="url(#shadow)">
-    <rect x="895" y="205" width="250" height="112" rx="7" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
-  <text x="915" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#334155" text-anchor="start">RawEnvelope</text>
-  <text x="915" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">payload + venue + symbol</text>
-  <text x="915" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">generation + clocks + lifecycle</text>
+    <rect x="895" y="205" width="250" height="112" rx="7" fill="#fae8ff" stroke="#a21caf" stroke-width="2"/>
+  <text x="915" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#86198f" text-anchor="start">AsyncRawRecorder</text>
+  <text x="915" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">bounded queue + drop state</text>
+  <text x="915" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">writer never blocks book</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="1190" y="205" width="230" height="112" rx="7" fill="#fae8ff" stroke="#a21caf" stroke-width="2"/>
-  <text x="1210" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#86198f" text-anchor="start">AsyncRawRecorder</text>
-  <text x="1210" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">bounded append-only JSONL</text>
-  <text x="1210" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">drop explicitly marks unsafe</text>
+  <text x="1210" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#86198f" text-anchor="start">Segmented Journal</text>
+  <text x="1210" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">header + checksum + index</text>
+  <text x="1210" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">rotation + fsync policy</text>
+    <rect x="1334" y="217" width="74" height="23" rx="4" fill="#ffffff" stroke="#a21caf" stroke-opacity="0.45"/>
+  <text x="1371" y="233" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#86198f" text-anchor="middle">V24</text>
   </g>
   <g filter="url(#shadow)">
-    <rect x="895" y="430" width="250" height="112" rx="7" fill="#ffe4e6" stroke="#e11d48" stroke-width="2"/>
-  <text x="915" y="464" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#9f1239" text-anchor="start">Direct Handoff</text>
-  <text x="915" y="492" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">inline source callback</text>
-  <text x="915" y="514" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">no processing queue</text>
-    <rect x="1059" y="442" width="74" height="23" rx="4" fill="#ffffff" stroke="#e11d48" stroke-opacity="0.45"/>
-  <text x="1096" y="458" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#9f1239" text-anchor="middle">V23</text>
+    <rect x="620" y="430" width="250" height="112" rx="7" fill="#ffe4e6" stroke="#e11d48" stroke-width="2"/>
+  <text x="640" y="464" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#9f1239" text-anchor="start">Direct Book Handoff</text>
+  <text x="640" y="492" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">protocol then source book</text>
+  <text x="640" y="514" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">one sequential writer</text>
+    <rect x="784" y="442" width="74" height="23" rx="4" fill="#ffffff" stroke="#e11d48" stroke-opacity="0.45"/>
+  <text x="821" y="458" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#9f1239" text-anchor="middle">default</text>
   </g>
-  <path d="M185 205 V165 H1020 V205" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
-  <path d="M460 205 V180 H1020 V205" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M300 261 H620" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M575 261 H620" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
   <path d="M850 261 H895" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
   <path d="M1145 261 H1190" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
-  <path d="M1020 317 V430" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
-  <path d="M895 486 H845 V350 H1020 V317" fill="none" stroke="#be123c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#failure-arrow)"/>
-  <text x="780" y="370" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#be123c" text-anchor="middle">pressure signal</text>
+  <path d="M745 317 V430" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M895 486 H925 V350 H1020 V317" fill="none" stroke="#be123c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#failure-arrow)"/>
+  <text x="1040" y="390" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#be123c" text-anchor="middle">bounded pressure metrics</text>
   <rect x="55" y="660" width="1390" height="58" rx="7" fill="#f8fafc" stroke="#cbd5e1"/>
-  <text x="82" y="695" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#334155" text-anchor="start">Rule: record at ingress, then process inline; persistence remains asynchronous and cannot block the book.</text>
+  <text x="82" y="695" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#334155" text-anchor="start">Rule: capture complete raw evidence, then process inline; every side-output queue is bounded and observable.</text>
 </svg>

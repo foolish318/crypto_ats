@@ -4,8 +4,6 @@ import com.example.hft.datasource.DataSourceModuleVersion;
 import com.example.hft.datasource.book.BookQuality;
 import com.example.hft.datasource.deepbook.DeepBookSourceDefinition;
 import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.net.http.WebSocket;
 import java.time.Duration;
 import java.nio.ByteBuffer;
@@ -22,16 +20,17 @@ public final class LiveBookSession implements AutoCloseable {
     private static final long MAX_BINANCE_BOOTSTRAP_BYTES = 64L * 1024L * 1024L;
 
     private final DeepBookSourceDefinition source;
-    private final LocalOrderBookBuilder builder;
-    private final HttpClient httpClient;
+    private final BookPipeline pipeline;
+    private final VenueTransport transport;
+    private final SnapshotProvider snapshotProvider;
     private final AsyncRawRecorder recorder;
     private final LocalBookPublisher publisher;
     private final PartitionedBookEventDispatcher dispatcher;
     private final long staleThresholdMillis;
     private final SessionHealth health = new SessionHealth();
-    private final RecoveryCoordinator recovery;
+    private final BookRecoveryPolicy recovery;
     private final StaleWatchdog watchdog;
-    private final VenueSessionProtocol protocol;
+    private final VenueProtocolStateMachine protocol;
     private final Object lock = new Object();
     private final BoundedBootstrapBuffer<PendingMessage> pendingBinanceUpdates =
             new BoundedBootstrapBuffer<>(
@@ -81,12 +80,53 @@ public final class LiveBookSession implements AutoCloseable {
             Duration staleThreshold,
             PartitionedBookEventDispatcher dispatcher
     ) {
+        this(
+                source,
+                builder,
+                new JdkVenueTransport(httpClient),
+                new JdkSnapshotProvider(httpClient),
+                scheduler,
+                recorder,
+                publisher,
+                staleThreshold,
+                dispatcher
+        );
+    }
+
+    public LiveBookSession(
+            DeepBookSourceDefinition source,
+            LocalOrderBookBuilder builder,
+            VenueTransport transport,
+            SnapshotProvider snapshotProvider,
+            ScheduledExecutorService scheduler,
+            AsyncRawRecorder recorder,
+            LocalBookPublisher publisher,
+            Duration staleThreshold
+    ) {
+        this(
+                source, builder, transport, snapshotProvider, scheduler,
+                recorder, publisher, staleThreshold, null
+        );
+    }
+
+    public LiveBookSession(
+            DeepBookSourceDefinition source,
+            LocalOrderBookBuilder builder,
+            VenueTransport transport,
+            SnapshotProvider snapshotProvider,
+            ScheduledExecutorService scheduler,
+            AsyncRawRecorder recorder,
+            LocalBookPublisher publisher,
+            Duration staleThreshold,
+            PartitionedBookEventDispatcher dispatcher
+    ) {
         if (staleThreshold.isNegative() || staleThreshold.isZero()) {
             throw new IllegalArgumentException("staleThreshold must be positive");
         }
         this.source = source;
-        this.builder = builder;
-        this.httpClient = httpClient;
+        this.pipeline = new BookPipeline(builder, publisher, health);
+        this.transport = transport;
+        this.snapshotProvider = snapshotProvider;
         this.recorder = recorder;
         this.publisher = publisher;
         this.dispatcher = dispatcher;
@@ -107,10 +147,12 @@ public final class LiveBookSession implements AutoCloseable {
                 scheduler,
                 health,
                 staleThreshold,
-                reason -> requestRecovery(reason, generation)
+                reason -> {
+                    pipeline.availability(generation, BookAvailabilityState.STALE, reason);
+                    requestRecovery(reason, generation);
+                }
         );
     }
-
     public void start() {
         openConnection(false);
     }
@@ -126,7 +168,7 @@ public final class LiveBookSession implements AutoCloseable {
             }
             generation++;
             nextGeneration = generation;
-            builder.reset();
+            pipeline.reset();
             health.bookState(BookState.EMPTY);
             health.connecting(recoveryAttempt);
             binanceSnapshotReady = false;
@@ -138,6 +180,11 @@ public final class LiveBookSession implements AutoCloseable {
             if (previous != null) {
                 previous.abort();
             }
+        }
+        if (recoveryAttempt) {
+            pipeline.availability(nextGeneration, BookAvailabilityState.RECOVERING,
+                    "new recovery generation"
+            );
         }
         if (dispatcher != null) {
             dispatcher.resume(source.id());
@@ -151,15 +198,15 @@ public final class LiveBookSession implements AutoCloseable {
                 recoveryAttempt ? "RECONNECT_ATTEMPT" : "INITIAL_CONNECT"
         );
 
-        httpClient.newWebSocketBuilder()
-                .header("User-Agent", "hft-java-learning/0.1")
-                .connectTimeout(HTTP_TIMEOUT)
-                .buildAsync(source.webSocketUri(), new SessionListener(nextGeneration))
+        transport.connect(source, HTTP_TIMEOUT, new SessionListener(nextGeneration))
                 .whenComplete((opened, error) -> {
                     if (error != null && current(nextGeneration)) {
                         String reason = "connect: " + rootMessage(error);
                         lastFailure = reason;
                         health.disconnected(reason);
+                        pipeline.availability(nextGeneration,
+                                BookAvailabilityState.DISCONNECTED, reason
+                        );
                         protocol.disconnected();
                         record(
                                 RawRecordType.DISCONNECT,
@@ -175,17 +222,13 @@ public final class LiveBookSession implements AutoCloseable {
     }
 
     private void loadBinanceSnapshot(long listenerGeneration) {
-        HttpRequest request = HttpRequest.newBuilder(source.snapshotUri())
-                .timeout(HTTP_TIMEOUT)
-                .GET()
-                .build();
-        httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+        snapshotProvider.load(source, HTTP_TIMEOUT)
                 .whenComplete((response, error) -> {
                     if (error != null) {
                         requestRecovery("snapshot: " + rootMessage(error), listenerGeneration);
                         return;
                     }
-                    if (response.statusCode() / 100 != 2) {
+                    if (!response.successful()) {
                         requestRecovery(
                                 "snapshot HTTP " + response.statusCode(),
                                 listenerGeneration
@@ -206,7 +249,7 @@ public final class LiveBookSession implements AutoCloseable {
                                 response.body(),
                                 "BEFORE_APPLY"
                         );
-                        BookUpdateResult result = builder.loadSnapshot(
+                        BookUpdateResult result = pipeline.loadSnapshot(
                                 response.body(),
                                 receivedEpochMillis
                         );
@@ -221,6 +264,9 @@ public final class LiveBookSession implements AutoCloseable {
                                         + " quality=" + result.quality()
                         );
                         if (result.requiresRecovery()) {
+                            pipeline.availability(listenerGeneration, BookAvailabilityState.INVALID,
+                                    "invalid Binance snapshot: " + result.detail()
+                            );
                             requestRecovery(
                                     "invalid Binance snapshot: " + result.detail(),
                                     listenerGeneration
@@ -331,7 +377,7 @@ public final class LiveBookSession implements AutoCloseable {
     }
 
     private void applyMessage(long listenerGeneration, PendingMessage message) {
-        BookUpdateResult result = builder.onMessage(
+        BookUpdateResult result = pipeline.onMessage(
                 message.payload(),
                 message.receivedEpochMillis()
         );
@@ -342,7 +388,10 @@ public final class LiveBookSession implements AutoCloseable {
                 message.receivedEpochMillis()
         );
         if (result.requiresRecovery()) {
-            requestRecovery(result.status() + ": " + result.detail(), listenerGeneration);
+            String reason = result.status() + ": " + result.detail();
+            pipeline.availability(listenerGeneration, BookAvailabilityState.INVALID, reason
+            );
+            requestRecovery(reason, listenerGeneration);
         }
     }
 
@@ -365,10 +414,8 @@ public final class LiveBookSession implements AutoCloseable {
             }
             if (result.quality() == BookQuality.LIVE) {
                 health.accepted(acceptedEpochMillis);
-                if (publisher.publishIfEligible(
-                        builder,
+                if (pipeline.publishIfEligible(
                         result,
-                        health,
                         listenerGeneration,
                         receivedNanos,
                         acceptedEpochMillis
@@ -398,6 +445,8 @@ public final class LiveBookSession implements AutoCloseable {
             }
         }
         lastFailure = reason;
+        pipeline.availability(listenerGeneration, BookAvailabilityState.RECOVERING, reason
+        );
         health.recovering(reason);
         protocol.disconnected();
         record(
@@ -418,7 +467,7 @@ public final class LiveBookSession implements AutoCloseable {
     public LiveBookSessionSnapshot snapshot() {
         synchronized (lock) {
             long now = System.currentTimeMillis();
-            LocalBookSnapshot book = builder.snapshot(1);
+            LocalBookSnapshot book = pipeline.snapshot(1);
             SessionHealthSnapshot healthSnapshot = health.snapshot(now, staleThresholdMillis);
             String bid = book.bestBid() == null
                     ? ""
@@ -457,7 +506,7 @@ public final class LiveBookSession implements AutoCloseable {
 
     public LocalBookSnapshot bookSnapshot(int levels) {
         synchronized (lock) {
-            return builder.snapshot(levels);
+            return pipeline.snapshot(levels);
         }
     }
 
@@ -495,7 +544,7 @@ public final class LiveBookSession implements AutoCloseable {
             stoppedGeneration = generation;
             captured = new LiveBookSessionFinalState(
                     snapshot(),
-                    builder.snapshot(levels)
+                    pipeline.snapshot(levels)
             );
             generation++;
             WebSocket current = webSocket;
@@ -504,6 +553,9 @@ public final class LiveBookSession implements AutoCloseable {
                 current.abort();
             }
             health.stopped();
+            pipeline.availability(stoppedGeneration, BookAvailabilityState.STOPPED,
+                    "session stopped"
+            );
             finalState = captured;
         }
         watchdog.close();
@@ -761,6 +813,9 @@ public final class LiveBookSession implements AutoCloseable {
             if (current(listenerGeneration)) {
                 String detail = "close " + statusCode + ": " + reason;
                 health.disconnected(detail);
+                pipeline.availability(listenerGeneration,
+                        BookAvailabilityState.DISCONNECTED, detail
+                );
                 protocol.disconnected();
                 record(
                         RawRecordType.DISCONNECT,
@@ -780,6 +835,9 @@ public final class LiveBookSession implements AutoCloseable {
             if (current(listenerGeneration)) {
                 String detail = "websocket: " + rootMessage(error);
                 health.disconnected(detail);
+                pipeline.availability(listenerGeneration,
+                        BookAvailabilityState.INVALID, detail
+                );
                 protocol.disconnected();
                 record(
                         RawRecordType.DISCONNECT,

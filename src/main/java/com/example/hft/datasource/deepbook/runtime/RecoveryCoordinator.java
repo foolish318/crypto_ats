@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.DoubleSupplier;
 import java.util.function.LongConsumer;
 
-public final class RecoveryCoordinator implements AutoCloseable {
+public final class RecoveryCoordinator implements BookRecoveryPolicy {
     private static final long INITIAL_BACKOFF_MILLIS = 300L;
     private static final long MAX_BACKOFF_MILLIS = 30_000L;
 
