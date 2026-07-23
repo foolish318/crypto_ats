@@ -250,3 +250,38 @@ The avgWsLoadMs comparison is not a clean architecture latency comparison becaus
 Quality improved in this sample: V16 had exact price matches for 6/6 REST checks and 4/4 XChange checks.
 The next stricter benchmark should use replay so both versions process identical captured input.
 ```
+## V22 P0 Source-Partition Benchmark
+
+Command:
+
+```bash
+./scripts/deep-book-latency-benchmark.sh \
+  data/multi-exchange-raw-v22-2026-07-23T133841929141429Z.jsonl \
+  4 500000 3
+```
+
+Median-throughput run comparison:
+
+| Mode | Workers | Throughput | Processing p99 | Queue p99 | End-to-end p99 |
+|---|---:|---:|---:|---:|---:|
+| Direct | 1 | 68,466/s | 65.36 us | 0 us | 65.36 us |
+| Source-partitioned | 4 | 136,199/s | 56.55 us | 22,701.97 us | 22,720.66 us |
+
+The four-worker design produced `1.989x` throughput with final-book parity. Its saturated-burst end-to-end p99 was `347.618x` the direct path because queue wait dominated. This confirms that concurrency is useful for capacity, while queue occupancy is the controlling variable for latency.
+
+Result artifact: `data/deep-book-latency-v22-2026-07-23T134103431852630Z.json`.
+
+## V23 Default Runtime Decision
+
+V23 uses direct single-writer processing as the default live architecture. A fresh six-source capture was repeated until each measured run contained `501,036` identical real records.
+
+| Mode | Workers | Median throughput | Processing p99 | Queue p99 | End-to-end p99 |
+|---|---:|---:|---:|---:|---:|
+| Direct | 1 | 70,028/s | 63.42 us | 0 us | 63.42 us |
+| Source-partitioned | 4 | 150,140/s | 56.83 us | 19,786.19 us | 19,801.80 us |
+
+The source-partitioned experiment improved saturated throughput by `2.144x`, but queue wait raised end-to-end p99 by `317.270x`. At the observed live rate of roughly `580 events/s`, direct replay capacity had about `121x` headroom. Final-book parity was true.
+
+Result artifact: `data/deep-book-latency-v23-2026-07-23T140302880339268Z.json`.
+
+Future comparisons must replay identical captured records, report final-book parity, and separate processing, queue, and end-to-end latency.

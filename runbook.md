@@ -1442,3 +1442,168 @@ JUnit tests=11 failures=0; scripts/test.sh=self-tests passed
 ```
 
 Git commands remain centralized in `gitcommand.md`.
+
+## V22 Runbook: P0-Hardened Local Books
+
+V22 keeps the V21 engine and six venue-local books, then adds production-critical intake controls:
+
+```text
+public instrument metadata (status, tick, lot)
+  -> REST/WebSocket connector ingress
+  -> RawEnvelope recorded before asynchronous handoff
+  -> source-affine PartitionedBookEventDispatcher (4 bounded workers)
+  -> venue protocol gate (ACK/error/heartbeat/ping/pong)
+  -> LiveBookSession + venue builder + quality gate
+  -> AcceptedLocalBookEvent -> cache -> event bus
+```
+
+Run live validation:
+
+```bash
+./scripts/multi-exchange-local-books.sh 10 data 10
+```
+
+Expected V22 files:
+
+```text
+data/multi-exchange-raw-v22-<run-id>.jsonl
+data/multi-exchange-books-v22-<run-id>.json
+```
+
+Important P0 fields:
+
+```text
+instrumentMetadataCount == source count
+subscriptionAcknowledged == true for live subscribed sources
+protocolErrors == 0
+bootstrapBufferOverflows == 0
+dispatcherQueueFullRejections == 0
+dispatcherTaskFailures == 0
+droppedRecords == 0
+replaySafe == true
+replayParity == true
+```
+
+Latest live validation on 2026-07-23:
+
+```text
+sources=6 publishableBooks=6 messages=4406 published=4380 rejected=0
+reconnectAttempts=0 dispatcherWorkers=4 dispatcherQueueFull=0 dispatcherMaxDepth=81
+dispatcherQueueAvg=818.10us dispatcherProcessingAvg=166.57us
+recordedRecords=4428 droppedRecords=0 replaySafe=true replayParity=true
+JUnit tests=22 failures=0; scripts/test.sh=self-tests passed
+```
+
+Run the real-data replay benchmark. The script uses the newest V23/V22/V21 raw file when the first argument is omitted:
+
+```bash
+./scripts/deep-book-latency-benchmark.sh "" 4 500000 3
+```
+
+Arguments:
+
+```text
+1: raw JSONL path, empty selects newest file
+2: worker count, default 4
+3: minimum measured records per run, default 500000
+4: repeated runs, default 5
+5: optional JSON result path
+```
+
+Final V22 result using `multi-exchange-raw-v22-2026-07-23T133841929141429Z.jsonl`:
+
+```text
+records per run:                 500364
+book parity:                     true
+direct median throughput:        68466 events/s
+4-worker median throughput:      136199 events/s
+throughput speedup:              1.989x
+direct processing p99:           65.36us
+4-worker processing p99:         56.55us
+direct end-to-end p99:           65.36us
+4-worker end-to-end p99:         22720.66us
+```
+
+Interpretation: source-partitioned concurrency nearly doubled saturated replay throughput and slightly improved processor p99. It did not reduce end-to-end latency under an unpaced burst because the bounded queues accumulated backlog. For latency-sensitive operation, track queue wait and backpressure independently, keep each source single-writer, and size or pace intake so queues remain near empty.
+
+The benchmark excludes JSONL file reading from timed processing and replays identical real exchange records. It is a project regression benchmark, not a replacement for forked JMH or production hardware testing.
+
+## V23 Runbook: Direct Single-Writer Live Path
+
+V23 keeps every V22 protocol, metadata, quality, recovery, bounded-bootstrap, and replay-safety control. It changes only the default processing handoff: the live runner no longer creates `PartitionedBookEventDispatcher`.
+
+```text
+exchange callback
+  -> RawEnvelope + asynchronous persistence
+  -> inline venue protocol classification
+  -> source-owned LiveBookSession
+  -> source-owned LocalOrderBookBuilder
+  -> quality gate
+  -> accepted event engine/cache/event bus/strategy
+```
+
+### What "single-writer" means
+
+The whole JVM is not restricted to one thread. `HttpClient`, WebSocket connections, the scheduler, watchdog, and recorder can use other threads, and separate sources may receive callbacks concurrently. The invariant is narrower and more important: one mutable `exchange + symbol` order book is updated sequentially by one callback path, with no application worker queue between receive and apply.
+
+### Why the default does not use the four processing workers
+
+The latest identical-record V23 benchmark measured:
+
+```text
+observed live public-feed rate:       about 580 events/s
+direct median replay throughput:      70,028 events/s
+four-worker replay throughput:         150,140 events/s
+direct end-to-end p99:                63.42 us
+four-worker queue p99:                 19,786.19 us
+four-worker end-to-end p99:            19,801.80 us
+direct capacity / observed live rate: about 121x
+```
+
+The workers improved saturated aggregate throughput by `2.144x`, but the queue dominated tail latency and increased end-to-end p99 by `317.270x`. With roughly 121 times direct-path headroom, that additional burst capacity is currently unused. A lower single-event latency, deterministic ownership, and a smaller failure surface are more valuable for this live market-data path.
+
+This is not a claim that multithreading is always slower. Partitioning should return when measured direct CPU saturation, a much larger symbol set, heavier independent calculations, or callback interference makes aggregate capacity a real constraint. Acceptance requires identical records, final-book parity, and an explicit latency or throughput budget; throughput alone is not enough.
+
+Framework and distribution options are compared in [`reference-frameworks.md`](reference-frameworks.md). The optional partitioned implementation remains in the repository as a capacity benchmark; it is not used by the default live command.
+
+### Run V23
+
+```bash
+./scripts/multi-exchange-local-books.sh 10 data 10
+```
+
+Expected files:
+
+```text
+data/multi-exchange-raw-v23-<run-id>.jsonl
+data/multi-exchange-books-v23-<run-id>.json
+```
+
+Expected summary fields:
+
+```text
+version=V23-direct-single-writer-hot-path
+processingMode=DIRECT_SINGLE_WRITER
+processingQueue=false
+droppedRecords=0
+replaySafe=true
+replayParity=true
+```
+
+The duration argument is only the smoke-test capture window. It is not a requirement to keep a production connection open for 30 or 60 minutes.
+Latest V23 live validation on 2026-07-23:
+
+```text
+sources=6 publishableBooks=6 messages=5804 published=5779 rejected=0
+processingMode=DIRECT_SINGLE_WRITER processingQueue=false reconnectAttempts=0
+deepBookCache=6 eventRecorder=5779 crossExchangeView=6 strategyEvents=5779
+recordedRecords=5826 droppedRecords=0 replaySafe=true replayParity=true
+```
+
+### Optional capacity experiment
+
+```bash
+./scripts/deep-book-latency-benchmark.sh "" 4 500000 3
+```
+
+This replays the newest V23/V22/V21 capture through both direct and source-partitioned modes. Keep `processing p99`, `queue p99`, `end-to-end p99`, throughput, and final-book parity separate when interpreting the result.

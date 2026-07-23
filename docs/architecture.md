@@ -16,15 +16,16 @@ PNG fallback: [architecture.png](architecture.png)
 
 These are architectural patterns, not copied implementations.
 
-## Current V21 Flow
+## Current V23 Flow
 
 ```text
+VenueInstrumentMetadataLoader -> status + tick/lot metadata (fail closed)
 Binance.US REST snapshot + WebSocket diffs
 OKX WebSocket snapshot + updates
 Kraken WebSocket snapshot + updates
-  -> RawEnvelope + AsyncRawRecorder
-  -> LiveBookSession
-  -> venue LocalOrderBookBuilder
+  -> connector ingress -> RawEnvelope + AsyncRawRecorder
+  -> direct VenueSessionProtocol (ACK/error/heartbeat/ping/pong)
+  -> LiveBookSession -> venue LocalOrderBookBuilder
   -> quality and continuity gate
   -> AcceptedLocalBookEvent
   -> MarketDataEngine
@@ -36,6 +37,25 @@ Kraken WebSocket snapshot + updates
 ```
 
 `REJECT`, `STALE`, `BOOTSTRAPPING`, disconnected, recovering, expired, and stopped sources do not cross the accepted-event boundary.
+
+## V23 Direct Single-Writer Decision
+
+The live runner no longer creates `PartitionedBookEventDispatcher`. Each WebSocket message is recorded at ingress and then parsed/applied inline to its source-owned book. This removes the application processing queue and its scheduling latency while retaining V22 protocol, metadata, recovery, bounded Binance bootstrap, and deterministic replay hardening.
+
+`DIRECT_SINGLE_WRITER` means one mutable `exchange + symbol` book is updated sequentially. It does not claim that the JVM, HTTP client, recorder, or scheduler has only one operating-system thread.
+
+Partitioned processing remains available only in `DeepBookReplayBenchmark`. The latest measured experiment increased saturated throughput by `2.144x`, but its queue increased end-to-end p99 from `63.42us` to `19.80ms` while current live load was roughly 121 times below direct replay capacity. The default therefore optimizes measured latency rather than unused burst capacity.
+
+Framework research and the criteria for revisiting multithreading or distribution are recorded in [`reference-frameworks.md`](../reference-frameworks.md).
+
+## V22 P0 Hardening
+
+- Public instrument metadata is loaded before sessions start. A missing/inactive instrument or invalid tick/lot schema fails startup instead of guessing.
+- `VenueSessionProtocol` classifies data versus control messages, requires subscription ACK for OKX/Kraken, sends venue heartbeats, detects pong/ACK timeout, and proactively rotates Binance before its 24-hour limit.
+- V22 introduced and measured `PartitionedBookEventDispatcher`. V23 retains it as a capacity benchmark but removes it from the default live hot path because queue wait dominated end-to-end latency.
+- Raw WebSocket evidence is recorded at connector ingress before parsing and book mutation. Recorder loss sets `replaySafe=false`; the optional partitioned benchmark also treats processing-queue overflow as replay-unsafe.
+- Binance bootstrap buffering is bounded by both count and bytes. Queue, protocol, buffer, and instrument metrics are included in the run summary.
+- `LOT_SIZE` remains order-entry metadata. Aggregated market-data quantities are not rejected merely because they are not an order-lot multiple; incoming prices are validated against tick size.
 
 ## State Model
 

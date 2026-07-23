@@ -857,3 +857,19 @@ Depth source
 Raw replay is production-shaped: REST snapshots, WebSocket messages, connect/disconnect/recovery records, generation, source identity, and receive clocks are retained. Recorder loss marks the file replay-unsafe. `RawReplayProcessor` recreates the same venue builders and validates final-book parity.
 
 Current downstream consumers are intentionally small examples: `AcceptedBookEventRecorder`, `CrossExchangeBookView`, and `DeepBookStrategyListener`. They demonstrate that strategy code receives accepted canonical books without knowing venue JSON or recovery details.
+
+## V22 P0 Runtime Hardening
+
+The data-source module now validates public instrument status and increments before connecting, separates protocol control messages from book data, and hands WebSocket book events to a bounded source-partition dispatcher. Subscription ACK, heartbeat, ping/pong timeout, Binance connection-age rotation, bootstrap overflow, dispatcher pressure, and task failures are observable in the summary.
+
+`LOT_SIZE` is retained as order-entry metadata. The market-data quality gate validates incoming price tick alignment but does not incorrectly require an aggregated depth quantity to be an order-lot multiple.
+
+Raw recording occurs at connector ingress. Both recorder loss and processing loss make replay unsafe. `IncrementalRawReplayProcessor` supports identical event-by-event processing in deterministic replay and latency benchmarks.
+
+## V23 Direct Single-Writer Runtime
+
+The default live module now hands each recorded ingress envelope directly to `VenueSessionProtocol` and its source-owned `LiveBookSession`. Each mutable local book has one sequential writer and no application processing queue. This preserves protocol acknowledgement, heartbeat, metadata, checksum, bootstrap, recovery, watchdog, accepted-event, and replay behavior from V22 while removing queue wait from the normal receive-to-book path.
+
+`PartitionedBookEventDispatcher` and `DeepBookReplayBenchmark` remain available for identical-record capacity experiments. They are not dependencies of `MultiExchangeLocalBookMain`. `AsyncRawRecorder` remains asynchronous because durable evidence is a side-path responsibility and must not block book mutation.
+
+The complete framework comparison and the conditions for adding Aeron, Disruptor, Chronicle Queue, Kafka, Redis, SBE, extra JVMs, or extra hosts are maintained in [`reference-frameworks.md`](reference-frameworks.md).

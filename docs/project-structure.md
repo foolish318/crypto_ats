@@ -36,8 +36,8 @@ com.example.hft.datasource.deepbook.quality
   sequence continuity, freshness, ordering, crossed-book, and Kraken CRC32.
 
 com.example.hft.datasource.deepbook.runtime
-  V21 live sessions, exact-decimal venue builders, three-dimensional health state,
-  watchdog/recovery, accepted-event publication, raw recording, and deterministic replay.
+  V23 direct single-writer live sessions, protocol-aware intake, exact-decimal venue builders,
+  three-dimensional health, watchdog/recovery, ingress raw recording, and deterministic replay.
 
 com.example.hft.datasource.instrument
   Instrument metadata and venue-to-canonical symbol mapping.
@@ -64,11 +64,13 @@ com.example.hft.benchmark
 ## Current Deep-Book Flow
 
 ```text
+Instrument metadata validation
 Binance.US REST snapshot + WebSocket diff depth
 OKX WebSocket books snapshot + updates
 Kraken WebSocket v2 book snapshot + updates
-  -> RawEnvelope + AsyncRawRecorder
-  -> LiveBookSession + venue builder
+  -> ingress RawEnvelope + AsyncRawRecorder
+  -> direct protocol classifier + LiveBookSession
+  -> source-owned venue builder (single writer per book)
   -> exact-decimal local book + quality gate
   -> AcceptedLocalBookEvent
   -> MarketDataEngine
@@ -90,7 +92,8 @@ scripts/binance-depth-book-30m.sh      30-minute raw depth capture
 scripts/binance-depth-book-1h.sh       1-hour raw depth capture
 scripts/binance-depth-book-replay.sh   deterministic depth replay
 scripts/deep-book-sources.sh           V20 live quality validation
-scripts/multi-exchange-local-books.sh  V21 continuous multi-exchange local books
+scripts/multi-exchange-local-books.sh  V23 direct single-writer local books
+scripts/deep-book-latency-benchmark.sh direct vs partitioned replay latency
 ```
 
 ## V17 Raw Depth Book

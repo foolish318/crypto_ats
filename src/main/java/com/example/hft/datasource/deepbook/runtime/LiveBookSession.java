@@ -8,8 +8,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.WebSocket;
 import java.time.Duration;
-import java.util.ArrayDeque;
-import java.util.Queue;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
@@ -17,18 +17,28 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public final class LiveBookSession implements AutoCloseable {
     private static final Duration HTTP_TIMEOUT = Duration.ofSeconds(10);
+    private static final Duration DISPATCH_DRAIN_TIMEOUT = Duration.ofSeconds(10);
+    private static final int MAX_BINANCE_BOOTSTRAP_MESSAGES = 50_000;
+    private static final long MAX_BINANCE_BOOTSTRAP_BYTES = 64L * 1024L * 1024L;
 
     private final DeepBookSourceDefinition source;
     private final LocalOrderBookBuilder builder;
     private final HttpClient httpClient;
     private final AsyncRawRecorder recorder;
     private final LocalBookPublisher publisher;
+    private final PartitionedBookEventDispatcher dispatcher;
     private final long staleThresholdMillis;
     private final SessionHealth health = new SessionHealth();
     private final RecoveryCoordinator recovery;
     private final StaleWatchdog watchdog;
+    private final VenueSessionProtocol protocol;
     private final Object lock = new Object();
-    private final Queue<PendingMessage> pendingBinanceUpdates = new ArrayDeque<>();
+    private final BoundedBootstrapBuffer<PendingMessage> pendingBinanceUpdates =
+            new BoundedBootstrapBuffer<>(
+                    MAX_BINANCE_BOOTSTRAP_MESSAGES,
+                    MAX_BINANCE_BOOTSTRAP_BYTES,
+                    message -> message.payload().length() * Character.BYTES
+            );
     private final AtomicLong messages = new AtomicLong();
     private final AtomicLong accepted = new AtomicLong();
     private final AtomicLong snapshots = new AtomicLong();
@@ -42,6 +52,7 @@ public final class LiveBookSession implements AutoCloseable {
 
     private volatile WebSocket webSocket;
     private volatile boolean stopped;
+    private volatile boolean stopping;
     private volatile boolean binanceSnapshotReady;
     private volatile boolean dataEnabled;
     private volatile long generation;
@@ -57,6 +68,19 @@ public final class LiveBookSession implements AutoCloseable {
             LocalBookPublisher publisher,
             Duration staleThreshold
     ) {
+        this(source, builder, httpClient, scheduler, recorder, publisher, staleThreshold, null);
+    }
+
+    public LiveBookSession(
+            DeepBookSourceDefinition source,
+            LocalOrderBookBuilder builder,
+            HttpClient httpClient,
+            ScheduledExecutorService scheduler,
+            AsyncRawRecorder recorder,
+            LocalBookPublisher publisher,
+            Duration staleThreshold,
+            PartitionedBookEventDispatcher dispatcher
+    ) {
         if (staleThreshold.isNegative() || staleThreshold.isZero()) {
             throw new IllegalArgumentException("staleThreshold must be positive");
         }
@@ -65,8 +89,20 @@ public final class LiveBookSession implements AutoCloseable {
         this.httpClient = httpClient;
         this.recorder = recorder;
         this.publisher = publisher;
+        this.dispatcher = dispatcher;
         this.staleThresholdMillis = staleThreshold.toMillis();
-        this.recovery = new RecoveryCoordinator(scheduler, health, ignoredAttempt -> openConnection(true));
+        this.recovery = new RecoveryCoordinator(
+                scheduler,
+                health,
+                ignoredAttempt -> openConnection(true)
+        );
+        this.protocol = new VenueSessionProtocol(
+                scheduler,
+                source,
+                staleThreshold,
+                this::sendHeartbeat,
+                reason -> requestRecovery(reason, generation)
+        );
         this.watchdog = new StaleWatchdog(
                 scheduler,
                 health,
@@ -96,11 +132,15 @@ public final class LiveBookSession implements AutoCloseable {
             binanceSnapshotReady = false;
             dataEnabled = false;
             pendingBinanceUpdates.clear();
+            protocol.disconnected();
             WebSocket previous = webSocket;
             webSocket = null;
             if (previous != null) {
                 previous.abort();
             }
+        }
+        if (dispatcher != null) {
+            dispatcher.resume(source.id());
         }
         record(
                 RawRecordType.CONNECT,
@@ -120,6 +160,7 @@ public final class LiveBookSession implements AutoCloseable {
                         String reason = "connect: " + rootMessage(error);
                         lastFailure = reason;
                         health.disconnected(reason);
+                        protocol.disconnected();
                         record(
                                 RawRecordType.DISCONNECT,
                                 nextGeneration,
@@ -188,7 +229,7 @@ public final class LiveBookSession implements AutoCloseable {
                         }
                         binanceSnapshotReady = true;
                         while (!pendingBinanceUpdates.isEmpty()) {
-                            PendingMessage pending = pendingBinanceUpdates.remove();
+                            PendingMessage pending = pendingBinanceUpdates.poll();
                             applyMessage(listenerGeneration, pending);
                             if (!current(listenerGeneration)) {
                                 return;
@@ -198,6 +239,50 @@ public final class LiveBookSession implements AutoCloseable {
                 });
     }
 
+    private void dispatchMessage(
+            long listenerGeneration,
+            String payload,
+            long receivedEpochMillis,
+            long receivedNanos
+    ) {
+        if (stopping) {
+            return;
+        }
+        messages.incrementAndGet();
+        RawEnvelope rawMessage = envelope(
+                RawRecordType.WS_MESSAGE,
+                listenerGeneration,
+                receivedEpochMillis,
+                receivedNanos,
+                payload,
+                ""
+        );
+        recorder.record(rawMessage);
+        health.messageReceived(receivedEpochMillis);
+        if (dispatcher == null) {
+            processMessage(listenerGeneration, payload, receivedEpochMillis, receivedNanos);
+            return;
+        }
+        DispatchResult dispatchResult = dispatcher.submit(
+                source.id(),
+                () -> processMessage(
+                        listenerGeneration,
+                        payload,
+                        receivedEpochMillis,
+                        receivedNanos
+                ),
+                error -> requestRecovery(
+                        "processing task failed: " + rootMessage(error),
+                        listenerGeneration
+                )
+        );
+        if (dispatchResult == DispatchResult.FULL) {
+            recorder.markReplayUnsafe(rawMessage, "processing queue full");
+            rejected.incrementAndGet();
+            health.messageReceived(receivedEpochMillis);
+            requestRecovery("processing queue full", listenerGeneration);
+        }
+    }
     private void processMessage(
             long listenerGeneration,
             String payload,
@@ -208,23 +293,37 @@ public final class LiveBookSession implements AutoCloseable {
             if (!current(listenerGeneration) || !dataEnabled) {
                 return;
             }
-            messages.incrementAndGet();
-            record(
-                    RawRecordType.WS_MESSAGE,
-                    listenerGeneration,
-                    receivedEpochMillis,
-                    receivedNanos,
-                    payload,
-                    ""
-            );
-            health.messageReceived(receivedEpochMillis);
+
+            ProtocolMessageDecision decision = protocol.onText(payload);
+            if (decision.fatal()) {
+                rejected.incrementAndGet();
+                requestRecovery(decision.detail(), listenerGeneration);
+                return;
+            }
+            if (!decision.bookData()) {
+                ignored.incrementAndGet();
+                return;
+            }
+            if (!protocol.bookDataAllowed()) {
+                rejected.incrementAndGet();
+                requestRecovery("book data arrived before subscription ACK", listenerGeneration);
+                return;
+            }
             PendingMessage message = new PendingMessage(
                     payload,
                     receivedEpochMillis,
                     receivedNanos
             );
             if ("BINANCE_US".equals(source.exchange()) && !binanceSnapshotReady) {
-                pendingBinanceUpdates.add(message);
+                if (!pendingBinanceUpdates.offer(message)) {
+                    rejected.incrementAndGet();
+                    requestRecovery(
+                            "Binance bootstrap buffer overflow entries="
+                                    + pendingBinanceUpdates.size()
+                                    + " bytes=" + pendingBinanceUpdates.bytes(),
+                            listenerGeneration
+                    );
+                }
                 return;
             }
             applyMessage(listenerGeneration, message);
@@ -294,9 +393,13 @@ public final class LiveBookSession implements AutoCloseable {
                 return;
             }
             dataEnabled = false;
+            if (dispatcher != null) {
+                dispatcher.pause(source.id());
+            }
         }
         lastFailure = reason;
         health.recovering(reason);
+        protocol.disconnected();
         record(
                 RawRecordType.RECOVERY,
                 listenerGeneration,
@@ -341,6 +444,10 @@ public final class LiveBookSession implements AutoCloseable {
                     averageMicros(parseNanos.get(), messages.get() + snapshots.get()),
                     averageMicros(bookNanos.get(), accepted.get() + rejected.get()),
                     recovery.snapshot(),
+                    protocol.snapshot(),
+                    pendingBinanceUpdates.size(),
+                    pendingBinanceUpdates.bytes(),
+                    pendingBinanceUpdates.overflows(),
                     bid,
                     ask,
                     lastFailure
@@ -359,6 +466,24 @@ public final class LiveBookSession implements AutoCloseable {
     }
 
     public LiveBookSessionFinalState stopAndSnapshot(int levels) {
+        synchronized (lock) {
+            if (finalState != null) {
+                return finalState;
+            }
+            stopping = true;
+        }
+        if (dispatcher != null) {
+            dispatcher.pause(source.id());
+            try {
+                if (!dispatcher.awaitSourceDrained(source.id(), DISPATCH_DRAIN_TIMEOUT)) {
+                    lastFailure = "processing queue did not drain before stop";
+                }
+            } catch (InterruptedException interrupted) {
+                Thread.currentThread().interrupt();
+                lastFailure = "interrupted while draining processing queue";
+            }
+        }
+
         LiveBookSessionFinalState captured;
         long stoppedGeneration;
         synchronized (lock) {
@@ -382,6 +507,7 @@ public final class LiveBookSession implements AutoCloseable {
             finalState = captured;
         }
         watchdog.close();
+        protocol.close();
         recovery.close();
         record(
                 RawRecordType.DISCONNECT,
@@ -411,7 +537,25 @@ public final class LiveBookSession implements AutoCloseable {
             String payload,
             String detail
     ) {
-        recorder.record(new RawEnvelope(
+        recorder.record(envelope(
+                type,
+                recordGeneration,
+                receivedEpochMillis,
+                receivedNanos,
+                payload,
+                detail
+        ));
+    }
+
+    private RawEnvelope envelope(
+            RawRecordType type,
+            long recordGeneration,
+            long receivedEpochMillis,
+            long receivedNanos,
+            String payload,
+            String detail
+    ) {
+        return new RawEnvelope(
                 DataSourceModuleVersion.VERSION,
                 type,
                 recordGeneration,
@@ -422,9 +566,45 @@ public final class LiveBookSession implements AutoCloseable {
                 receivedNanos,
                 payload,
                 detail
-        ));
+        );
     }
 
+    private void sendHeartbeat(long heartbeatGeneration) {
+        WebSocket currentSocket;
+        synchronized (lock) {
+            if (!current(heartbeatGeneration) || !dataEnabled || webSocket == null) {
+                return;
+            }
+            currentSocket = webSocket;
+        }
+        CompletionStage<WebSocket> send = switch (source.exchange()) {
+            case "OKX" -> currentSocket.sendText("ping", true);
+            case "KRAKEN" -> currentSocket.sendText(
+                    "{\"method\":\"ping\",\"req_id\":" + heartbeatGeneration + "}",
+                    true
+            );
+            case "BINANCE_US" -> currentSocket.sendPing(ByteBuffer.wrap(
+                    Long.toString(heartbeatGeneration).getBytes(StandardCharsets.US_ASCII)));
+            default -> throw new IllegalArgumentException(
+                    "unsupported heartbeat venue " + source.exchange());
+        };
+        monitorSend(send, heartbeatGeneration, "heartbeat");
+    }
+
+    private void monitorSend(
+            CompletionStage<WebSocket> send,
+            long sendGeneration,
+            String operation
+    ) {
+        send.whenComplete((ignoredSocket, error) -> {
+            if (error != null) {
+                requestRecovery(
+                        operation + " send failed: " + rootMessage(error),
+                        sendGeneration
+                );
+            }
+        });
+    }
     private static double averageMicros(long totalNanos, long count) {
         return count == 0L ? 0.0 : (double) totalNanos / count / 1_000.0;
     }
@@ -466,6 +646,7 @@ public final class LiveBookSession implements AutoCloseable {
                 }
                 webSocket = openedWebSocket;
                 dataEnabled = true;
+                protocol.connected(listenerGeneration);
                 health.connected(System.currentTimeMillis());
                 recovery.connectEstablished();
                 record(
@@ -478,7 +659,11 @@ public final class LiveBookSession implements AutoCloseable {
                 );
             }
             if (source.hasSubscribeMessage()) {
-                openedWebSocket.sendText(source.subscribeMessage(), true);
+                monitorSend(
+                        openedWebSocket.sendText(source.subscribeMessage(), true),
+                        listenerGeneration,
+                        "subscription"
+                );
             }
             if ("BINANCE_US".equals(source.exchange())) {
                 loadBinanceSnapshot(listenerGeneration);
@@ -496,7 +681,7 @@ public final class LiveBookSession implements AutoCloseable {
             if (last) {
                 String payload = buffer.toString();
                 buffer.setLength(0);
-                processMessage(
+                dispatchMessage(
                         listenerGeneration,
                         payload,
                         System.currentTimeMillis(),
@@ -508,6 +693,66 @@ public final class LiveBookSession implements AutoCloseable {
         }
 
         @Override
+        public CompletionStage<?> onPing(
+                WebSocket currentWebSocket,
+                ByteBuffer message
+        ) {
+            if (current(listenerGeneration)) {
+                long now = System.currentTimeMillis();
+                health.messageReceived(now);
+                protocol.onProtocolPing();
+                record(
+                        RawRecordType.WS_MESSAGE,
+                        listenerGeneration,
+                        now,
+                        System.nanoTime(),
+                        "",
+                        "CONTROL PING_FRAME"
+                );
+            }
+            CompletionStage<WebSocket> pong = currentWebSocket.sendPong(message);
+            currentWebSocket.request(1);
+            return pong;
+        }
+
+        @Override
+        public CompletionStage<?> onPong(
+                WebSocket currentWebSocket,
+                ByteBuffer message
+        ) {
+            if (current(listenerGeneration)) {
+                long now = System.currentTimeMillis();
+                health.messageReceived(now);
+                protocol.onProtocolPong();
+                record(
+                        RawRecordType.WS_MESSAGE,
+                        listenerGeneration,
+                        now,
+                        System.nanoTime(),
+                        "",
+                        "CONTROL PONG_FRAME"
+                );
+            }
+            currentWebSocket.request(1);
+            return null;
+        }
+
+        @Override
+        public CompletionStage<?> onBinary(
+                WebSocket currentWebSocket,
+                ByteBuffer data,
+                boolean last
+        ) {
+            if (current(listenerGeneration)) {
+                requestRecovery(
+                        "unexpected binary WebSocket frame bytes=" + data.remaining(),
+                        listenerGeneration
+                );
+            }
+            currentWebSocket.request(1);
+            return null;
+        }
+        @Override
         public CompletionStage<?> onClose(
                 WebSocket currentWebSocket,
                 int statusCode,
@@ -516,6 +761,7 @@ public final class LiveBookSession implements AutoCloseable {
             if (current(listenerGeneration)) {
                 String detail = "close " + statusCode + ": " + reason;
                 health.disconnected(detail);
+                protocol.disconnected();
                 record(
                         RawRecordType.DISCONNECT,
                         listenerGeneration,
@@ -534,6 +780,7 @@ public final class LiveBookSession implements AutoCloseable {
             if (current(listenerGeneration)) {
                 String detail = "websocket: " + rootMessage(error);
                 health.disconnected(detail);
+                protocol.disconnected();
                 record(
                         RawRecordType.DISCONNECT,
                         listenerGeneration,

@@ -4,7 +4,7 @@
 
 PNG fallback: [transport-intake.png](transport-intake.png)
 
-This module converts protocol callbacks into an immutable intake envelope before venue parsing or state mutation.
+This module records protocol callbacks as immutable intake envelopes before parsing or state mutation. V23 processes each source inline with single-writer ownership; only persistence remains asynchronous.
 
 ## Raw Envelope
 
@@ -14,7 +14,7 @@ REST snapshots and WebSocket updates have different timing and ordering semantic
 
 ## Backpressure
 
-A bounded handoff must expose its policy and metrics. A production connector cannot silently lose depth updates: it must block, reject with an observable counter, or degrade and rebuild the affected book.
+The current live path has no application processing queue: ingress records the raw envelope, then the venue protocol and book builder run inline. `PartitionedBookEventDispatcher` remains an explicit replay benchmark for future capacity testing. It must not return to the default path unless identical-record end-to-end measurements justify the queue cost.
 
 ## Current Code
 

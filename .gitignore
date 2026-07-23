@@ -22,3 +22,9 @@ target/
 /data/deep-book-quality-v20-*.jsonl
 /data/multi-exchange-raw-v21-*.jsonl
 /data/multi-exchange-books-v21-*.json
+/data/multi-exchange-raw-v22-*.jsonl
+/data/multi-exchange-books-v22-*.json
+/data/deep-book-latency-v22-*.json
+/data/multi-exchange-raw-v23-*.jsonl
+/data/multi-exchange-books-v23-*.json
+/data/deep-book-latency-v23-*.json

@@ -1,6 +1,7 @@
 package com.example.hft.datasource.deepbook.runtime;
 
 import com.example.hft.datasource.deepbook.quality.KrakenBookChecksum.ChecksumLevel;
+import com.example.hft.datasource.instrument.Instrument;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -11,9 +12,17 @@ import java.util.TreeMap;
 
 
 final class MutableDecimalOrderBook {
+    private final Instrument instrument;
     private final NavigableMap<BigDecimal, String> bids = new TreeMap<>(Comparator.reverseOrder());
     private final NavigableMap<BigDecimal, String> asks = new TreeMap<>();
 
+    MutableDecimalOrderBook() {
+        this(null);
+    }
+
+    MutableDecimalOrderBook(Instrument instrument) {
+        this.instrument = instrument;
+    }
     void loadArraySnapshot(JsonNode bidLevels, JsonNode askLevels) {
         List<ParsedLevel> parsedBids = parseArrayLevels(bidLevels, true, true);
         List<ParsedLevel> parsedAsks = parseArrayLevels(askLevels, true, false);
@@ -92,7 +101,7 @@ final class MutableDecimalOrderBook {
                 .toList();
     }
 
-    private static List<ParsedLevel> parseArrayLevels(
+    private List<ParsedLevel> parseArrayLevels(
             JsonNode levels,
             boolean snapshot,
             boolean descending
@@ -115,7 +124,7 @@ final class MutableDecimalOrderBook {
         return parsed;
     }
 
-    private static List<ParsedLevel> parseObjectLevels(
+    private List<ParsedLevel> parseObjectLevels(
             JsonNode levels,
             boolean snapshot,
             boolean descending
@@ -135,7 +144,7 @@ final class MutableDecimalOrderBook {
         return parsed;
     }
 
-    private static ParsedLevel parseLevel(
+    private ParsedLevel parseLevel(
             String priceText,
             String quantityText,
             boolean snapshot
@@ -145,9 +154,19 @@ final class MutableDecimalOrderBook {
         if (snapshot && quantity.signum() == 0) {
             throw new IllegalArgumentException("snapshot quantity must be positive");
         }
+        requireInstrumentPriceStep(price);
         return new ParsedLevel(price, quantity, quantityText);
     }
 
+    private void requireInstrumentPriceStep(BigDecimal price) {
+        if (instrument == null) {
+            return;
+        }
+        if (price.remainder(instrument.tickSize()).signum() != 0) {
+            throw new IllegalArgumentException(
+                    "price " + price + " is not aligned to tickSize " + instrument.tickSize());
+        }
+    }
     private static void applyLevels(
             List<ParsedLevel> levels,
             NavigableMap<BigDecimal, String> target

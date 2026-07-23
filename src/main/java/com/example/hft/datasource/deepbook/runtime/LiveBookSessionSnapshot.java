@@ -19,6 +19,10 @@ public record LiveBookSessionSnapshot(
         double parseAvgMicros,
         double bookAvgMicros,
         RecoverySnapshot recovery,
+        ProtocolSnapshot protocol,
+        int bootstrapBufferEntries,
+        long bootstrapBufferBytes,
+        long bootstrapBufferOverflows,
         String bestBid,
         String bestAsk,
         String lastFailure

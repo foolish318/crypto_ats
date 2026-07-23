@@ -1818,3 +1818,78 @@ Latest live proof:
 ```
 
 The canonical image is `docs/architecture.svg`; focused images are under `docs/modules/`.
+
+## V22: P0 Protocol, Backpressure, Metadata, And Replay Hardening
+
+V22 retains the V21 accepted-event engine and hardens the intake path:
+
+```mermaid
+flowchart LR
+    Metadata["Venue instrument metadata<br/>status + tick + lot"] --> Session["LiveBookSession"]
+    Sources["Binance.US / OKX / Kraken<br/>REST + WebSocket"] --> Ingress["Connector ingress"]
+    Ingress --> Raw["RawEnvelope recorded immediately"]
+    Raw --> Recorder["AsyncRawRecorder"]
+    Ingress --> Dispatch["Bounded source-partition dispatcher<br/>4 workers, FIFO per source"]
+    Dispatch --> Protocol{"Venue protocol gate<br/>ACK / error / ping / pong"}
+    Protocol -->|book data| Session
+    Protocol -->|failure| Recovery["generation-safe recovery"]
+    Session --> Builder["Venue book builder"]
+    Builder --> Quality{"tick + sequence + checksum<br/>freshness + crossed book"}
+    Quality -->|accepted LIVE| Engine["MarketDataEngine<br/>cache then event bus"]
+    Quality -->|reject| Recovery
+    Dispatch -->|queue full| Unsafe["replaySafe=false"]
+    Unsafe --> Recovery
+```
+
+Concurrency ownership:
+
+```text
+sourceId -> one stable partition -> one worker -> one mutable local book
+```
+
+Different books can process concurrently. Updates for one book never run concurrently, preserving sequence and checksum semantics. Raw messages are recorded before dispatcher handoff so Binance pre-snapshot diffs and OKX/Kraken updates retain receive order.
+
+P0 controls added in V22:
+
+```text
+VenueInstrumentMetadataLoader
+VenueProtocolMessageClassifier / VenueSessionProtocol
+BoundedBootstrapBuffer
+PartitionedBookEventDispatcher
+processing-drop replay safety
+incremental replay processor
+real-data direct vs partitioned latency benchmark
+```
+
+The canonical image remains `docs/architecture.svg`; V22 is an implementation milestone inside that single architecture, not a second architecture.
+
+## V23: Direct Single-Writer Live Hot Path
+
+V23 keeps the P0 controls from V22 but removes the partition dispatcher from the default live route.
+
+```mermaid
+flowchart LR
+    Source["Exchange REST / WebSocket"] --> Callback["Source callback"]
+    Callback --> Raw["RawEnvelope at ingress"]
+    Raw -.-> Recorder["AsyncRawRecorder<br/>persistence side path"]
+    Raw --> Protocol{"Venue protocol gate<br/>data / ACK / heartbeat / error"}
+    Protocol -->|book data| Session["Source-owned LiveBookSession"]
+    Protocol -->|failure| Recovery["Generation-safe recovery"]
+    Session --> Builder["Source-owned LocalOrderBookBuilder<br/>one writer per book"]
+    Builder --> Quality{"Continuity + quality + freshness"}
+    Quality -->|accepted LIVE| Engine["MarketDataEngine"]
+    Quality -->|reject / stale / gap| Recovery
+    Engine --> Cache["DeepBookCache"]
+    Engine --> Bus["MarketDataEventBus"]
+    Bus --> Strategy["Strategy"]
+    Bus --> View["CrossExchangeView"]
+```
+
+```text
+No application queue exists between RawEnvelope and LocalOrderBookBuilder.
+Different source callbacks may run concurrently, but one mutable book never has concurrent writers.
+AsyncRawRecorder is a persistence side path, not a processing stage before strategy.
+PartitionedBookEventDispatcher remains only in DeepBookReplayBenchmark.
+```
+
+This is the current runtime flow. The V22 diagram above remains the historical experiment that produced the evidence for this decision.

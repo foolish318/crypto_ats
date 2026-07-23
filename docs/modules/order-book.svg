@@ -29,7 +29,7 @@
   <text x="640" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">Binance U/u; OKX seq</text>
   <text x="640" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">Kraken timestamp + CRC32</text>
     <rect x="764" y="217" width="74" height="23" rx="4" fill="#ffffff" stroke="#7c3aed" stroke-opacity="0.45"/>
-  <text x="801" y="233" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#5b21b6" text-anchor="middle">V21</text>
+  <text x="801" y="233" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#5b21b6" text-anchor="middle">V22</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="895" y="205" width="230" height="112" rx="7" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>

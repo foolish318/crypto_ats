@@ -22,6 +22,7 @@ public final class AsyncRawRecorder implements AutoCloseable {
     private final AtomicBoolean running = new AtomicBoolean(true);
     private final AtomicBoolean closed = new AtomicBoolean();
     private final AtomicReference<RawEnvelope> firstDropped = new AtomicReference<>();
+    private final AtomicReference<String> firstDropReason = new AtomicReference<>();
     private final BufferedWriter writer;
     private final ObjectMapper mapper;
     private final Thread writerThread;
@@ -46,14 +47,18 @@ public final class AsyncRawRecorder implements AutoCloseable {
 
     public boolean record(RawEnvelope envelope) {
         if (!running.get()) {
-            noteDrop(envelope);
+            noteDrop(envelope, "recorder is stopped");
             return false;
         }
         if (queue.offer(envelope)) {
             return true;
         }
-        noteDrop(envelope);
+        noteDrop(envelope, "recorder queue capacity " + queueCapacity + " exceeded");
         return false;
+    }
+
+    public void markReplayUnsafe(RawEnvelope envelope, String reason) {
+        noteDrop(envelope, reason);
     }
 
     public RawRecorderSummary summary() {
@@ -64,8 +69,8 @@ public final class AsyncRawRecorder implements AutoCloseable {
                 dropped.get(),
                 dropped.get() == 0L && currentFailure == null,
                 first == null ? 0L : first.receivedEpochMillis(),
-                first == null ? "" : "queue capacity " + queueCapacity
-                        + " exceeded for " + first.recordType()
+                first == null ? "" : firstDropReason.get()
+                        + " for " + first.recordType()
                         + " source=" + first.sourceId()
                         + " generation=" + first.generation(),
                 currentFailure == null
@@ -82,9 +87,11 @@ public final class AsyncRawRecorder implements AutoCloseable {
         return queue.isEmpty();
     }
 
-    private void noteDrop(RawEnvelope envelope) {
+    private void noteDrop(RawEnvelope envelope, String reason) {
         dropped.incrementAndGet();
-        firstDropped.compareAndSet(null, envelope);
+        if (firstDropped.compareAndSet(null, envelope)) {
+            firstDropReason.set(reason);
+        }
     }
 
     private void writeLoop() {
@@ -108,8 +115,9 @@ public final class AsyncRawRecorder implements AutoCloseable {
                         System.currentTimeMillis(),
                         System.nanoTime(),
                         "",
-                        "REPLAY_UNSAFE recorder dropped " + dropped.get()
+                        "REPLAY_UNSAFE dropped " + dropped.get()
                                 + " records; firstDropEpochMillis=" + first.receivedEpochMillis()
+                                + " reason=" + firstDropReason.get()
                 ));
             }
             writer.flush();

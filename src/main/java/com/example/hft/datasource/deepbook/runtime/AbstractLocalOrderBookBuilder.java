@@ -2,6 +2,7 @@ package com.example.hft.datasource.deepbook.runtime;
 
 import com.example.hft.datasource.book.BookQuality;
 import com.example.hft.datasource.deepbook.DeepBookSourceDefinition;
+import com.example.hft.datasource.instrument.Instrument;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,7 +15,7 @@ abstract class AbstractLocalOrderBookBuilder implements LocalOrderBookBuilder {
     private static final Duration MAX_FUTURE_CLOCK_SKEW = Duration.ofSeconds(5);
 
     protected final DeepBookSourceDefinition source;
-    protected final MutableDecimalOrderBook book = new MutableDecimalOrderBook();
+    protected final MutableDecimalOrderBook book;
     protected final ObjectMapper mapper = new ObjectMapper()
             .setNodeFactory(JsonNodeFactory.withExactBigDecimals(true))
             .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS);
@@ -27,8 +28,22 @@ abstract class AbstractLocalOrderBookBuilder implements LocalOrderBookBuilder {
     protected long rejectedMessages;
 
     AbstractLocalOrderBookBuilder(DeepBookSourceDefinition source, Duration maxEventAge) {
+        this(source, maxEventAge, null);
+    }
+
+    AbstractLocalOrderBookBuilder(
+            DeepBookSourceDefinition source,
+            Duration maxEventAge,
+            Instrument instrument
+    ) {
+        if (instrument != null
+                && (!source.exchange().equals(instrument.exchange())
+                || !source.symbol().equals(instrument.exchangeSymbol()))) {
+            throw new IllegalArgumentException("instrument metadata does not match source");
+        }
         this.source = source;
         this.maxEventAge = maxEventAge;
+        this.book = new MutableDecimalOrderBook(instrument);
     }
 
     @Override

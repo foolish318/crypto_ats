@@ -2,6 +2,7 @@ package com.example.hft.datasource.deepbook.runtime;
 
 import com.example.hft.datasource.book.BookQuality;
 import com.example.hft.datasource.deepbook.DeepBookSourceDefinition;
+import com.example.hft.datasource.instrument.Instrument;
 import com.example.hft.datasource.deepbook.quality.KrakenBookChecksum;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.time.Duration;
@@ -10,7 +11,15 @@ import java.time.Instant;
 
 public final class KrakenLocalOrderBookBuilder extends AbstractLocalOrderBookBuilder {
     public KrakenLocalOrderBookBuilder(DeepBookSourceDefinition source, Duration maxEventAge) {
-        super(source, maxEventAge);
+        this(source, maxEventAge, null);
+    }
+
+    public KrakenLocalOrderBookBuilder(
+            DeepBookSourceDefinition source,
+            Duration maxEventAge,
+            Instrument instrument
+    ) {
+        super(source, maxEventAge, instrument);
         if (!"KRAKEN".equals(source.exchange())) {
             throw new IllegalArgumentException("Kraken builder requires a KRAKEN source");
         }

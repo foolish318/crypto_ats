@@ -54,10 +54,16 @@ Validate custom WebSocket adapters against REST/XChange baselines:
 ./scripts/custom-ws-vs-baseline.sh
 ```
 
-Build six continuous Binance.US, OKX, and Kraken local books for a short configurable smoke run:
+Build six V23 protocol-aware, replay-safe Binance.US, OKX, and Kraken local books with direct single-writer processing:
 
 ```bash
 ./scripts/multi-exchange-local-books.sh 15 data 10
+```
+
+Compare the default direct path with the optional four-worker source-partitioned capacity experiment using identical real raw records:
+
+```bash
+./scripts/deep-book-latency-benchmark.sh "" 4 500000 3
 ```
 
 Compile and test everything:
@@ -68,4 +74,4 @@ mvn -q compile
 ./scripts/test.sh
 ```
 
-Design history is recorded in `diagram.md`, setup and run commands in `runbook.md`, measured outputs in `benchmark-results.md`, data-source module design in `module.md`, the colored data-source diagram in `docs/architecture.md`, and actual image files in `docs/architecture.png` / `docs/architecture.svg`.
+Design history is recorded in `diagram.md`, setup and run commands in `runbook.md`, measured outputs in `benchmark-results.md`, data-source module design in `module.md`, and the framework decision in `reference-frameworks.md`. The colored current architecture is documented in `docs/architecture.md`, with image files in `docs/architecture.png` and `docs/architecture.svg`.

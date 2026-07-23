@@ -115,7 +115,7 @@ function Save-Svg([System.Text.StringBuilder]$builder, [string]$path) {
 }
 
 function Write-CanonicalDiagram {
-    $b = New-SvgBuilder 1900 1230 'Reference-inspired crypto ATS market-data architecture' 'A six-stage accepted deep-book pipeline with independent session health, generation-safe recovery, cache-first fan-out, and replay parity.'
+    $b = New-SvgBuilder 1900 1230 'Reference-inspired crypto ATS market-data architecture' 'A V23 direct single-writer deep-book pipeline with venue protocol control, ingress recording, generation-safe recovery, and replay parity.'
     Add-Text $b 55 58 'Crypto ATS Market-Data Architecture' 34 '700' '#0f172a'
     Add-Text $b 55 91 'One canonical pipeline, informed by established open-source connector and data-engine patterns.' 16 '400' '#475569'
 
@@ -140,20 +140,20 @@ function Write-CanonicalDiagram {
     Add-Node $b 55 520 240 112 'Third-Party Feeds' @('normalized feed or FIX gateway', 'future source implementation') 'source' 'planned'
     Add-Node $b 55 685 240 112 'Replay Store' @('recorded raw market data', 'deterministic source') 'replay'
 
-    Add-Node $b 365 355 240 112 'InstrumentProvider' @('venue instruments and metadata', 'canonical symbol mapping') 'connector'
+    Add-Node $b 365 355 240 112 'InstrumentProvider' @('public status + tick / lot rules', 'fail-closed canonical mapping') 'connector' 'V22'
     Add-Node $b 365 520 240 112 'MarketDataConnector' @('connect, subscribe, health', 'venue-specific lifecycle') 'connector'
     Add-Node $b 365 685 240 112 'MarketDataClient' @('snapshot and stream ownership', 'reconnect boundaries') 'connector'
 
-    Add-Node $b 675 355 240 112 'Transport Clients' @('REST / WebSocket / FIX', 'protocol-specific receive path') 'intake'
-    Add-Node $b 675 520 240 112 'RawEnvelope' @('payload + source + generation', 'record type + two receive clocks') 'intake'
-    Add-Node $b 675 685 240 112 'Parser / Normalizer' @('venue JSON to Java events', 'exact decimals + canonical types') 'intake'
+    Add-Node $b 675 355 240 112 'Venue Protocol' @('subscribe ACK + errors', 'ping / pong + connection age') 'intake' 'V22'
+    Add-Node $b 675 520 240 112 'Ingress RawEnvelope' @('record before async handoff', 'source + generation + clocks') 'intake'
+    Add-Node $b 675 685 240 112 'Direct Single-Writer' @('inline protocol + book apply', 'no application worker queue') 'intake' 'V23'
 
-    Add-Node $b 985 355 240 112 'Data Quality Gate' @('schema, values, freshness', 'sequence, checksum, crossed book') 'quality' 'V20'
+    Add-Node $b 985 355 240 112 'Parse + Quality Gate' @('schema, exact values, freshness', 'sequence, checksum, crossed book') 'quality' 'V22'
     Add-Node $b 985 520 240 112 'Session Health + Recovery' @('transport / book / session state', 'watchdog + backoff + generation') 'book'
     Add-Node $b 985 685 240 112 'Venue Book Builder' @('stale / gap / checksum rules', 'exact-decimal atomic updates') 'book'
-    Add-Node $b 985 850 240 112 'Venue-Local Books' @('six independent deep books', 'publishable only when LIVE') 'book' 'V21'
+    Add-Node $b 985 850 240 112 'Venue-Local Books' @('six independent deep books', 'publishable only when LIVE') 'book' 'V22'
 
-    Add-Node $b 1295 355 240 112 'AcceptedLocalBookEvent' @('quality + state + freshness pass', 'generation + immutable depth') 'engine' 'V21'
+    Add-Node $b 1295 355 240 112 'AcceptedLocalBookEvent' @('quality + state + freshness pass', 'generation + immutable depth') 'engine' 'V22'
     Add-Node $b 1295 520 240 112 'MarketDataEngine' @('single accepted-event boundary', 'cache first, publish second') 'engine'
     Add-Node $b 1295 685 240 112 'DeepBookCache + EventBus' @('latest exchange + symbol book', 'listener fan-out') 'engine'
     Add-Node $b 1295 850 240 112 'Raw Replay Store' @('snapshot + updates + lifecycle', 'drop makes replay unsafe') 'replay'
@@ -244,7 +244,7 @@ Write-ModuleDiagram 'transport-intake' 'Transport and Raw Intake Module' 'Preser
     (N 620 205 230 112 'FIX / Third Party' @('future binary or FIX', 'same intake boundary') 'future' 'planned'),
     (N 895 205 250 112 'RawEnvelope' @('payload + venue + symbol', 'generation + clocks + lifecycle') 'intake'),
     (N 1190 205 230 112 'AsyncRawRecorder' @('bounded append-only JSONL', 'drop explicitly marks unsafe') 'replay'),
-    (N 895 430 250 112 'Backpressure Policy' @('bounded handoff', 'drop/block/reconnect metric') 'quality')
+    (N 895 430 250 112 'Direct Handoff' @('inline source callback', 'no processing queue') 'quality' 'V23')
 ) @(
     (P 'M185 205 V165 H1020 V205'),
     (P 'M460 205 V180 H1020 V205'),
@@ -252,7 +252,7 @@ Write-ModuleDiagram 'transport-intake' 'Transport and Raw Intake Module' 'Preser
     (P 'M1145 261 H1190'),
     (P 'M1020 317 V430'),
     (P 'M895 486 H845 V350 H1020 V317' 'failure' 'pressure signal' 780 370)
-) 'Rule: raw capture includes lifecycle and generation; any recorder loss makes replay explicitly unsafe.'
+) 'Rule: record at ingress, then process inline; persistence remains asynchronous and cannot block the book.'
 
 Write-ModuleDiagram 'parser-normalizer' 'Parser and Normalizer Module' 'Translate venue payloads into canonical Java market-data events.' @(
     (N 70 205 240 112 'RawInboundMessage' @('payload and metadata', 'no venue state mutation') 'intake'),
@@ -288,7 +288,7 @@ Write-ModuleDiagram 'data-quality' 'Data Quality Gate Module' 'Validate common i
 Write-ModuleDiagram 'order-book' 'Venue-Local Order-Book Module' 'Maintain one independently validated book for each exchange and symbol.' @(
     (N 70 205 230 112 'Venue Snapshot' @('REST for Binance.US', 'WS for OKX / Kraken') 'source'),
     (N 345 205 230 112 'Stream Updates' @('all messages, no sampling', 'source receive timestamp') 'intake'),
-    (N 620 205 230 112 'Venue Builder' @('Binance U/u; OKX seq', 'Kraken timestamp + CRC32') 'book' 'V21'),
+    (N 620 205 230 112 'Venue Builder' @('Binance U/u; OKX seq', 'Kraken timestamp + CRC32') 'book' 'V22'),
     (N 895 205 230 112 'Exact Decimal Book' @('apply/delete levels', 'detect stale/gap/cross') 'book'),
     (N 1170 205 230 112 'AcceptedLocalBookEvent' @('LIVE depth snapshot', 'generation + receive clocks') 'engine'),
     (N 895 430 230 112 'DEGRADED Book' @('publication suppressed', 'recovery required') 'quality')

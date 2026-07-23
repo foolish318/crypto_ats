@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1230" viewBox="0 0 1900 1230" role="img" aria-labelledby="title desc">
   <title id="title">Reference-inspired crypto ATS market-data architecture</title>
-  <desc id="desc">A six-stage accepted deep-book pipeline with independent session health, generation-safe recovery, cache-first fan-out, and replay parity.</desc>
+  <desc id="desc">A V23 direct single-writer deep-book pipeline with venue protocol control, ingress recording, generation-safe recovery, and replay parity.</desc>
   <defs>
     <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M1 1 L11 6 L1 11 Z" fill="#475569"/></marker>
     <marker id="failure-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M1 1 L11 6 L1 11 Z" fill="#be123c"/></marker>
@@ -69,8 +69,10 @@
   <g filter="url(#shadow)">
     <rect x="365" y="355" width="240" height="112" rx="7" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
   <text x="385" y="389" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#92400e" text-anchor="start">InstrumentProvider</text>
-  <text x="385" y="417" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">venue instruments and metadata</text>
-  <text x="385" y="439" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">canonical symbol mapping</text>
+  <text x="385" y="417" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">public status + tick / lot rules</text>
+  <text x="385" y="439" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">fail-closed canonical mapping</text>
+    <rect x="519" y="367" width="74" height="23" rx="4" fill="#ffffff" stroke="#d97706" stroke-opacity="0.45"/>
+  <text x="556" y="383" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#92400e" text-anchor="middle">V22</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="365" y="520" width="240" height="112" rx="7" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
@@ -86,29 +88,33 @@
   </g>
   <g filter="url(#shadow)">
     <rect x="675" y="355" width="240" height="112" rx="7" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
-  <text x="695" y="389" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#334155" text-anchor="start">Transport Clients</text>
-  <text x="695" y="417" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">REST / WebSocket / FIX</text>
-  <text x="695" y="439" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">protocol-specific receive path</text>
+  <text x="695" y="389" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#334155" text-anchor="start">Venue Protocol</text>
+  <text x="695" y="417" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">subscribe ACK + errors</text>
+  <text x="695" y="439" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">ping / pong + connection age</text>
+    <rect x="829" y="367" width="74" height="23" rx="4" fill="#ffffff" stroke="#64748b" stroke-opacity="0.45"/>
+  <text x="866" y="383" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#334155" text-anchor="middle">V22</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="675" y="520" width="240" height="112" rx="7" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
-  <text x="695" y="554" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#334155" text-anchor="start">RawEnvelope</text>
-  <text x="695" y="582" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">payload + source + generation</text>
-  <text x="695" y="604" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">record type + two receive clocks</text>
+  <text x="695" y="554" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#334155" text-anchor="start">Ingress RawEnvelope</text>
+  <text x="695" y="582" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">record before async handoff</text>
+  <text x="695" y="604" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">source + generation + clocks</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="675" y="685" width="240" height="112" rx="7" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
-  <text x="695" y="719" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#334155" text-anchor="start">Parser / Normalizer</text>
-  <text x="695" y="747" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">venue JSON to Java events</text>
-  <text x="695" y="769" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">exact decimals + canonical types</text>
+  <text x="695" y="719" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#334155" text-anchor="start">Direct Single-Writer</text>
+  <text x="695" y="747" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">inline protocol + book apply</text>
+  <text x="695" y="769" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">no application worker queue</text>
+    <rect x="829" y="697" width="74" height="23" rx="4" fill="#ffffff" stroke="#64748b" stroke-opacity="0.45"/>
+  <text x="866" y="713" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#334155" text-anchor="middle">V23</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="985" y="355" width="240" height="112" rx="7" fill="#ffe4e6" stroke="#e11d48" stroke-width="2"/>
-  <text x="1005" y="389" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#9f1239" text-anchor="start">Data Quality Gate</text>
-  <text x="1005" y="417" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">schema, values, freshness</text>
+  <text x="1005" y="389" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#9f1239" text-anchor="start">Parse + Quality Gate</text>
+  <text x="1005" y="417" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">schema, exact values, freshness</text>
   <text x="1005" y="439" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">sequence, checksum, crossed book</text>
     <rect x="1139" y="367" width="74" height="23" rx="4" fill="#ffffff" stroke="#e11d48" stroke-opacity="0.45"/>
-  <text x="1176" y="383" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#9f1239" text-anchor="middle">V20</text>
+  <text x="1176" y="383" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#9f1239" text-anchor="middle">V22</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="985" y="520" width="240" height="112" rx="7" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
@@ -128,7 +134,7 @@
   <text x="1005" y="912" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">six independent deep books</text>
   <text x="1005" y="934" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">publishable only when LIVE</text>
     <rect x="1139" y="862" width="74" height="23" rx="4" fill="#ffffff" stroke="#7c3aed" stroke-opacity="0.45"/>
-  <text x="1176" y="878" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#5b21b6" text-anchor="middle">V21</text>
+  <text x="1176" y="878" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#5b21b6" text-anchor="middle">V22</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="1295" y="355" width="240" height="112" rx="7" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
@@ -136,7 +142,7 @@
   <text x="1315" y="417" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">quality + state + freshness pass</text>
   <text x="1315" y="439" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">generation + immutable depth</text>
     <rect x="1449" y="367" width="74" height="23" rx="4" fill="#ffffff" stroke="#0f766e" stroke-opacity="0.45"/>
-  <text x="1486" y="383" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#115e59" text-anchor="middle">V21</text>
+  <text x="1486" y="383" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#115e59" text-anchor="middle">V22</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="1295" y="520" width="240" height="112" rx="7" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>

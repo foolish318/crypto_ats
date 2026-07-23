@@ -19,6 +19,8 @@ import com.example.hft.datasource.deepbook.runtime.RawReplayResult;
 import com.example.hft.datasource.engine.MarketDataCache;
 import com.example.hft.datasource.engine.MarketDataEngine;
 import com.example.hft.datasource.engine.MarketDataEventBus;
+import com.example.hft.datasource.instrument.Instrument;
+import com.example.hft.datasource.instrument.VenueInstrumentMetadataLoader;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -42,6 +44,7 @@ public final class MultiExchangeLocalBookMain {
     private static final int DEFAULT_DURATION_SECONDS = 15;
     private static final int DEFAULT_STALE_THRESHOLD_SECONDS = 10;
     private static final int PUBLISHED_DEPTH = 10;
+    private static final String PROCESSING_MODE = "DIRECT_SINGLE_WRITER";
     private static final Duration HTTP_TIMEOUT = Duration.ofSeconds(10);
 
     private MultiExchangeLocalBookMain() {
@@ -58,8 +61,8 @@ public final class MultiExchangeLocalBookMain {
         Files.createDirectories(outputDir);
 
         String runId = runId();
-        Path rawFile = outputDir.resolve("multi-exchange-raw-v21-" + runId + ".jsonl");
-        Path summaryFile = outputDir.resolve("multi-exchange-books-v21-" + runId + ".json");
+        Path rawFile = outputDir.resolve("multi-exchange-raw-v23-" + runId + ".jsonl");
+        Path summaryFile = outputDir.resolve("multi-exchange-books-v23-" + runId + ".json");
         ObjectMapper mapper = new ObjectMapper();
         List<DeepBookSourceDefinition> sources = DeepBookSourceCatalog.defaultSources();
 
@@ -77,6 +80,9 @@ public final class MultiExchangeLocalBookMain {
         HttpClient httpClient = HttpClient.newBuilder()
                 .connectTimeout(HTTP_TIMEOUT)
                 .build();
+        Map<String, Instrument> instruments =
+                new VenueInstrumentMetadataLoader(httpClient, mapper).loadAll(sources);
+
         Duration staleThreshold = Duration.ofSeconds(staleThresholdSeconds);
         LocalBookPublisher publisher = new LocalBookPublisher(
                 engine,
@@ -93,7 +99,8 @@ public final class MultiExchangeLocalBookMain {
             for (DeepBookSourceDefinition source : sources) {
                 LiveBookSession session = new LiveBookSession(
                         source,
-                        LocalOrderBookBuilderFactory.create(source),
+                        LocalOrderBookBuilderFactory.create(
+                                source, instruments.get(source.id())),
                         httpClient,
                         scheduler,
                         rawRecorder,
@@ -127,7 +134,8 @@ public final class MultiExchangeLocalBookMain {
                 rawFile,
                 sources,
                 runEndBooks,
-                mapper
+                mapper,
+                instruments
         );
         List<LiveBookSessionSnapshot> stoppedSessions =
                 sessions.stream().map(LiveBookSession::snapshot).toList();
@@ -146,7 +154,8 @@ public final class MultiExchangeLocalBookMain {
                 eventBus,
                 acceptedRecorder,
                 crossExchangeView,
-                strategy
+                strategy,
+                instruments
         );
         printSummary(
                 runEndSessions,
@@ -161,7 +170,8 @@ public final class MultiExchangeLocalBookMain {
                 cache,
                 acceptedRecorder,
                 crossExchangeView,
-                strategy
+                strategy,
+                instruments
         );
     }
 
@@ -170,13 +180,14 @@ public final class MultiExchangeLocalBookMain {
             Path rawFile,
             List<DeepBookSourceDefinition> sources,
             Map<String, LocalBookSnapshot> liveBooks,
-            ObjectMapper mapper
+            ObjectMapper mapper,
+            Map<String, Instrument> instruments
     ) {
         if (!recorderSummary.replaySafe()) {
             return new ReplayCheck(false, 0L, 0L, "raw recorder marked file replay-unsafe");
         }
         try {
-            RawReplayResult replay = new RawReplayProcessor(sources, PUBLISHED_DEPTH, mapper)
+            RawReplayResult replay = new RawReplayProcessor(sources, PUBLISHED_DEPTH, mapper, instruments)
                     .replay(rawFile);
             for (Map.Entry<String, LocalBookSnapshot> entry : liveBooks.entrySet()) {
                 LocalBookSnapshot replayed = replay.book(entry.getKey()).orElse(null);
@@ -228,7 +239,8 @@ public final class MultiExchangeLocalBookMain {
             MarketDataEventBus eventBus,
             AcceptedBookEventRecorder acceptedRecorder,
             CrossExchangeBookView crossExchangeView,
-            DeepBookStrategyListener strategy
+            DeepBookStrategyListener strategy,
+            Map<String, Instrument> instruments
     ) throws Exception {
         ObjectNode root = mapper.createObjectNode();
         root.put("version", DataSourceModuleVersion.VERSION);
@@ -245,6 +257,10 @@ public final class MultiExchangeLocalBookMain {
         root.put("crossExchangeBooks", crossExchangeView.size());
         root.put("strategyAcceptedBooks", strategy.acceptedBooks());
         root.put("strategyUsableBooks", strategy.usableBooks());
+        root.put("instrumentMetadataCount", instruments.size());
+        root.put("processingMode", PROCESSING_MODE);
+        root.put("processingQueueEnabled", false);
+
         addRecorder(root, recorder);
         root.put("replayParity", replay.parity());
         root.put("replayAppliedRecords", replay.appliedRecords());
@@ -257,6 +273,12 @@ public final class MultiExchangeLocalBookMain {
         for (LiveBookSessionSnapshot session : runEndSessions) {
             ObjectNode node = sourceNodes.addObject();
             addSession(node, session);
+            Instrument instrument = instruments.get(session.sourceId());
+            if (instrument != null) {
+                node.put("canonicalSymbol", instrument.canonicalSymbol());
+                node.put("tickSize", instrument.tickSize().toPlainString());
+                node.put("lotSize", instrument.lotSize().toPlainString());
+            }
             LiveBookSessionSnapshot stopped = stoppedBySource.get(session.sourceId());
             node.put("finalTransportState", stopped.health().transportState().name());
             node.put("finalSessionState", stopped.health().sessionState().name());
@@ -305,6 +327,17 @@ public final class MultiExchangeLocalBookMain {
         node.put("reconnectSuccesses", session.recovery().reconnectSuccesses());
         node.put("reconnectFailures", session.recovery().reconnectFailures());
         node.put("recoveryDurationMillis", session.recovery().recoveryDurationMillis());
+        node.put("controlMessages", session.protocol().controlMessages());
+        node.put("subscriptionAcks", session.protocol().subscriptionAcks());
+        node.put("subscriptionErrors", session.protocol().subscriptionErrors());
+        node.put("heartbeats", session.protocol().heartbeats());
+        node.put("pingsSent", session.protocol().pingsSent());
+        node.put("pongsReceived", session.protocol().pongsReceived());
+        node.put("protocolErrors", session.protocol().protocolErrors());
+        node.put("subscriptionAcknowledged", session.protocol().subscriptionAcknowledged());
+        node.put("bootstrapBufferEntries", session.bootstrapBufferEntries());
+        node.put("bootstrapBufferBytes", session.bootstrapBufferBytes());
+        node.put("bootstrapBufferOverflows", session.bootstrapBufferOverflows());
         node.put("bestBid", session.bestBid());
         node.put("bestAsk", session.bestAsk());
         node.put("lastFailure", session.lastFailure());
@@ -323,7 +356,8 @@ public final class MultiExchangeLocalBookMain {
             MarketDataCache cache,
             AcceptedBookEventRecorder acceptedRecorder,
             CrossExchangeBookView crossExchangeView,
-            DeepBookStrategyListener strategy
+            DeepBookStrategyListener strategy,
+            Map<String, Instrument> instruments
     ) {
         long publishableBooks = runEndSessions.stream()
                 .filter(item -> item.health().publishable(
@@ -335,6 +369,10 @@ public final class MultiExchangeLocalBookMain {
                 + " staleThresholdSeconds=" + staleThresholdSeconds
                 + " elapsedMs=" + TimeUnit.NANOSECONDS.toMillis(elapsedNanos)
                 + " sources=" + runEndSessions.size()
+                + " instrumentMetadata=" + instruments.size()
+                + " processingMode=" + PROCESSING_MODE
+                + " processingQueue=false"
+
                 + " publishableBooks=" + publishableBooks
                 + " messages=" + runEndSessions.stream()
                         .mapToLong(LiveBookSessionSnapshot::messages).sum()
