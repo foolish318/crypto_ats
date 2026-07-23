@@ -1,97 +1,58 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="940" viewBox="0 0 1500 940" role="img" aria-labelledby="title desc">
-  <title id="title">Data quality module decision flow</title>
-  <desc id="desc">A detailed decision flow showing common and exchange-specific data quality checks, accept output, and reject resynchronization output.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="760" viewBox="0 0 1500 760" role="img" aria-labelledby="title desc">
+  <title id="title">Data Quality Gate Module</title>
+  <desc id="desc">Validate common invariants and venue-specific continuity before publication.</desc>
   <defs>
-    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
-      <path d="M1 1 L11 6 L1 11 Z" fill="#475569"/>
-    </marker>
-    <marker id="passArrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
-      <path d="M1 1 L11 6 L1 11 Z" fill="#0f766e"/>
-    </marker>
-    <marker id="failArrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
-      <path d="M1 1 L11 6 L1 11 Z" fill="#be123c"/>
-    </marker>
-    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
-      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.10"/>
-    </filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M1 1 L11 6 L1 11 Z" fill="#475569"/></marker>
+    <marker id="failure-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M1 1 L11 6 L1 11 Z" fill="#be123c"/></marker>
+    <marker id="replay-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M1 1 L11 6 L1 11 Z" fill="#a21caf"/></marker>
+    <filter id="shadow" x="-15%" y="-15%" width="130%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/></filter>
   </defs>
-
-  <rect width="1500" height="940" fill="#f8fafc"/>
-  <text x="58" y="66" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#0f172a">Data Quality Module</text>
-  <text x="58" y="100" font-family="Arial, sans-serif" font-size="17" fill="#475569">Every path converges on one rule: reject the entire book as soon as a required invariant fails.</text>
-
-  <g filter="url(#shadow)" font-family="Arial, sans-serif">
-    <rect x="58" y="146" width="250" height="88" rx="8" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
-    <text x="82" y="181" font-size="18" font-weight="700" fill="#0f172a">1. Receive raw payload</text>
-    <text x="82" y="207" font-size="14" fill="#475569">source, symbol, receive time</text>
-
-    <rect x="358" y="146" width="250" height="88" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="2"/>
-    <text x="382" y="181" font-size="18" font-weight="700" fill="#0f172a">2. Parse exactly</text>
-    <text x="382" y="207" font-size="14" fill="#475569">preserve decimal precision</text>
-
-    <rect x="658" y="146" width="310" height="88" rx="8" fill="#ffe4e6" stroke="#e11d48" stroke-width="2"/>
-    <text x="682" y="181" font-size="18" font-weight="700" fill="#0f172a">3. Common invariants</text>
-    <text x="682" y="207" font-size="14" fill="#475569">schema, values, order, fresh, uncrossed</text>
-
-    <polygon points="1080,146 1188,190 1080,234 972,190" fill="#ffffff" stroke="#64748b" stroke-width="2"/>
-    <text x="1029" y="185" font-size="16" font-weight="700" fill="#0f172a">Exchange?</text>
-    <text x="1046" y="207" font-size="12" fill="#64748b">route checks</text>
-
-    <rect x="116" y="350" width="330" height="224" rx="8" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
-    <text x="142" y="390" font-size="21" font-weight="700" fill="#075985">Binance.US Gate</text>
-    <text x="142" y="428" font-size="14" fill="#334155">REST snapshot lastUpdateId</text>
-    <text x="142" y="458" font-size="14" fill="#334155">First U/u bridges snapshot + 1</text>
-    <text x="142" y="488" font-size="14" fill="#334155">Next U equals previous u + 1</text>
-    <text x="142" y="518" font-size="14" fill="#334155">Apply absolute quantities</text>
-    <text x="142" y="548" font-size="14" font-weight="700" fill="#075985">No gap, stale event, or cross</text>
-
-    <rect x="584" y="350" width="330" height="224" rx="8" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
-    <text x="610" y="390" font-size="21" font-weight="700" fill="#166534">OKX Gate</text>
-    <text x="610" y="428" font-size="14" fill="#334155">First action is snapshot</text>
-    <text x="610" y="458" font-size="14" fill="#334155">prevSeqId equals prior seqId</text>
-    <text x="610" y="488" font-size="14" fill="#334155">seqId never below prevSeqId</text>
-    <text x="610" y="518" font-size="14" fill="#334155">Apply and truncate to depth</text>
-    <text x="610" y="548" font-size="14" font-weight="700" fill="#166534">Sequence replaces old checksum</text>
-
-    <rect x="1052" y="350" width="330" height="224" rx="8" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
-    <text x="1078" y="390" font-size="21" font-weight="700" fill="#5b21b6">Kraken Gate</text>
-    <text x="1078" y="428" font-size="14" fill="#334155">First type is snapshot</text>
-    <text x="1078" y="458" font-size="14" fill="#334155">Apply every level in order</text>
-    <text x="1078" y="488" font-size="14" fill="#334155">Truncate to subscribed depth</text>
-    <text x="1078" y="518" font-size="14" fill="#334155">CRC32 asks + bids, top 10</text>
-    <text x="1078" y="548" font-size="14" font-weight="700" fill="#5b21b6">Checksum must match exactly</text>
-
-    <polygon points="750,646 872,696 750,746 628,696" fill="#ffffff" stroke="#64748b" stroke-width="2"/>
-    <text x="697" y="691" font-size="17" font-weight="700" fill="#0f172a">All checks</text>
-    <text x="720" y="714" font-size="17" font-weight="700" fill="#0f172a">pass?</text>
-
-    <rect x="1010" y="650" width="318" height="122" rx="8" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
-    <text x="1038" y="690" font-size="22" font-weight="700" fill="#134e4a">ACCEPT</text>
-    <text x="1038" y="722" font-size="14" fill="#334155">publish quality-approved local book</text>
-    <text x="1038" y="747" font-size="14" fill="#334155">record passed checks and sequence</text>
-
-    <rect x="172" y="650" width="318" height="122" rx="8" fill="#fff1f2" stroke="#be123c" stroke-width="2"/>
-    <text x="200" y="690" font-size="22" font-weight="700" fill="#9f1239">REJECT</text>
-    <text x="200" y="722" font-size="14" fill="#334155">do not publish or trade on this book</text>
-    <text x="200" y="747" font-size="14" fill="#334155">record failure and request resync</text>
+  <rect width="1500" height="760" fill="#f8fafc"/>
+  <text x="55" y="58" font-family="Arial, sans-serif" font-size="32" font-weight="700" fill="#0f172a" text-anchor="start">Data Quality Gate Module</text>
+  <text x="55" y="89" font-family="Arial, sans-serif" font-size="15" font-weight="400" fill="#475569" text-anchor="start">Validate common invariants and venue-specific continuity before publication.</text>
+  <rect x="40" y="130" width="1420" height="500" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+  <g filter="url(#shadow)">
+    <rect x="70" y="205" width="230" height="112" rx="7" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
+  <text x="90" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#115e59" text-anchor="start">Canonical Event</text>
+  <text x="90" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">snapshot or update</text>
+  <text x="90" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">timestamps + sequence</text>
   </g>
-
-  <g fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)">
-    <path d="M308 190 H358"/>
-    <path d="M608 190 H658"/>
-    <path d="M968 190 H972"/>
-    <path d="M1025 213 V290 H281 V350"/>
-    <path d="M1080 234 V290 H749 V350"/>
-    <path d="M1135 213 V290 H1217 V350"/>
-    <path d="M281 574 V612 H696 V665"/>
-    <path d="M749 574 V646"/>
-    <path d="M1217 574 V612 H804 V665"/>
+  <g filter="url(#shadow)">
+    <rect x="345" y="205" width="230" height="112" rx="7" fill="#ffe4e6" stroke="#e11d48" stroke-width="2"/>
+  <text x="365" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#9f1239" text-anchor="start">Common Checks</text>
+  <text x="365" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">schema, price, quantity</text>
+  <text x="365" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">freshness + crossed book</text>
   </g>
-  <path d="M872 696 H1010" fill="none" stroke="#0f766e" stroke-width="3" marker-end="url(#passArrow)"/>
-  <path d="M628 696 H490" fill="none" stroke="#be123c" stroke-width="3" marker-end="url(#failArrow)"/>
-  <text x="908" y="682" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#0f766e">YES</text>
-  <text x="548" y="682" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#be123c">NO</text>
-
-  <rect x="58" y="836" width="1324" height="64" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
-  <text x="84" y="875" font-family="Arial, sans-serif" font-size="14" fill="#475569">Operational rule: connected is a transport state; LIVE is granted only after the market-data quality state is accepted.</text>
+  <g filter="url(#shadow)">
+    <rect x="620" y="205" width="230" height="112" rx="7" fill="#ffe4e6" stroke="#e11d48" stroke-width="2"/>
+  <text x="640" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#9f1239" text-anchor="start">Venue Checks</text>
+  <text x="640" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">Binance U/u, OKX seq</text>
+  <text x="640" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">Kraken CRC32</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="895" y="205" width="230" height="112" rx="7" fill="#ffe4e6" stroke="#e11d48" stroke-width="2"/>
+  <text x="915" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#9f1239" text-anchor="start">Quality Report</text>
+  <text x="915" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">accepted / rejected</text>
+  <text x="915" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">reason + counters</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="1170" y="205" width="230" height="112" rx="7" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+  <text x="1190" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#5b21b6" text-anchor="start">Accepted Event</text>
+  <text x="1190" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">eligible for book state</text>
+  <text x="1190" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">quality metadata retained</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="895" y="430" width="230" height="112" rx="7" fill="#ffe4e6" stroke="#e11d48" stroke-width="2"/>
+  <text x="915" y="464" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#9f1239" text-anchor="start">Recovery Request</text>
+  <text x="915" y="492" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">degrade affected book</text>
+  <text x="915" y="514" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">resnapshot or reconnect</text>
+  </g>
+  <path d="M300 261 H345" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M575 261 H620" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M850 261 H895" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M1125 261 H1170" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M1010 317 V430" fill="none" stroke="#be123c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#failure-arrow)"/>
+  <text x="1060" y="390" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#be123c" text-anchor="middle">REJECT</text>
+  <rect x="55" y="660" width="1390" height="58" rx="7" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="82" y="695" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#334155" text-anchor="start">Rule: transport success is not data quality; only ACCEPT may mutate publishable state.</text>
 </svg>

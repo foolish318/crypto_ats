@@ -1,62 +1,74 @@
 # Canonical Data Pipeline Architecture
 
-This is the single current architecture for the project. Version numbers describe implementation milestones; they do not create separate competing architectures.
+This is the single current architecture for the project. Version numbers are implementation milestones inside these stable module boundaries, not competing system designs.
 
 ![Canonical data pipeline](architecture.svg)
 
-PNG fallback:
+PNG fallback: [architecture.png](architecture.png)
 
-```text
-docs/architecture.png
-```
+## Reference Patterns
 
-## How To Read It
+The layout restores the stronger reference-inspired design introduced in V15:
 
-The main path is:
-
-```text
-market-data sources
-  -> venue connectors and transport
-  -> raw message capture
-  -> parser and normalizer
-  -> data quality gate
-  -> venue-local order books
-  -> market-data engine, cache, and event bus
-  -> cross-exchange view, strategy, and benchmarks
-```
-
-`Data Quality Gate` is one module inside this pipeline. It does not replace the pipeline.
-
-`Local Order Books` is another module. V17/V18 implemented the continuous Binance path. V19 added OKX and Kraken sources. V20 added shared and venue-specific quality checks. The next multi-exchange book work fills this existing block for OKX and Kraken; it does not introduce a different architecture.
-
-## Block Responsibilities
-
-| Block | Responsibility |
+| Project pattern | What this project adopts |
 |---|---|
-| Sources | Direct exchange REST/WebSocket/FIX, third-party feeds, and replay |
-| Connectors | Exchange lifecycle, subscriptions, symbols, snapshots, reconnects |
-| Raw intake | Preserve payload, source, receive time, and protocol metadata |
-| Parser/normalizer | Convert venue messages into canonical Java events |
-| Quality gate | Schema, values, freshness, sequence, checksum, crossed-book checks |
-| Local books | Maintain one order book per exchange and symbol |
-| Data engine | Cache accepted state and publish events to subscribers |
-| Cross-exchange view | Compare separately validated venue books |
-| Consumers | Strategy, replay validation, latency benchmark, and future execution |
+| Hummingbot | A connector owns exchange lifecycle and subscriptions; order-book source, tracking, and state remain separate responsibilities. |
+| NautilusTrader | Adapters normalize venue APIs into domain events; the data engine updates cache before publishing through an event bus. |
+| XChange / CCXT | A common facade hides venue-specific implementations from downstream consumers. |
+
+These are architectural patterns, not copied implementations. The Java classes in this repository remain intentionally small enough to study.
+
+## End-To-End Flow
+
+```text
+exchange / third-party / replay source
+  -> instrument provider and venue connector
+  -> REST, WebSocket, FIX, or replay transport
+  -> immutable RawInboundMessage
+  -> venue parser and canonical normalizer
+  -> data quality gate
+  -> coordinator, sequencer, and venue-local order book
+  -> market-data engine
+  -> cache then event-bus publication
+  -> cross-exchange view, strategy, recorder, and benchmark
+```
+
+`Data Quality Gate` is one module in the complete pipeline. `Local Order Books`, `Recovery`, `Recorder / Replay`, and `MarketDataEngine` are separate modules with their own contracts.
+
+## Module Index
+
+| Module | Status | Detailed design |
+|---|---|---|
+| Sources and connectors | Implemented for Binance.US, OKX, and Kraken public data | [source-connector.md](modules/source-connector.md) |
+| Transport and raw intake | REST and WebSocket implemented; FIX is planned | [transport-intake.md](modules/transport-intake.md) |
+| Parser and normalizer | Implemented for current venue messages | [parser-normalizer.md](modules/parser-normalizer.md) |
+| Data quality gate | V20 implemented and deterministically tested | [data-quality.md](modules/data-quality.md) |
+| Venue-local order books | Binance continuous path implemented; OKX/Kraken expansion remains | [order-book.md](modules/order-book.md) |
+| Recovery coordinator | Binance reconnect and resnapshot implemented | [recovery.md](modules/recovery.md) |
+| Market-data engine | Cache-first event publication implemented | [data-engine.md](modules/data-engine.md) |
+| Recorder and replay | Recording and deterministic replay implemented | [recorder-replay.md](modules/recorder-replay.md) |
+| Cross-exchange view | Top-of-book comparison implemented; deep-book view remains | [cross-exchange-view.md](modules/cross-exchange-view.md) |
+| Strategy and benchmark | Java queue/pipeline decisions and stage timing implemented | [strategy-benchmark.md](modules/strategy-benchmark.md) |
+
+The future `Order / Risk` block is shown only to preserve the system boundary. It is not documented as an implemented module.
 
 ## Failure And Recovery
 
 ```text
-quality failure
-  -> stop publishing the affected venue book
-  -> mark it degraded
-  -> reconnect or reload a snapshot
-  -> rebuild and revalidate
-  -> publish again only after the book returns to LIVE
+quality or transport failure
+  -> mark only the affected venue book DEGRADED
+  -> stop publishing that book
+  -> reconnect and/or reload a snapshot
+  -> bridge buffered updates
+  -> rerun quality checks
+  -> resume publication only after the book returns to LIVE
 ```
 
-## Module Detail Diagrams
+## Stable Design Rules
 
-- [Data quality module](modules/data-quality.md)
-- [Local order-book module](modules/order-book.md)
-
-These diagrams expand individual blocks from the canonical architecture. They are not alternative top-level designs.
+1. Strategies consume accepted canonical state, never venue wire formats.
+2. Each `exchange + symbol` owns a separate book.
+3. Cache is updated before event-bus publication.
+4. Raw evidence is retained for replay and debugging.
+5. Replay replaces the source and clock, not downstream processing contracts.
+6. Network, parse, book, queue, processor, and end-to-end latency are reported separately.

@@ -1,140 +1,206 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1050" viewBox="0 0 1800 1050" role="img" aria-labelledby="title desc">
-  <title id="title">Canonical crypto ATS market-data pipeline</title>
-  <desc id="desc">One top-level architecture showing sources, ingestion, quality and book state, distribution, consumers, recording, replay, and recovery.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1230" viewBox="0 0 1900 1230" role="img" aria-labelledby="title desc">
+  <title id="title">Reference-inspired crypto ATS market-data architecture</title>
+  <desc id="desc">A six-stage market-data architecture based on patterns from Hummingbot, NautilusTrader, and XChange or CCXT, with quality, books, recovery, replay, and consumers.</desc>
   <defs>
-    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
-      <path d="M1 1 L11 6 L1 11 Z" fill="#475569"/>
-    </marker>
-    <marker id="redArrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
-      <path d="M1 1 L11 6 L1 11 Z" fill="#be123c"/>
-    </marker>
-    <marker id="purpleArrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
-      <path d="M1 1 L11 6 L1 11 Z" fill="#7e22ce"/>
-    </marker>
-    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
-      <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/>
-    </filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M1 1 L11 6 L1 11 Z" fill="#475569"/></marker>
+    <marker id="failure-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M1 1 L11 6 L1 11 Z" fill="#be123c"/></marker>
+    <marker id="replay-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M1 1 L11 6 L1 11 Z" fill="#a21caf"/></marker>
+    <filter id="shadow" x="-15%" y="-15%" width="130%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/></filter>
   </defs>
-
-  <rect width="1800" height="1050" fill="#f8fafc"/>
-  <text x="60" y="66" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#0f172a">Crypto ATS Market-Data Pipeline</text>
-  <text x="60" y="100" font-family="Arial, sans-serif" font-size="17" fill="#475569">One canonical architecture. Version numbers describe implementation milestones inside these stable module boundaries.</text>
-
-  <g font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#334155">
-    <text x="76" y="164">SOURCES</text>
-    <text x="376" y="164">INGESTION</text>
-    <text x="696" y="164">INTEGRITY + STATE</text>
-    <text x="1076" y="164">DISTRIBUTION</text>
-    <text x="1416" y="164">CONSUMERS</text>
+  <rect width="1900" height="1230" fill="#f8fafc"/>
+  <text x="55" y="58" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#0f172a" text-anchor="start">Crypto ATS Market-Data Architecture</text>
+  <text x="55" y="91" font-family="Arial, sans-serif" font-size="16" font-weight="400" fill="#475569" text-anchor="start">One canonical pipeline, informed by established open-source connector and data-engine patterns.</text>
+  <g filter="url(#shadow)">
+    <rect x="55" y="125" width="560" height="124" rx="7" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+  <text x="75" y="159" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#92400e" text-anchor="start">Hummingbot pattern</text>
+  <text x="75" y="187" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">Connector owns venue lifecycle and subscriptions</text>
+  <text x="75" y="209" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">Separate order-book data source, tracker, and state</text>
+    <rect x="520" y="137" width="83" height="23" rx="4" fill="#ffffff" stroke="#d97706" stroke-opacity="0.45"/>
+  <text x="562" y="153" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#92400e" text-anchor="middle">reference</text>
   </g>
-
-  <g filter="url(#shadow)" font-family="Arial, sans-serif">
-    <rect x="60" y="198" width="250" height="112" rx="8" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
-    <text x="84" y="234" font-size="20" font-weight="700" fill="#0f172a">Direct Exchanges</text>
-    <text x="84" y="263" font-size="14" fill="#334155">Binance.US / OKX / Kraken</text>
-    <text x="84" y="287" font-size="14" fill="#334155">REST / WebSocket / FIX later</text>
-
-    <rect x="60" y="354" width="250" height="100" rx="8" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
-    <text x="84" y="390" font-size="20" font-weight="700" fill="#0f172a">Third-Party Feeds</text>
-    <text x="84" y="419" font-size="14" fill="#334155">Normalized or FIX market data</text>
-    <text x="84" y="441" font-size="13" fill="#64748b">future connector</text>
-
-    <rect x="60" y="498" width="250" height="100" rx="8" fill="#fae8ff" stroke="#a21caf" stroke-width="2"/>
-    <text x="84" y="534" font-size="20" font-weight="700" fill="#0f172a">Replay Store</text>
-    <text x="84" y="563" font-size="14" fill="#334155">Recorded raw market data</text>
-    <text x="84" y="585" font-size="13" fill="#64748b">deterministic input</text>
-
-    <rect x="360" y="198" width="270" height="100" rx="8" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
-    <text x="384" y="234" font-size="20" font-weight="700" fill="#0f172a">Venue Connectors</text>
-    <text x="384" y="263" font-size="14" fill="#334155">subscriptions, snapshots, lifecycle</text>
-    <text x="384" y="285" font-size="13" fill="#64748b">source catalog + symbol metadata</text>
-
-    <rect x="360" y="354" width="270" height="100" rx="8" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
-    <text x="384" y="390" font-size="20" font-weight="700" fill="#0f172a">RawInboundMessage</text>
-    <text x="384" y="419" font-size="14" fill="#334155">payload, source, receive time</text>
-    <text x="384" y="441" font-size="13" fill="#64748b">transport + sequence metadata</text>
-
-    <rect x="360" y="510" width="270" height="100" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="2"/>
-    <text x="384" y="546" font-size="20" font-weight="700" fill="#0f172a">Parser / Normalizer</text>
-    <text x="384" y="575" font-size="14" fill="#334155">venue protocol to Java events</text>
-    <text x="384" y="597" font-size="13" fill="#64748b">exact decimal representation</text>
-
-    <rect x="680" y="238" width="320" height="118" rx="8" fill="#ffe4e6" stroke="#e11d48" stroke-width="2"/>
-    <text x="706" y="276" font-size="21" font-weight="700" fill="#881337">Data Quality Gate</text>
-    <text x="706" y="307" font-size="14" fill="#334155">schema, values, freshness, sequence</text>
-    <text x="706" y="331" font-size="14" fill="#334155">checksum and crossed-book checks</text>
-    <rect x="895" y="255" width="82" height="26" rx="5" fill="#ffffff" stroke="#fda4af"/>
-    <text x="908" y="273" font-size="11" font-weight="700" fill="#9f1239">V20 module</text>
-
-    <rect x="680" y="414" width="320" height="118" rx="8" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
-    <text x="706" y="452" font-size="21" font-weight="700" fill="#4c1d95">Local Order Books</text>
-    <text x="706" y="483" font-size="14" fill="#334155">one book per exchange + symbol</text>
-    <text x="706" y="507" font-size="14" fill="#334155">BOOTSTRAPPING / LIVE / DEGRADED</text>
-
-    <rect x="680" y="590" width="320" height="108" rx="8" fill="#fff1f2" stroke="#be123c" stroke-width="2"/>
-    <text x="706" y="628" font-size="20" font-weight="700" fill="#9f1239">Recovery Coordinator</text>
-    <text x="706" y="659" font-size="14" fill="#334155">reconnect, snapshot reload, resync</text>
-    <text x="706" y="683" font-size="13" fill="#64748b">publication blocked until LIVE</text>
-
-    <rect x="1060" y="238" width="280" height="108" rx="8" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
-    <text x="1086" y="276" font-size="21" font-weight="700" fill="#134e4a">MarketDataEngine</text>
-    <text x="1086" y="307" font-size="14" fill="#334155">single accepted-event boundary</text>
-    <text x="1086" y="331" font-size="13" fill="#64748b">cache then publish</text>
-
-    <rect x="1060" y="402" width="280" height="108" rx="8" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
-    <text x="1086" y="440" font-size="21" font-weight="700" fill="#134e4a">Cache + Event Bus</text>
-    <text x="1086" y="471" font-size="14" fill="#334155">latest state and fan-out</text>
-    <text x="1086" y="495" font-size="13" fill="#64748b">fast downstream reads</text>
-
-    <rect x="1060" y="566" width="280" height="108" rx="8" fill="#fae8ff" stroke="#a21caf" stroke-width="2"/>
-    <text x="1086" y="604" font-size="21" font-weight="700" fill="#701a75">Recorder</text>
-    <text x="1086" y="635" font-size="14" fill="#334155">persist raw + accepted events</text>
-    <text x="1086" y="659" font-size="13" fill="#64748b">feeds replay and comparison</text>
-
-    <rect x="1400" y="214" width="330" height="108" rx="8" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
-    <text x="1426" y="252" font-size="21" font-weight="700" fill="#075985">Cross-Exchange View</text>
-    <text x="1426" y="283" font-size="14" fill="#334155">compare validated venue books</text>
-    <text x="1426" y="307" font-size="13" fill="#64748b">canonical symbols + freshness</text>
-
-    <rect x="1400" y="374" width="330" height="108" rx="8" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
-    <text x="1426" y="412" font-size="21" font-weight="700" fill="#166534">Strategy Pipeline</text>
-    <text x="1426" y="443" font-size="14" fill="#334155">spread, depth, decision logic</text>
-    <text x="1426" y="467" font-size="13" fill="#64748b">market data only today</text>
-
-    <rect x="1400" y="534" width="330" height="108" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="2"/>
-    <text x="1426" y="572" font-size="21" font-weight="700" fill="#0f172a">Benchmark + Replay</text>
-    <text x="1426" y="603" font-size="14" fill="#334155">latency stages and parity checks</text>
-    <text x="1426" y="627" font-size="13" fill="#64748b">same input, comparable versions</text>
-
-    <rect x="1400" y="694" width="330" height="92" rx="8" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2" stroke-dasharray="8 6"/>
-    <text x="1426" y="732" font-size="20" font-weight="700" fill="#475569">Order / Risk Modules</text>
-    <text x="1426" y="761" font-size="14" fill="#64748b">future scope, separate lifecycle</text>
+  <g filter="url(#shadow)">
+    <rect x="670" y="125" width="560" height="124" rx="7" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
+  <text x="690" y="159" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#115e59" text-anchor="start">NautilusTrader pattern</text>
+  <text x="690" y="187" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">Adapters normalize venue APIs into domain events</text>
+  <text x="690" y="209" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">Data engine updates cache before publishing to bus</text>
+    <rect x="1135" y="137" width="83" height="23" rx="4" fill="#ffffff" stroke="#0f766e" stroke-opacity="0.45"/>
+  <text x="1176" y="153" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#115e59" text-anchor="middle">reference</text>
   </g>
-
-  <g fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)">
-    <path d="M310 254 H360"/>
-    <path d="M310 404 H336 V268 H360"/>
-    <path d="M310 548 H336 V404 H360"/>
-    <path d="M495 298 V354"/>
-    <path d="M495 454 V510"/>
-    <path d="M630 560 H654 V297 H680"/>
-    <path d="M840 356 V414"/>
-    <path d="M1000 473 H1030 V292 H1060"/>
-    <path d="M1200 346 V402"/>
-    <path d="M1340 456 H1370 V268 H1400"/>
-    <path d="M1565 322 V374"/>
-    <path d="M1565 482 V534"/>
+  <g filter="url(#shadow)">
+    <rect x="1285" y="125" width="560" height="124" rx="7" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+  <text x="1305" y="159" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#075985" text-anchor="start">XChange / CCXT pattern</text>
+  <text x="1305" y="187" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">Unified facade over venue-specific implementations</text>
+  <text x="1305" y="209" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">Common contracts keep exchange details behind adapters</text>
+    <rect x="1750" y="137" width="83" height="23" rx="4" fill="#ffffff" stroke="#0284c7" stroke-opacity="0.45"/>
+  <text x="1792" y="153" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#075985" text-anchor="middle">reference</text>
   </g>
-
-  <path d="M680 318 H654 V644 H680" fill="none" stroke="#be123c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#redArrow)"/>
-  <text x="570" y="635" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#be123c">quality failure</text>
-  <path d="M680 644 H646 V818 H495 V298" fill="none" stroke="#be123c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#redArrow)"/>
-  <text x="504" y="810" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#be123c">reconnect / resnapshot</text>
-
-  <path d="M1060 620 H1028 V864 H185 V598" fill="none" stroke="#7e22ce" stroke-width="3" stroke-dasharray="10 8" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#purpleArrow)"/>
-  <text x="558" y="856" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#7e22ce">recorded data becomes deterministic replay input</text>
-
-  <rect x="60" y="916" width="1670" height="82" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
-  <text x="88" y="950" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#0f172a">Stable design rule</text>
-  <text x="88" y="978" font-family="Arial, sans-serif" font-size="14" fill="#475569">Strategies consume only accepted normalized state. They do not know whether input came from REST, WebSocket, FIX, a third-party provider, or replay.</text>
+  <rect x="40" y="294" width="270" height="810" rx="8" fill="#f0f9ff" stroke="#cbd5e1"/>
+  <text x="58" y="329" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#334155" text-anchor="start">1  SOURCES</text>
+  <rect x="350" y="294" width="270" height="810" rx="8" fill="#fffbeb" stroke="#cbd5e1"/>
+  <text x="368" y="329" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#334155" text-anchor="start">2  CONNECTORS</text>
+  <rect x="660" y="294" width="270" height="810" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="678" y="329" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#334155" text-anchor="start">3  INTAKE</text>
+  <rect x="970" y="294" width="270" height="810" rx="8" fill="#faf5ff" stroke="#cbd5e1"/>
+  <text x="988" y="329" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#334155" text-anchor="start">4  INTEGRITY + STATE</text>
+  <rect x="1280" y="294" width="270" height="810" rx="8" fill="#f0fdfa" stroke="#cbd5e1"/>
+  <text x="1298" y="329" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#334155" text-anchor="start">5  DISTRIBUTION</text>
+  <rect x="1590" y="294" width="270" height="810" rx="8" fill="#f0fdf4" stroke="#cbd5e1"/>
+  <text x="1608" y="329" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#334155" text-anchor="start">6  CONSUMERS</text>
+  <g filter="url(#shadow)">
+    <rect x="55" y="355" width="240" height="112" rx="7" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+  <text x="75" y="389" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#075985" text-anchor="start">Direct Exchanges</text>
+  <text x="75" y="417" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">Binance.US / OKX / Kraken</text>
+  <text x="75" y="439" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">REST + WebSocket; FIX later</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="55" y="520" width="240" height="112" rx="7" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+  <text x="75" y="554" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#075985" text-anchor="start">Third-Party Feeds</text>
+  <text x="75" y="582" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">normalized feed or FIX gateway</text>
+  <text x="75" y="604" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">future source implementation</text>
+    <rect x="209" y="532" width="74" height="23" rx="4" fill="#ffffff" stroke="#0284c7" stroke-opacity="0.45"/>
+  <text x="246" y="548" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#075985" text-anchor="middle">planned</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="55" y="685" width="240" height="112" rx="7" fill="#fae8ff" stroke="#a21caf" stroke-width="2"/>
+  <text x="75" y="719" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#86198f" text-anchor="start">Replay Store</text>
+  <text x="75" y="747" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">recorded raw market data</text>
+  <text x="75" y="769" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">deterministic source</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="365" y="355" width="240" height="112" rx="7" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+  <text x="385" y="389" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#92400e" text-anchor="start">InstrumentProvider</text>
+  <text x="385" y="417" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">venue instruments and metadata</text>
+  <text x="385" y="439" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">canonical symbol mapping</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="365" y="520" width="240" height="112" rx="7" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+  <text x="385" y="554" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#92400e" text-anchor="start">MarketDataConnector</text>
+  <text x="385" y="582" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">connect, subscribe, health</text>
+  <text x="385" y="604" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">venue-specific lifecycle</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="365" y="685" width="240" height="112" rx="7" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+  <text x="385" y="719" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#92400e" text-anchor="start">MarketDataClient</text>
+  <text x="385" y="747" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">snapshot and stream ownership</text>
+  <text x="385" y="769" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">reconnect boundaries</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="675" y="355" width="240" height="112" rx="7" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+  <text x="695" y="389" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#334155" text-anchor="start">Transport Clients</text>
+  <text x="695" y="417" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">REST / WebSocket / FIX</text>
+  <text x="695" y="439" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">protocol-specific receive path</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="675" y="520" width="240" height="112" rx="7" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+  <text x="695" y="554" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#334155" text-anchor="start">RawInboundMessage</text>
+  <text x="695" y="582" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">payload + source + receive time</text>
+  <text x="695" y="604" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">transport and sequence metadata</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="675" y="685" width="240" height="112" rx="7" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+  <text x="695" y="719" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#334155" text-anchor="start">Parser / Normalizer</text>
+  <text x="695" y="747" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">venue JSON to Java events</text>
+  <text x="695" y="769" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">exact decimals + canonical types</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="985" y="355" width="240" height="112" rx="7" fill="#ffe4e6" stroke="#e11d48" stroke-width="2"/>
+  <text x="1005" y="389" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#9f1239" text-anchor="start">Data Quality Gate</text>
+  <text x="1005" y="417" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">schema, values, freshness</text>
+  <text x="1005" y="439" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">sequence, checksum, crossed book</text>
+    <rect x="1139" y="367" width="74" height="23" rx="4" fill="#ffffff" stroke="#e11d48" stroke-opacity="0.45"/>
+  <text x="1176" y="383" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#9f1239" text-anchor="middle">V20</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="985" y="520" width="240" height="112" rx="7" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+  <text x="1005" y="554" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#5b21b6" text-anchor="start">Recovery Coordinator</text>
+  <text x="1005" y="582" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">snapshot bridge + rebuild</text>
+  <text x="1005" y="604" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">BOOT / LIVE / DEGRADED</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="985" y="685" width="240" height="112" rx="7" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+  <text x="1005" y="719" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#5b21b6" text-anchor="start">BookSequencer</text>
+  <text x="1005" y="747" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">stale and gap detection</text>
+  <text x="1005" y="769" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">venue-specific ordering rules</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="985" y="850" width="240" height="112" rx="7" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+  <text x="1005" y="884" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#5b21b6" text-anchor="start">Venue-Local Books</text>
+  <text x="1005" y="912" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">one book per venue + symbol</text>
+  <text x="1005" y="934" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">publish accepted state only</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="1295" y="355" width="240" height="112" rx="7" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
+  <text x="1315" y="389" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#115e59" text-anchor="start">MarketDataEngine</text>
+  <text x="1315" y="417" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">single accepted-event boundary</text>
+  <text x="1315" y="439" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">cache first, publish second</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="1295" y="520" width="240" height="112" rx="7" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
+  <text x="1315" y="554" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#115e59" text-anchor="start">MarketDataCache</text>
+  <text x="1315" y="582" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">latest accepted state</text>
+  <text x="1315" y="604" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">fast keyed reads</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="1295" y="685" width="240" height="112" rx="7" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
+  <text x="1315" y="719" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#115e59" text-anchor="start">MarketDataEventBus</text>
+  <text x="1315" y="747" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">listener fan-out</text>
+  <text x="1315" y="769" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">strategy and monitoring</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="1295" y="850" width="240" height="112" rx="7" fill="#fae8ff" stroke="#a21caf" stroke-width="2"/>
+  <text x="1315" y="884" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#86198f" text-anchor="start">Recorder</text>
+  <text x="1315" y="912" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">raw + normalized + accepted</text>
+  <text x="1315" y="934" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">replay and audit evidence</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="1605" y="355" width="240" height="112" rx="7" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+  <text x="1625" y="389" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#075985" text-anchor="start">Cross-Exchange View</text>
+  <text x="1625" y="417" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">compare validated venue books</text>
+  <text x="1625" y="439" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">canonical symbol + freshness</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="1605" y="520" width="240" height="112" rx="7" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <text x="1625" y="554" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#166534" text-anchor="start">Strategy Pipeline</text>
+  <text x="1625" y="582" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">spread and depth decisions</text>
+  <text x="1625" y="604" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">market-data consumers</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="1605" y="685" width="240" height="112" rx="7" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+  <text x="1625" y="719" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#334155" text-anchor="start">Benchmark / Replay</text>
+  <text x="1625" y="747" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">stage latency + parity checks</text>
+  <text x="1625" y="769" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">same input across versions</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="1605" y="850" width="240" height="112" rx="7" fill="#f8fafc" stroke="#94a3b8" stroke-width="2" stroke-dasharray="8 6"/>
+  <text x="1625" y="884" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#475569" text-anchor="start">Order / Risk</text>
+  <text x="1625" y="912" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">execution lifecycle is separate</text>
+  <text x="1625" y="934" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">not implemented in this scope</text>
+    <rect x="1759" y="862" width="74" height="23" rx="4" fill="#ffffff" stroke="#94a3b8" stroke-opacity="0.45"/>
+  <text x="1796" y="878" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#475569" text-anchor="middle">future</text>
+  </g>
+  <path d="M295 411 H365" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M295 576 H330 V576 H365" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M295 741 H330 V576 H365" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M485 467 V520" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M485 632 V685" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M605 741 H640 V411 H675" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M795 467 V520" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M795 632 V685" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M915 741 H945 V411 H985" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M1105 467 V520" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M1105 632 V685" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M1105 797 V850" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M1225 906 H1255 V411 H1295" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M1415 467 V520" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M1415 632 V685" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M1415 797 V850" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M1535 741 H1565 V411 H1605" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M1725 467 V520" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M1725 632 V685" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M985 411 H950 V1015 H1105 V962" fill="none" stroke="#be123c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#failure-arrow)"/>
+  <text x="1080" y="1040" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#be123c" text-anchor="middle">quality failure -&gt; recover and rebuild</text>
+  <path d="M1295 906 H1260 V1070 H175 V797" fill="none" stroke="#a21caf" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10 8" marker-end="url(#replay-arrow)"/>
+  <text x="720" y="1092" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#a21caf" text-anchor="middle">recorded input returns through the same connector contract</text>
+  <rect x="55" y="1135" width="1790" height="58" rx="7" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="82" y="1170" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#334155" text-anchor="start">Design rule: downstream code consumes accepted canonical state and is independent of REST, WebSocket, FIX, third-party, or replay transport.</text>
 </svg>

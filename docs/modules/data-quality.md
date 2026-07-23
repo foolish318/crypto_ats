@@ -1,59 +1,30 @@
-# Data Quality Module
+# Data Quality Gate Module
 
-This module was introduced in V20. It sits between parsing and publication of a local order book.
+![Data quality gate](data-quality.svg)
 
-![Data quality module](data-quality.svg)
-
-PNG fallback:
-
-```text
-docs/modules/data-quality.png
-```
+PNG fallback: [data-quality.png](data-quality.png)
 
 ## Contract
 
-Input:
+Input is a canonical snapshot or update plus the current venue-local state, exchange and receive timestamps, and sequence/checksum metadata.
 
 ```text
-parsed venue snapshot or incremental update
-current venue-local book state
-exchange and receive timestamps
-sequence or checksum metadata
+ACCEPT -> event may mutate the publishable local book
+REJECT -> mark the book DEGRADED, suppress publication, request recovery
 ```
 
-Output:
+Transport health and data quality are independent. A connected WebSocket can still carry stale, incomplete, crossed, discontinuous, or checksum-invalid data.
 
-```text
-ACCEPT
-  -> update may be published downstream
+## Checks
 
-REJECT
-  -> book is degraded
-  -> update is not published
-  -> recovery is requested
-```
-
-Transport status and data quality are separate. A connected WebSocket can still carry stale, incomplete, crossed, or checksum-invalid data.
-
-## Common Checks
-
-```text
-required fields and correct symbol
-positive price and valid quantity
-bids descending and asks ascending in snapshots
-best bid below best ask
-event timestamp within the freshness threshold
-```
-
-## Venue Checks
-
-| Venue | Validation |
+| Scope | Validation |
 |---|---|
-| Binance.US | Buffer WS first, bridge REST `lastUpdateId` with `U/u`, then require continuity |
+| Common | Required fields, positive price, valid quantity, sorted snapshot sides, freshness, and non-crossed top of book |
+| Binance.US | Bridge snapshot `lastUpdateId` with `U/u`, then require update continuity |
 | OKX | Require `prevSeqId` to match the preceding `seqId` |
-| Kraken | Apply updates and verify CRC32 over top 10 asks followed by top 10 bids |
+| Kraken | Verify CRC32 across the exchange-defined top ten ask and bid levels |
 
-## Current Implementation
+## Current Code
 
 ```text
 src/main/java/com/example/hft/datasource/deepbook/quality/
@@ -63,8 +34,4 @@ src/main/java/com/example/hft/datasource/deepbook/quality/
   DeepBookQualityValidatorSelfTest.java
 ```
 
-The deterministic tests inject Binance and OKX sequence gaps and a Kraken checksum mismatch. The latest live probe accepted all six configured sources.
-
-## Scope
-
-V20 proves and packages the validation rules. Continuous validation belongs inside each long-running venue order-book builder. That is an implementation expansion of this module, not a new pipeline.
+The deterministic tests inject Binance and OKX sequence gaps and a Kraken checksum mismatch.

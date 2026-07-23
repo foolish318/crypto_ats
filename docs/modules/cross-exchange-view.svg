@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="760" viewBox="0 0 1500 760" role="img" aria-labelledby="title desc">
+  <title id="title">Cross-Exchange Market View Module</title>
+  <desc id="desc">Compare independent venue books without hiding source quality or freshness.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M1 1 L11 6 L1 11 Z" fill="#475569"/></marker>
+    <marker id="failure-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M1 1 L11 6 L1 11 Z" fill="#be123c"/></marker>
+    <marker id="replay-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M1 1 L11 6 L1 11 Z" fill="#a21caf"/></marker>
+    <filter id="shadow" x="-15%" y="-15%" width="130%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/></filter>
+  </defs>
+  <rect width="1500" height="760" fill="#f8fafc"/>
+  <text x="55" y="58" font-family="Arial, sans-serif" font-size="32" font-weight="700" fill="#0f172a" text-anchor="start">Cross-Exchange Market View Module</text>
+  <text x="55" y="89" font-family="Arial, sans-serif" font-size="15" font-weight="400" fill="#475569" text-anchor="start">Compare independent venue books without hiding source quality or freshness.</text>
+  <rect x="40" y="130" width="1420" height="500" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+  <g filter="url(#shadow)">
+    <rect x="70" y="185" width="230" height="112" rx="7" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+  <text x="90" y="219" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#5b21b6" text-anchor="start">Binance.US Book</text>
+  <text x="90" y="247" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">BTCUSDT</text>
+  <text x="90" y="269" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">LIVE + receive time</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="70" y="345" width="230" height="112" rx="7" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+  <text x="90" y="379" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#5b21b6" text-anchor="start">OKX Book</text>
+  <text x="90" y="407" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">BTC-USDT</text>
+  <text x="90" y="429" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">LIVE + receive time</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="70" y="505" width="230" height="112" rx="7" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+  <text x="90" y="539" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#5b21b6" text-anchor="start">Kraken Book</text>
+  <text x="90" y="567" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">BTC/USD</text>
+  <text x="90" y="589" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">LIVE + receive time</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="430" y="265" width="250" height="112" rx="7" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+  <text x="450" y="299" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#92400e" text-anchor="start">SymbolMapper</text>
+  <text x="450" y="327" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">venue symbol to BTC-USDT</text>
+  <text x="450" y="349" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">tick/size metadata</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="780" y="265" width="250" height="112" rx="7" fill="#ffe4e6" stroke="#e11d48" stroke-width="2"/>
+  <text x="800" y="299" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#9f1239" text-anchor="start">Freshness Filter</text>
+  <text x="800" y="327" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">exclude stale/degraded books</text>
+  <text x="800" y="349" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">retain venue attribution</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="1130" y="265" width="260" height="112" rx="7" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+  <text x="1150" y="299" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#075985" text-anchor="start">CrossExchangeView</text>
+  <text x="1150" y="327" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">best bid/ask per venue</text>
+  <text x="1150" y="349" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">spread and depth comparison</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="1130" y="465" width="260" height="112" rx="7" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <text x="1150" y="499" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#166534" text-anchor="start">Strategy Snapshot</text>
+  <text x="1150" y="527" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">immutable comparison input</text>
+  <text x="1150" y="549" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">no raw-book mutation</text>
+  </g>
+  <path d="M300 241 H370 V321 H430" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M300 401 H430" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M300 561 H370 V321 H430" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M680 321 H780" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M1030 321 H1130" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M1260 377 V465" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <rect x="55" y="660" width="1390" height="58" rx="7" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="82" y="695" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#334155" text-anchor="start">Rule: a venue identity, quality state, and receive time remain attached to every comparison.</text>
+</svg>

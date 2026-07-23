@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="760" viewBox="0 0 1500 760" role="img" aria-labelledby="title desc">
+  <title id="title">Source and Connector Module</title>
+  <desc id="desc">Venue-specific connectivity behind stable Java contracts.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M1 1 L11 6 L1 11 Z" fill="#475569"/></marker>
+    <marker id="failure-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M1 1 L11 6 L1 11 Z" fill="#be123c"/></marker>
+    <marker id="replay-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M1 1 L11 6 L1 11 Z" fill="#a21caf"/></marker>
+    <filter id="shadow" x="-15%" y="-15%" width="130%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/></filter>
+  </defs>
+  <rect width="1500" height="760" fill="#f8fafc"/>
+  <text x="55" y="58" font-family="Arial, sans-serif" font-size="32" font-weight="700" fill="#0f172a" text-anchor="start">Source and Connector Module</text>
+  <text x="55" y="89" font-family="Arial, sans-serif" font-size="15" font-weight="400" fill="#475569" text-anchor="start">Venue-specific connectivity behind stable Java contracts.</text>
+  <rect x="40" y="130" width="1420" height="500" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+  <g filter="url(#shadow)">
+    <rect x="70" y="205" width="240" height="112" rx="7" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+  <text x="90" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#075985" text-anchor="start">Exchange Endpoint</text>
+  <text x="90" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">REST snapshot</text>
+  <text x="90" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">WebSocket stream</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="370" y="205" width="240" height="112" rx="7" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+  <text x="390" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#92400e" text-anchor="start">InstrumentProvider</text>
+  <text x="390" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">venue symbols</text>
+  <text x="390" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">canonical metadata</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="670" y="205" width="240" height="112" rx="7" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+  <text x="690" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#92400e" text-anchor="start">MarketDataConnector</text>
+  <text x="690" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">connect + subscribe</text>
+  <text x="690" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">status + health</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="970" y="205" width="240" height="112" rx="7" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+  <text x="990" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#92400e" text-anchor="start">MarketDataClient</text>
+  <text x="990" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">owns live session</text>
+  <text x="990" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">delivers raw messages</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="1170" y="430" width="240" height="112" rx="7" fill="#ffe4e6" stroke="#e11d48" stroke-width="2"/>
+  <text x="1190" y="464" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#9f1239" text-anchor="start">DataSourceHealth</text>
+  <text x="1190" y="492" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">CONNECTING / LIVE</text>
+  <text x="1190" y="514" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">DEGRADED / STOPPED</text>
+  </g>
+  <path d="M310 261 H370" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M610 261 H670" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M910 261 H970" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M1090 317 V486 H1170" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M1170 515 H940 V350 H790 V317" fill="none" stroke="#be123c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#failure-arrow)"/>
+  <text x="1055" y="370" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#be123c" text-anchor="middle">status feedback</text>
+  <rect x="55" y="660" width="1390" height="58" rx="7" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="82" y="695" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#334155" text-anchor="start">Rule: adding an exchange changes an adapter, not downstream market-data consumers.</text>
+</svg>
