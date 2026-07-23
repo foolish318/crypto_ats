@@ -127,3 +127,17 @@ V17 runtime boundary:
 ```text
 WebSocket raw producer -> RawDepthPayload queue -> raw recorder -> parser -> sequence gate -> local order book -> book event recorder
 ```
+## V19 Deep Book Source Catalog
+
+```text
+src/main/java/com/example/hft/datasource/deepbook/DeepBookSourceDefinition.java
+src/main/java/com/example/hft/datasource/deepbook/DeepBookSourceCatalog.java
+src/main/java/com/example/hft/app/DeepBookSourceDiscoveryMain.java
+scripts/deep-book-sources.sh
+```
+
+Purpose:
+
+```text
+Discover and validate public deep-book feeds across Binance.US, OKX, and Kraken before implementing exchange-specific local book builders.
+```

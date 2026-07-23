@@ -794,3 +794,46 @@ resyncAttempts
 resyncSuccesses
 resyncFailures
 ```
+## V19 Multi-Exchange Deep Book Sources
+
+V19 adds a deep-book datasource catalog and live validation app.
+
+New package:
+
+```text
+com.example.hft.datasource.deepbook
+  DeepBookSourceDefinition
+  DeepBookSourceCatalog
+```
+
+New runnable app:
+
+```text
+com.example.hft.app.DeepBookSourceDiscoveryMain
+```
+
+Current validated public sources:
+
+```text
+Binance.US:
+  REST /api/v3/depth?limit=5000 plus WebSocket depth@100ms.
+  This remains the local-book source used by V18.
+
+OKX:
+  Public WebSocket books channel.
+  400 depth levels, incremental order book, public access.
+  Faster tick-by-tick 400/50-level channels require login and VIP tier.
+
+Kraken:
+  Public WebSocket v2 book channel.
+  Supports 10/25/100/500/1000 depth levels.
+  Current catalog uses 1000 levels for BTC/USD and ETH/USD.
+```
+
+Boundary:
+
+```text
+V19 adds source discovery and validation.
+It does not yet normalize OKX/Kraken into maintained local books.
+The next step is exchange-specific book builders: OKX seqId/prevSeqId, Kraken checksum, and reconnect/resubscribe rules.
+```

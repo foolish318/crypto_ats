@@ -1258,3 +1258,54 @@ Interpretation:
 No reconnect/resync was needed during this 20-second clean live run.
 The deterministic self-test now covers gap -> snapshot reload -> bridged update -> LIVE quality.
 ```
+## V19 Runbook: Multi-Exchange Deep Book Sources
+
+Purpose:
+
+```text
+Add the second production hardening item: more real deep-book data sources, not just Binance.US.
+```
+
+Run live source validation:
+
+```bash
+./scripts/deep-book-sources.sh data
+```
+
+Current source catalog:
+
+```text
+Binance.US BTCUSDT  REST depth snapshot limit=5000 + WebSocket depth@100ms
+Binance.US ETHUSDT  REST depth snapshot limit=5000 + WebSocket depth@100ms
+OKX BTC-USDT        public WebSocket books, 400 levels
+OKX ETH-USDT        public WebSocket books, 400 levels
+Kraken BTC/USD      public WebSocket v2 book, 1000 levels
+Kraken ETH/USD      public WebSocket v2 book, 1000 levels
+```
+
+Latest live validation:
+
+```text
+sources=6 successes=6 failures=0
+Binance.US BTCUSDT snapshotBidLevels=1452 snapshotAskLevels=2653 updateBidLevels=2 updateAskLevels=1
+Binance.US ETHUSDT snapshotBidLevels=567 snapshotAskLevels=1643 updateBidLevels=14 updateAskLevels=12
+OKX BTC-USDT snapshotBidLevels=400 snapshotAskLevels=400 seqId=79099752011 prevSeqId=-1
+OKX ETH-USDT snapshotBidLevels=400 snapshotAskLevels=400 seqId=72393794762 prevSeqId=-1
+Kraken BTC/USD snapshotBidLevels=1000 snapshotAskLevels=1000 checksum=1408918792
+Kraken ETH/USD snapshotBidLevels=1000 snapshotAskLevels=1000 checksum=954289141
+```
+
+Interpretation:
+
+```text
+V19 proves the project can now discover and validate multiple public deep-book feeds.
+This is source onboarding only. It does not yet maintain OKX/Kraken local books with full sequence/checksum rules; that belongs to the next quality-hardening step.
+```
+## V19 Git Commands Used
+
+```bash
+git status --short
+git add .gitignore diagram.md docs/project-structure.md module.md runbook.md scripts/deep-book-sources.sh src/main/java/com/example/hft/app/DeepBookSourceDiscoveryMain.java src/main/java/com/example/hft/datasource/DataSourceModuleVersion.java src/main/java/com/example/hft/datasource/deepbook/DeepBookSourceCatalog.java src/main/java/com/example/hft/datasource/deepbook/DeepBookSourceDefinition.java
+git commit -m "Add multi-exchange deep book sources"
+git push origin main
+```

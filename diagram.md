@@ -1717,3 +1717,22 @@ flowchart LR
     Reconnect --> SnapshotAll["reload snapshots for all symbols"]
     SnapshotAll --> Continue
 ```
+## V19: Multi-Exchange Deep Book Source Catalog
+
+```mermaid
+flowchart LR
+    Catalog["DeepBookSourceCatalog"] --> Binance["Binance.US\nREST depth 5000 + WS depth@100ms"]
+    Catalog --> OKX["OKX\npublic books 400 levels"]
+    Catalog --> Kraken["Kraken\npublic book 1000 levels"]
+    Binance --> Validate["DeepBookSourceDiscoveryMain"]
+    OKX --> Validate
+    Kraken --> Validate
+    Validate --> Output["deep-book-sources-v19 JSONL\nsource health + level counts + sequence/checksum fields"]
+```
+
+Design note:
+
+```text
+The data-source layer now knows where to get deeper books from multiple exchanges.
+This is intentionally separate from the local book builder because each exchange has different sequencing and integrity rules.
+```
