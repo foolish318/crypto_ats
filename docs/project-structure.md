@@ -1,143 +1,148 @@
 # Project Structure
 
-This project is organized as a single Maven module with package-level boundaries. The goal is to keep the learning project simple while making the trading-system responsibilities explicit.
+This project remains one Maven module, with package-level boundaries that mirror a market-data trading system.
 
 ## Java Packages
 
 ```text
 com.example.hft.app
-  Runnable entry points. Scripts call these classes.
+  Runnable entry points called by scripts.
 
 com.example.hft.exchange
-  Exchange adapter interfaces, shared REST/WebSocket adapter base classes, XChange comparison client.
-
-com.example.hft.datasource
-  Unified market-data connector interface, subscriptions, health/status, and adapter wrappers.
-
-com.example.hft.datasource.transport
-  Transport metadata such as REST, WebSocket, FIX, third-party, replay, and raw inbound messages.
-
-com.example.hft.datasource.normalizer
-  Canonical events consumed by downstream book builders and strategies.
-
-com.example.hft.datasource.book
-  Sequencing and book-quality checks for normalized market-data events.
-
-com.example.hft.datasource.instrument
-  Instrument definitions, tick/lot metadata, and venue-symbol to canonical-symbol mapping.
-
-com.example.hft.datasource.engine
-  MarketDataEngine, cache, and event bus. This is the active cache-then-publish boundary before strategies.
-
-com.example.hft.datasource.replay
-  In-memory replay records and replay source skeleton for repeatable benchmarks.
+  Shared adapter contracts and exchange-specific REST/WebSocket clients.
 
 com.example.hft.exchange.binance
 com.example.hft.exchange.okx
 com.example.hft.exchange.kraken
-com.example.hft.exchange.coinbase
-  Exchange-specific public market-data adapters and parsers.
-  Coinbase is kept as an experimental adapter; active V12 validation uses Binance.US, OKX, and Kraken.
+  Venue-specific public market-data adapters and parsers.
+
+com.example.hft.datasource
+  Connector contracts, subscriptions, health/status, and module version.
+
+com.example.hft.datasource.transport
+  REST, WebSocket, FIX, third-party, replay, and raw-message metadata.
+
+com.example.hft.datasource.normalizer
+  Canonical events consumed by books and strategies.
+
+com.example.hft.datasource.book
+  Binance local-book sequencing, quality state, and update results.
+
+com.example.hft.datasource.deepbook
+  Multi-exchange deep-book source definitions and source catalog.
+
+com.example.hft.datasource.deepbook.quality
+  V20 common and venue-specific quality gates:
+  sequence continuity, freshness, ordering, crossed-book, and Kraken CRC32.
+
+com.example.hft.datasource.instrument
+  Instrument metadata and venue-to-canonical symbol mapping.
+
+com.example.hft.datasource.engine
+  Cache-then-publish engine, cache, and event bus.
+
+com.example.hft.datasource.replay
+  Recording and repeatable replay sources.
 
 com.example.hft.marketdata.model
-  Market-data domain objects: Quote, Price, depth updates, top-of-book snapshots, payload/envelope records.
-
-com.example.hft.marketdata.source
-  Synthetic and live quote sources.
+  Quotes, prices, depth updates, local books, and latency envelopes.
 
 com.example.hft.strategy
-  Validation and decision logic: quote processing, depth/top-N decision engines.
+  Quote/depth validation and trading-decision examples.
 
 com.example.hft.pipeline
-  Queue/ring-buffer processing implementations, latency stats, concurrent runners.
+  Blocking queue, JCTools, and Disruptor processing experiments.
 
 com.example.hft.benchmark
-  Benchmark result and per-worker/module timing helpers.
+  Benchmark result and per-stage timing helpers.
 ```
 
-## Runtime Flow
+## Current Deep-Book Flow
 
 ```text
-InstrumentProvider / SymbolMapper
-  -> MarketDataConnector / MarketDataClient
-  -> transport/raw message metadata
-  -> normalized market-data event
-  -> MarketDataEngine cache-then-publish boundary
-  -> book sequencing / quality gate
-  -> local order book or top-of-book view
-  -> strategy / decision engine
-  -> stats / benchmark output
+Binance.US REST snapshot + WebSocket diff depth
+OKX WebSocket books snapshot + updates
+Kraken WebSocket v2 book snapshot + updates
+  -> raw payload capture
+  -> exact decimal parsing
+  -> temporary venue-local book
+  -> common data-quality checks
+  -> venue sequence/checksum checks
+  -> quality accepted local book
+  -> future cross-exchange view and strategy
 ```
 
-Legacy examples still use this shorter path:
+Rejected data does not cross the quality boundary. A production connector will reconnect or reload its snapshot before publishing again.
+
+## Stable Scripts
 
 ```text
-Exchange adapter
-  -> market-data model
-  -> pipeline handoff
-  -> strategy / decision engine
-  -> stats / benchmark output
+scripts/run.sh                         basic Java demo
+scripts/test.sh                        deterministic self-tests
+scripts/benchmark.sh                   synthetic pipeline benchmark
+scripts/custom-ws-vs-baseline.sh       top-of-book multi-exchange comparison
+scripts/binance-depth-book.sh          Binance raw depth -> local book
+scripts/binance-depth-book-30m.sh      30-minute raw depth capture
+scripts/binance-depth-book-1h.sh       1-hour raw depth capture
+scripts/binance-depth-book-replay.sh   deterministic depth replay
+scripts/deep-book-sources.sh           V20 live quality validation
 ```
 
-For V12 multi-exchange validation:
-
-```text
-Binance.US WebSocket depth5@100ms
-OKX WebSocket books5
-Kraken WebSocket book
-  -> TopOfBookSnapshot
-  -> REST / XChange validation comparison
-```
-
-## Scripts
-
-Top-level scripts are stable runnable entry points. They are intentionally kept short and call Maven with one app class.
-
-```text
-scripts/run.sh                         basic demo
-scripts/test.sh                        self-tests
-scripts/benchmark.sh                   synthetic benchmark
-scripts/custom-ws-vs-baseline.sh       current multi-exchange WebSocket validation
-scripts/binance-depth-*.sh             Binance depth/live benchmark experiments
-scripts/xchange-rest.sh                XChange REST experiment
-```
-
-When adding new work, prefer adding a new app class under `com.example.hft.app` and a small script that calls it.
-## V17 Depth Book Files
+## V17 Raw Depth Book
 
 ```text
 src/main/java/com/example/hft/app/BinanceRawDepthOrderBookMain.java
-  Runnable V17 app for record and replay modes.
-
 src/main/java/com/example/hft/datasource/book/SequencedLocalOrderBook.java
-  Wraps LocalOrderBook with Binance U/u sequence validation and quality counters.
-
 src/main/java/com/example/hft/datasource/book/DepthUpdateApplyResult.java
-  Result enum for applied, stale, gap, crossed, and unknown-symbol updates.
-
-scripts/binance-depth-book.sh
-scripts/binance-depth-book-30m.sh
-scripts/binance-depth-book-1h.sh
-scripts/binance-depth-book-replay.sh
-  Stable entry points for live capture and local replay.
 ```
 
-V17 runtime boundary:
+Runtime:
 
 ```text
-WebSocket raw producer -> RawDepthPayload queue -> raw recorder -> parser -> sequence gate -> local order book -> book event recorder
+WebSocket raw producer
+  -> raw recorder
+  -> parser
+  -> Binance U/u sequence gate
+  -> local order book
+  -> book event recorder
 ```
-## V19 Deep Book Source Catalog
+
+## V18 Recovery
+
+The Binance raw-depth path reconnects after WebSocket errors and reloads a REST snapshot after a gap or crossed book.
+
+## V19 Source Catalog
 
 ```text
 src/main/java/com/example/hft/datasource/deepbook/DeepBookSourceDefinition.java
 src/main/java/com/example/hft/datasource/deepbook/DeepBookSourceCatalog.java
-src/main/java/com/example/hft/app/DeepBookSourceDiscoveryMain.java
-scripts/deep-book-sources.sh
 ```
 
-Purpose:
+The catalog contains public deep-book sources for Binance.US, OKX, and Kraken.
+
+## V20 Quality Gate
 
 ```text
-Discover and validate public deep-book feeds across Binance.US, OKX, and Kraken before implementing exchange-specific local book builders.
+src/main/java/com/example/hft/datasource/deepbook/quality/DeepBookQualityValidator.java
+  Dispatches common and venue-specific checks.
+
+src/main/java/com/example/hft/datasource/deepbook/quality/DeepBookQualityReport.java
+  Separates accepted/rejected quality from transport connection state.
+
+src/main/java/com/example/hft/datasource/deepbook/quality/KrakenBookChecksum.java
+  Calculates the official top-10 asks-then-bids CRC32.
+
+src/main/java/com/example/hft/datasource/deepbook/quality/DeepBookQualityValidatorSelfTest.java
+  Covers valid feeds and injected Binance/OKX/Kraken corruption.
+
+src/main/java/com/example/hft/app/DeepBookSourceDiscoveryMain.java
+  Captures consecutive live messages and writes V20 quality evidence.
+```
+
+Documentation:
+
+```text
+docs/data-quality-v20.md
+docs/data-source-architecture-v20.svg
+docs/data-quality-gate-v20.svg
 ```

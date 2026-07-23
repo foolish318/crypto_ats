@@ -19,3 +19,4 @@ target/
 /data/binance-book-summary-v18-*.json
 /data/binance-book-replay-summary-v18-*.json
 /data/deep-book-sources-v19-*.jsonl
+/data/deep-book-quality-v20-*.jsonl
