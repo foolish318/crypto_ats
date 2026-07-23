@@ -35,7 +35,7 @@ public final class FullPipelineBenchmarkMain {
         String runId = Instant.now().toString().replace(":", "").replace(".", "");
         Path outputPrefix = args.length > 2
                 ? Path.of(args[2])
-                : Path.of("data/full-pipeline-v24-" + runId);
+                : Path.of("data/full-pipeline-" + runId);
         ObjectMapper mapper = new ObjectMapper();
         List<RawEnvelope> records = RawJournalRecordReader.readAll(input, mapper);
         FullPipelineReplayBenchmark benchmark = new FullPipelineReplayBenchmark(

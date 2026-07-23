@@ -15,7 +15,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public final class LiveBookSession implements AutoCloseable {
     private static final Duration HTTP_TIMEOUT = Duration.ofSeconds(10);
-    private static final Duration DISPATCH_DRAIN_TIMEOUT = Duration.ofSeconds(10);
     private static final int MAX_BINANCE_BOOTSTRAP_MESSAGES = 50_000;
     private static final long MAX_BINANCE_BOOTSTRAP_BYTES = 64L * 1024L * 1024L;
 
@@ -25,7 +24,6 @@ public final class LiveBookSession implements AutoCloseable {
     private final SnapshotProvider snapshotProvider;
     private final AsyncRawRecorder recorder;
     private final LocalBookPublisher publisher;
-    private final PartitionedBookEventDispatcher dispatcher;
     private final long staleThresholdMillis;
     private final SessionHealth health = new SessionHealth();
     private final BookRecoveryPolicy recovery;
@@ -67,19 +65,6 @@ public final class LiveBookSession implements AutoCloseable {
             LocalBookPublisher publisher,
             Duration staleThreshold
     ) {
-        this(source, builder, httpClient, scheduler, recorder, publisher, staleThreshold, null);
-    }
-
-    public LiveBookSession(
-            DeepBookSourceDefinition source,
-            LocalOrderBookBuilder builder,
-            HttpClient httpClient,
-            ScheduledExecutorService scheduler,
-            AsyncRawRecorder recorder,
-            LocalBookPublisher publisher,
-            Duration staleThreshold,
-            PartitionedBookEventDispatcher dispatcher
-    ) {
         this(
                 source,
                 builder,
@@ -88,8 +73,7 @@ public final class LiveBookSession implements AutoCloseable {
                 scheduler,
                 recorder,
                 publisher,
-                staleThreshold,
-                dispatcher
+                staleThreshold
         );
     }
 
@@ -103,23 +87,6 @@ public final class LiveBookSession implements AutoCloseable {
             LocalBookPublisher publisher,
             Duration staleThreshold
     ) {
-        this(
-                source, builder, transport, snapshotProvider, scheduler,
-                recorder, publisher, staleThreshold, null
-        );
-    }
-
-    public LiveBookSession(
-            DeepBookSourceDefinition source,
-            LocalOrderBookBuilder builder,
-            VenueTransport transport,
-            SnapshotProvider snapshotProvider,
-            ScheduledExecutorService scheduler,
-            AsyncRawRecorder recorder,
-            LocalBookPublisher publisher,
-            Duration staleThreshold,
-            PartitionedBookEventDispatcher dispatcher
-    ) {
         if (staleThreshold.isNegative() || staleThreshold.isZero()) {
             throw new IllegalArgumentException("staleThreshold must be positive");
         }
@@ -129,7 +96,6 @@ public final class LiveBookSession implements AutoCloseable {
         this.snapshotProvider = snapshotProvider;
         this.recorder = recorder;
         this.publisher = publisher;
-        this.dispatcher = dispatcher;
         this.staleThresholdMillis = staleThreshold.toMillis();
         this.recovery = new RecoveryCoordinator(
                 scheduler,
@@ -186,9 +152,7 @@ public final class LiveBookSession implements AutoCloseable {
                     "new recovery generation"
             );
         }
-        if (dispatcher != null) {
-            dispatcher.resume(source.id());
-        }
+
         record(
                 RawRecordType.CONNECT,
                 nextGeneration,
@@ -305,29 +269,8 @@ public final class LiveBookSession implements AutoCloseable {
         );
         recorder.record(rawMessage);
         health.messageReceived(receivedEpochMillis);
-        if (dispatcher == null) {
-            processMessage(listenerGeneration, payload, receivedEpochMillis, receivedNanos);
-            return;
-        }
-        DispatchResult dispatchResult = dispatcher.submit(
-                source.id(),
-                () -> processMessage(
-                        listenerGeneration,
-                        payload,
-                        receivedEpochMillis,
-                        receivedNanos
-                ),
-                error -> requestRecovery(
-                        "processing task failed: " + rootMessage(error),
-                        listenerGeneration
-                )
-        );
-        if (dispatchResult == DispatchResult.FULL) {
-            recorder.markReplayUnsafe(rawMessage, "processing queue full");
-            rejected.incrementAndGet();
-            health.messageReceived(receivedEpochMillis);
-            requestRecovery("processing queue full", listenerGeneration);
-        }
+        processMessage(listenerGeneration, payload, receivedEpochMillis, receivedNanos);
+
     }
     private void processMessage(
             long listenerGeneration,
@@ -440,9 +383,7 @@ public final class LiveBookSession implements AutoCloseable {
                 return;
             }
             dataEnabled = false;
-            if (dispatcher != null) {
-                dispatcher.pause(source.id());
-            }
+
         }
         lastFailure = reason;
         pipeline.availability(listenerGeneration, BookAvailabilityState.RECOVERING, reason
@@ -521,18 +462,6 @@ public final class LiveBookSession implements AutoCloseable {
             }
             stopping = true;
         }
-        if (dispatcher != null) {
-            dispatcher.pause(source.id());
-            try {
-                if (!dispatcher.awaitSourceDrained(source.id(), DISPATCH_DRAIN_TIMEOUT)) {
-                    lastFailure = "processing queue did not drain before stop";
-                }
-            } catch (InterruptedException interrupted) {
-                Thread.currentThread().interrupt();
-                lastFailure = "interrupted while draining processing queue";
-            }
-        }
-
         LiveBookSessionFinalState captured;
         long stoppedGeneration;
         synchronized (lock) {

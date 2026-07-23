@@ -1,24 +1,7 @@
-# Strategy And Performance Baseline Module
+# Strategy And Benchmarks
 
-![Strategy and benchmark module](strategy-benchmark.svg)
+![Strategy and benchmarks](strategy-benchmark.svg)
 
-PNG fallback: [strategy-benchmark.png](strategy-benchmark.png)
+`DeepBookStrategyListener` consumes only accepted, current, fresh books. `CrossExchangeBookView` supplies immutable canonical NBBO snapshots without exposing mutable maps.
 
-Strategies consume only immutable LIVE accepted or consolidated snapshots. Availability events remove inactive generations immediately.
-
-## JMH Microbenchmarks
-
-`DeepBookJmhBenchmark` measures venue classification, Jackson JSON parsing, book mutation, snapshot creation, `LocalBookPublisher`, and cache/event publication. Defaults include three warmups, five measurements, one fork, sample-time and throughput modes, and GC allocation profiling.
-
-## Full Replay Benchmark
-
-`FullPipelineReplayBenchmark` uses the production-shaped path:
-
-```text
-ingress -> recorder offer -> protocol -> parse -> book mutation -> quality
--> snapshot -> engine -> cache -> core listeners -> async side output
-```
-
-It separately reports bootstrap and incremental latency, per-stage p50/p95/p99/p99.9/max, corrected end-to-end latency, throughput, allocation bytes/message, GC count/pause, recorder and listener lag/drop state, rejected messages, and final replay parity. JSON and Markdown artifacts are generated.
-
-The existing direct-versus-partitioned replay remains a capacity experiment. It must not be interpreted as the complete live pipeline.
+`DeepBookJmhBenchmark` measures classification, JSON parse, mutation, snapshot, publisher, and cache/event-bus stages. `FullPipelineReplayBenchmark` exercises the same major path as live processing and reports throughput, latency percentiles through p99.9, max, allocation, GC, queue/listener lag, drops, rejects, and replay parity.

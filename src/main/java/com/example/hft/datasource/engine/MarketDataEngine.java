@@ -21,12 +21,10 @@ public final class MarketDataEngine implements MarketDataSink {
 
     @Override
     public void onEvent(NormalizedMarketDataEvent event) {
-        if (event instanceof AcceptedLocalBookEvent accepted) {
-            publishAccepted(accepted);
-            return;
+        if (!(event instanceof AcceptedLocalBookEvent accepted)) {
+            throw new IllegalArgumentException("unsupported market-data event " + event.getClass());
         }
-        cache.update(event);
-        eventBus.publish(event);
+        publishAccepted(accepted);
     }
 
 

@@ -61,8 +61,8 @@ public final class MultiExchangeLocalBookMain {
         Files.createDirectories(outputDir);
 
         String runId = runId();
-        Path rawFile = outputDir.resolve("multi-exchange-raw-v24-" + runId + ".jsonl");
-        Path summaryFile = outputDir.resolve("multi-exchange-books-v24-" + runId + ".json");
+        Path rawFile = outputDir.resolve("market-data-raw-" + runId + ".jsonl");
+        Path summaryFile = outputDir.resolve("market-data-summary-" + runId + ".json");
         ObjectMapper mapper = new ObjectMapper();
         List<DeepBookSourceDefinition> sources = DeepBookSourceCatalog.defaultSources();
 

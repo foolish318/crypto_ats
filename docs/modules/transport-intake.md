@@ -1,11 +1,7 @@
-# Transport And Raw Intake Module
+# Transport And Intake
 
-![Transport and raw intake](transport-intake.svg)
+![Transport and intake](transport-intake.svg)
 
-PNG fallback: [transport-intake.png](transport-intake.png)
+`VenueTransport` and `SnapshotProvider` isolate JDK WebSocket and HTTP behavior behind injectable interfaces. Every callback carries a generation; callbacks from an older connection are ignored.
 
-V24 extracts `VenueTransport` and `SnapshotProvider` so WebSocket and HTTP behavior can be replaced with deterministic fakes. `JdkVenueTransport` and `JdkSnapshotProvider` keep the current live behavior.
-
-Protocol control is handled through `VenueProtocolStateMachine`; subscription ACK, heartbeat, ping/pong timeout, fragmented message assembly, and book mutation are separate responsibilities. `BookRecoveryPolicy` owns recovery scheduling/backoff, while `BookPipeline` owns ordered builder and publication calls.
-
-The source callback first offers a complete `RawEnvelope` to the bounded recorder, then processes the same envelope through the direct source-owned path. No database, network export, or unbounded task is allowed to block book mutation.
+`VenueProtocolStateMachine` handles subscription acknowledgements, venue errors, heartbeat, and pong timeout separately from book mutation. Complete and fragmented WebSocket text frames are assembled before classification. Raw lifecycle and payload records are offered to the bounded journal before book processing.

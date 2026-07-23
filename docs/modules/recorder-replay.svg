@@ -28,8 +28,6 @@
   <text x="640" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#86198f" text-anchor="start">Journal Segment</text>
   <text x="640" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">versioned metadata header</text>
   <text x="640" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">SHA-256 record frames</text>
-    <rect x="764" y="217" width="74" height="23" rx="4" fill="#ffffff" stroke="#a21caf" stroke-opacity="0.45"/>
-  <text x="801" y="233" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#86198f" text-anchor="middle">V24</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="895" y="205" width="230" height="112" rx="7" fill="#fae8ff" stroke="#a21caf" stroke-width="2"/>

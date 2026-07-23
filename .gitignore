@@ -6,32 +6,6 @@ target/
 *.class
 *.log
 
-
-# Generated live market-data captures
-/data/binance-raw-depth-v17-*.jsonl
-/data/binance-book-events-v17-*.jsonl
-/data/binance-depth-snapshots-v17-*.jsonl
-/data/binance-book-summary-v17-*.json
-/data/binance-book-replay-summary-v17-*.json
-/data/binance-raw-depth-v18-*.jsonl
-/data/binance-book-events-v18-*.jsonl
-/data/binance-depth-snapshots-v18-*.jsonl
-/data/binance-book-summary-v18-*.json
-/data/binance-book-replay-summary-v18-*.json
-/data/deep-book-sources-v19-*.jsonl
-/data/deep-book-quality-v20-*.jsonl
-/data/multi-exchange-raw-v21-*.jsonl
-/data/multi-exchange-books-v21-*.json
-/data/multi-exchange-raw-v22-*.jsonl
-/data/multi-exchange-books-v22-*.json
-/data/deep-book-latency-v22-*.json
-/data/multi-exchange-raw-v23-*.jsonl
-/data/multi-exchange-books-v23-*.json
-/data/deep-book-latency-v23-*.json
-/data/multi-exchange-raw-v24-*.jsonl
-/data/multi-exchange-raw-v24-*.jsonl.index
-/data/multi-exchange-raw-v24-*.segment-*.jsonl
-/data/multi-exchange-books-v24-*.json
-/data/deep-book-latency-v24-*.json
-/data/full-pipeline-v24-*
-/data/jmh-deep-book-v24.json
+# Generated runtime and benchmark artifacts
+/data/*
+!/data/.gitkeep

@@ -16,16 +16,12 @@
   <text x="90" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#075985" text-anchor="start">VenueTransport</text>
   <text x="90" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">JDK WebSocket live adapter</text>
   <text x="90" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">deterministic fake in tests</text>
-    <rect x="214" y="217" width="74" height="23" rx="4" fill="#ffffff" stroke="#0284c7" stroke-opacity="0.45"/>
-  <text x="251" y="233" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#075985" text-anchor="middle">V24</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="345" y="205" width="230" height="112" rx="7" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
   <text x="365" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#075985" text-anchor="start">SnapshotProvider</text>
   <text x="365" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">JDK HTTP snapshot adapter</text>
   <text x="365" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">delayed/failing fake in tests</text>
-    <rect x="489" y="217" width="74" height="23" rx="4" fill="#ffffff" stroke="#0284c7" stroke-opacity="0.45"/>
-  <text x="526" y="233" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#075985" text-anchor="middle">V24</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="620" y="205" width="230" height="112" rx="7" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
@@ -44,8 +40,6 @@
   <text x="1210" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#86198f" text-anchor="start">Segmented Journal</text>
   <text x="1210" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">header + checksum + index</text>
   <text x="1210" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">rotation + fsync policy</text>
-    <rect x="1334" y="217" width="74" height="23" rx="4" fill="#ffffff" stroke="#a21caf" stroke-opacity="0.45"/>
-  <text x="1371" y="233" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#86198f" text-anchor="middle">V24</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="620" y="430" width="250" height="112" rx="7" fill="#ffe4e6" stroke="#e11d48" stroke-width="2"/>

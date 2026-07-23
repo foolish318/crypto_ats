@@ -326,12 +326,21 @@ public final class FullPipelineReplayBenchmark {
     }
 
     private static boolean sameBooks(RawReplayResult expected, RawReplayResult actual) {
-        try {
-            DeepBookReplayBenchmark.requireSameBooks(expected, actual);
-            return true;
-        } catch (IllegalStateException mismatch) {
+        if (!expected.finalBooks().keySet().equals(actual.finalBooks().keySet())) {
             return false;
         }
+        for (Map.Entry<String, LocalBookSnapshot> entry : expected.finalBooks().entrySet()) {
+            LocalBookSnapshot actualBook = actual.finalBooks().get(entry.getKey());
+            LocalBookSnapshot expectedBook = entry.getValue();
+            if (actualBook == null
+                    || expectedBook.sequence() != actualBook.sequence()
+                    || expectedBook.quality() != actualBook.quality()
+                    || !expectedBook.bids().equals(actualBook.bids())
+                    || !expectedBook.asks().equals(actualBook.asks())) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static long allocatedBytes() {

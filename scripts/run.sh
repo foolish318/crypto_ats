@@ -3,4 +3,4 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-mvn -q compile exec:java
+./scripts/multi-exchange-local-books.sh "${1:-15}" "${2:-data}" "${3:-10}"

@@ -46,8 +46,6 @@
   <text x="1150" y="299" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#075985" text-anchor="start">Consolidated Snapshot</text>
   <text x="1150" y="327" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">best bid/ask venue + spread</text>
   <text x="1150" y="349" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">locked/crossed + venue count</text>
-    <rect x="1304" y="277" width="74" height="23" rx="4" fill="#ffffff" stroke="#0284c7" stroke-opacity="0.45"/>
-  <text x="1341" y="293" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#075985" text-anchor="middle">V24</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="1130" y="465" width="260" height="112" rx="7" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>

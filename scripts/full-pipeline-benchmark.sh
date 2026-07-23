@@ -9,12 +9,11 @@ output_prefix="${3:-}"
 
 if [[ -z "$raw_file" ]]; then
   raw_file="$(find data -maxdepth 1 -type f \
-    \( -name 'multi-exchange-raw-v24-*.jsonl' \
-       -o -name 'multi-exchange-raw-v23-*.jsonl' \
-       -o -name 'multi-exchange-raw-v22-*.jsonl' \) \
+    -name 'market-data-raw-*.jsonl' \
     ! -name '*.segment-*.jsonl' \
     -printf '%T@ %p\n' | sort -nr | head -1 | cut -d' ' -f2-)"
 fi
+
 if [[ -z "$raw_file" || ! -f "$raw_file" ]]; then
   echo "No raw replay file found" >&2
   exit 1
@@ -25,7 +24,7 @@ if [[ -n "$output_prefix" ]]; then
   args="$args $output_prefix"
 fi
 
-mvn -q \
+./mvnw -q \
   -Dexec.mainClass=com.example.hft.app.FullPipelineBenchmarkMain \
   -Dexec.args="$args" \
   compile exec:java

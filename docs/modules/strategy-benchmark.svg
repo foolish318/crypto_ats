@@ -40,8 +40,6 @@
   <text x="1190" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#334155" text-anchor="start">Full Pipeline Replay</text>
   <text x="1190" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">p50 to p99.9 + max</text>
   <text x="1190" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">allocation + GC + parity</text>
-    <rect x="1314" y="217" width="74" height="23" rx="4" fill="#ffffff" stroke="#64748b" stroke-opacity="0.45"/>
-  <text x="1351" y="233" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#334155" text-anchor="middle">V24</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="620" y="430" width="230" height="112" rx="7" fill="#f8fafc" stroke="#94a3b8" stroke-width="2" stroke-dasharray="8 6"/>

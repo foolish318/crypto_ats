@@ -28,8 +28,6 @@
   <text x="390" y="299" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#115e59" text-anchor="start">MarketDataEngine</text>
   <text x="390" y="327" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">accepted + health + error</text>
   <text x="390" y="349" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">single domain boundary</text>
-    <rect x="524" y="277" width="74" height="23" rx="4" fill="#ffffff" stroke="#0f766e" stroke-opacity="0.45"/>
-  <text x="561" y="293" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#115e59" text-anchor="middle">V24</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="680" y="185" width="240" height="112" rx="7" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>

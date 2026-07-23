@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1230" viewBox="0 0 1900 1230" role="img" aria-labelledby="title desc">
   <title id="title">Reference-inspired crypto ATS market-data architecture</title>
-  <desc id="desc">A V24 direct single-writer deep-book pipeline with availability invalidation, canonical consolidation, bounded listeners, and journal replay.</desc>
+  <desc id="desc">The current direct single-writer deep-book pipeline with availability invalidation, canonical consolidation, bounded listeners, and journal replay.</desc>
   <defs>
     <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M1 1 L11 6 L1 11 Z" fill="#475569"/></marker>
     <marker id="failure-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M1 1 L11 6 L1 11 Z" fill="#be123c"/></marker>
@@ -71,8 +71,6 @@
   <text x="385" y="389" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#92400e" text-anchor="start">InstrumentProvider</text>
   <text x="385" y="417" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">public status + tick / lot rules</text>
   <text x="385" y="439" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">fail-closed canonical mapping</text>
-    <rect x="519" y="367" width="74" height="23" rx="4" fill="#ffffff" stroke="#d97706" stroke-opacity="0.45"/>
-  <text x="556" y="383" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#92400e" text-anchor="middle">V22</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="365" y="520" width="240" height="112" rx="7" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
@@ -91,8 +89,6 @@
   <text x="695" y="389" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#334155" text-anchor="start">Venue Protocol</text>
   <text x="695" y="417" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">subscribe ACK + errors</text>
   <text x="695" y="439" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">ping / pong + connection age</text>
-    <rect x="829" y="367" width="74" height="23" rx="4" fill="#ffffff" stroke="#64748b" stroke-opacity="0.45"/>
-  <text x="866" y="383" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#334155" text-anchor="middle">V22</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="675" y="520" width="240" height="112" rx="7" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
@@ -105,16 +101,12 @@
   <text x="695" y="719" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#334155" text-anchor="start">Source Book Pipeline</text>
   <text x="695" y="747" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">inline protocol + book apply</text>
   <text x="695" y="769" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">single writer; no worker queue</text>
-    <rect x="829" y="697" width="74" height="23" rx="4" fill="#ffffff" stroke="#64748b" stroke-opacity="0.45"/>
-  <text x="866" y="713" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#334155" text-anchor="middle">V24</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="985" y="355" width="240" height="112" rx="7" fill="#ffe4e6" stroke="#e11d48" stroke-width="2"/>
   <text x="1005" y="389" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#9f1239" text-anchor="start">Parse + Quality Gate</text>
   <text x="1005" y="417" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">schema, exact values, freshness</text>
   <text x="1005" y="439" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">sequence, checksum, crossed book</text>
-    <rect x="1139" y="367" width="74" height="23" rx="4" fill="#ffffff" stroke="#e11d48" stroke-opacity="0.45"/>
-  <text x="1176" y="383" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#9f1239" text-anchor="middle">V22</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="985" y="520" width="240" height="112" rx="7" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
@@ -133,16 +125,12 @@
   <text x="1005" y="884" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#5b21b6" text-anchor="start">Venue-Local Books</text>
   <text x="1005" y="912" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">six independent deep books</text>
   <text x="1005" y="934" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">publishable only when LIVE</text>
-    <rect x="1139" y="862" width="74" height="23" rx="4" fill="#ffffff" stroke="#7c3aed" stroke-opacity="0.45"/>
-  <text x="1176" y="878" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#5b21b6" text-anchor="middle">V22</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="1295" y="355" width="240" height="112" rx="7" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
   <text x="1315" y="389" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#115e59" text-anchor="start">AcceptedLocalBookEvent</text>
   <text x="1315" y="417" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">canonical id + generation</text>
   <text x="1315" y="439" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">quality-approved immutable depth</text>
-    <rect x="1449" y="367" width="74" height="23" rx="4" fill="#ffffff" stroke="#0f766e" stroke-opacity="0.45"/>
-  <text x="1486" y="383" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#115e59" text-anchor="middle">V24</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="1295" y="520" width="240" height="112" rx="7" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
@@ -155,24 +143,18 @@
   <text x="1315" y="719" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#115e59" text-anchor="start">Fenced Cache + EventBus</text>
   <text x="1315" y="747" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">tombstone on unavailable state</text>
   <text x="1315" y="769" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">inline core + bounded side output</text>
-    <rect x="1449" y="697" width="74" height="23" rx="4" fill="#ffffff" stroke="#0f766e" stroke-opacity="0.45"/>
-  <text x="1486" y="713" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#115e59" text-anchor="middle">V24</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="1295" y="850" width="240" height="112" rx="7" fill="#fae8ff" stroke="#a21caf" stroke-width="2"/>
   <text x="1315" y="884" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#86198f" text-anchor="start">Segmented Raw Journal</text>
   <text x="1315" y="912" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">headers + checksums + index</text>
   <text x="1315" y="934" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">drop makes replay unsafe</text>
-    <rect x="1449" y="862" width="74" height="23" rx="4" fill="#ffffff" stroke="#a21caf" stroke-opacity="0.45"/>
-  <text x="1486" y="878" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#86198f" text-anchor="middle">V24</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="1605" y="355" width="240" height="112" rx="7" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
   <text x="1625" y="389" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#075985" text-anchor="start">Consolidated Book</text>
   <text x="1625" y="417" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">canonical NBBO + venue depth</text>
   <text x="1625" y="439" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">freshness + watermark/coherence</text>
-    <rect x="1759" y="367" width="74" height="23" rx="4" fill="#ffffff" stroke="#0284c7" stroke-opacity="0.45"/>
-  <text x="1796" y="383" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#075985" text-anchor="middle">V24</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="1605" y="520" width="240" height="112" rx="7" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>

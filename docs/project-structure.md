@@ -1,49 +1,28 @@
 # Project Structure
 
-The repository remains one Maven module. Package boundaries are used before adding process or network boundaries.
-
 ```text
-com.example.hft.app
-  Runnable live, replay, and benchmark entry points.
-
-com.example.hft.datasource.deepbook
-  Binance.US, OKX, and Kraken depth-source definitions.
-
-com.example.hft.datasource.deepbook.quality
-  Venue/common validation and Kraken checksum.
-
-com.example.hft.datasource.deepbook.runtime
-  VenueTransport, SnapshotProvider, protocol state machine, LiveBookSession,
-  BookPipeline, source-owned builders, health/recovery, availability events,
-  consolidated books, segmented journal/replay, and full-pipeline benchmark.
-
-com.example.hft.datasource.instrument
-  Venue metadata and canonical instrument mapping.
-
-com.example.hft.datasource.engine
-  Generation-fenced cache, cache-first engine, inline and bounded async event bus.
-
-com.example.hft.exchange.*
-  Legacy/public REST and WebSocket adapter experiments.
-
-com.example.hft.marketdata.model / strategy / pipeline / benchmark
-  Earlier learning models, decision examples, queue experiments, and metrics.
+hft_java/
+|-- pom.xml                     Java 17 build and pinned dependencies
+|-- mvnw, mvnw.cmd, .mvn/      Maven 3.9.12 wrapper
+|-- scripts/                    Current run, test, benchmark, and diagram commands
+|-- src/main/java/com/example/hft/
+|   |-- app/                    Live and replay-benchmark entry points
+|   `-- datasource/
+|       |-- deepbook/           Source catalog
+|       |   `-- runtime/        Protocol, books, recovery, journal, replay, benchmarks
+|       |-- engine/             Cache and event bus
+|       |-- instrument/         Metadata and canonical instruments
+|       |-- normalizer/         Engine event contract
+|       |-- book/               Book quality contract
+|       `-- transport/          Transport type contract
+|-- src/test/java/              JUnit 5 deterministic tests
+|-- docs/                       One architecture plus per-module detail
+`-- data/                       Ignored runtime artifacts; only .gitkeep is tracked
 ```
 
-## V24 Runtime Ownership
+There are two supported application entry points:
 
-```text
-VenueTransport + SnapshotProvider
-  -> LiveBookSession (transport/lifecycle orchestration)
-  -> VenueProtocolStateMachine (ACK/heartbeat/pong/control)
-  -> BookPipeline (one sequential writer)
-  -> LocalOrderBookBuilder (venue sequence/checksum mutation)
-  -> LocalBookPublisher (quality/state/freshness gate)
-  -> MarketDataEngine
-      -> MarketDataCache (generation tombstone)
-      -> MarketDataEventBus
-          -> inline consolidated view + strategy
-          -> bounded async recorder/side output
-```
+- `MultiExchangeLocalBookMain`: live six-source capture, local books, engine, journal, summary, and replay-parity check
+- `FullPipelineBenchmarkMain`: current-journal end-to-end replay benchmark
 
-`BookRecoveryPolicy`, `RecoveryCoordinator`, `SessionHealth`, and `StaleWatchdog` separate recovery scheduling and health from transport callbacks. `RawJournalWriter` and `RawReplayProcessor` own segmented persistence and deterministic replay. Legacy benchmarks and scripts remain available.
+Old benchmark variants and superseded entry points are intentionally excluded from the current tree. Historical source remains available through Git history.

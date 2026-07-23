@@ -4,48 +4,20 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.example</groupId>
-    <artifactId>hft-java</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
-    <name>hft-java</name>
+    <artifactId>crypto-ats-market-data</artifactId>
+    <version>1.0.0</version>
+    <name>crypto-ats-market-data</name>
 
     <properties>
         <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <exec.mainClass>com.example.hft.app.Main</exec.mainClass>
-        <jctools.version>4.0.3</jctools.version>
-        <disruptor.version>4.0.0</disruptor.version>
-        <xchange.version>5.2.4</xchange.version>
+        <exec.mainClass>com.example.hft.app.MultiExchangeLocalBookMain</exec.mainClass>
         <jackson.version>2.17.2</jackson.version>
         <junit.version>5.11.4</junit.version>
         <jmh.version>1.37</jmh.version>
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>org.jctools</groupId>
-            <artifactId>jctools-core</artifactId>
-            <version>${jctools.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.lmax</groupId>
-            <artifactId>disruptor</artifactId>
-            <version>${disruptor.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.knowm.xchange</groupId>
-            <artifactId>xchange-binance</artifactId>
-            <version>${xchange.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.knowm.xchange</groupId>
-            <artifactId>xchange-coinbasepro</artifactId>
-            <version>${xchange.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.knowm.xchange</groupId>
-            <artifactId>xchange-kraken</artifactId>
-            <version>${xchange.version}</version>
-        </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>

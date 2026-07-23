@@ -3,26 +3,15 @@ package com.example.hft.datasource.engine;
 import com.example.hft.datasource.deepbook.runtime.AcceptedLocalBookEvent;
 import com.example.hft.datasource.deepbook.runtime.BookAvailabilityEvent;
 import com.example.hft.datasource.deepbook.runtime.BookAvailabilityState;
-import com.example.hft.datasource.normalizer.NormalizedMarketDataEvent;
-import com.example.hft.datasource.normalizer.TopOfBookEvent;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 
 public final class MarketDataCache {
-    private final Map<String, TopOfBookEvent> topOfBookByVenueSymbol = new ConcurrentHashMap<>();
     private final Map<String, AcceptedLocalBookEvent> deepBookByVenueSymbol =
             new ConcurrentHashMap<>();
     private final Map<String, SourceFence> sourceFences = new ConcurrentHashMap<>();
-
-    public void update(NormalizedMarketDataEvent event) {
-        if (event instanceof TopOfBookEvent topOfBook) {
-            topOfBookByVenueSymbol.put(key(topOfBook.exchange(), topOfBook.symbol()), topOfBook);
-        } else if (event instanceof AcceptedLocalBookEvent deepBook) {
-            updateAccepted(deepBook);
-        }
-    }
 
     public boolean updateAccepted(AcceptedLocalBookEvent event) {
         SourceFence fence = sourceFences.computeIfAbsent(event.source(), ignored -> new SourceFence());
@@ -75,10 +64,6 @@ public final class MarketDataCache {
         }
     }
 
-    public Optional<TopOfBookEvent> topOfBook(String exchange, String symbol) {
-        return Optional.ofNullable(topOfBookByVenueSymbol.get(key(exchange, symbol)));
-    }
-
     public Optional<AcceptedLocalBookEvent> deepBook(String exchange, String symbol) {
         AcceptedLocalBookEvent event = deepBookByVenueSymbol.get(key(exchange, symbol));
         if (event == null) {
@@ -126,9 +111,6 @@ public final class MarketDataCache {
         }
     }
 
-    public int topOfBookCount() {
-        return topOfBookByVenueSymbol.size();
-    }
 
     public int deepBookCount() {
         return deepBookByVenueSymbol.size();
