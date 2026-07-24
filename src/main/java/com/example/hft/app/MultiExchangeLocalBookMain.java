@@ -21,6 +21,21 @@ import com.example.hft.datasource.engine.MarketDataEngine;
 import com.example.hft.datasource.engine.MarketDataEventBus;
 import com.example.hft.datasource.instrument.Instrument;
 import com.example.hft.datasource.instrument.VenueInstrumentMetadataLoader;
+import com.example.hft.datasource.instrument.SymbolMapper;
+import com.example.hft.marketdata.api.DefaultStrategyMarketDataPort;
+import com.example.hft.marketdata.recording.AsyncNormalizedEventRecorder;
+import com.example.hft.marketdata.recording.NormalizedRecorderSummary;
+import com.example.hft.marketdata.recording.NormalizedEventReplay;
+import com.example.hft.marketdata.recording.NormalizedReplayResult;
+import com.example.hft.marketdata.model.InstrumentId;
+import com.example.hft.marketdata.model.Venue;
+import com.example.hft.marketdata.api.OrderBookView;
+import com.example.hft.marketdata.trade.LivePublicTradeSession;
+import com.example.hft.marketdata.trade.PublicTradeNormalizerFactory;
+import com.example.hft.marketdata.trade.PublicTradePipeline;
+import com.example.hft.marketdata.trade.PublicTradeSessionSnapshot;
+import com.example.hft.marketdata.trade.PublicTradeSourceCatalog;
+import com.example.hft.marketdata.trade.PublicTradeSourceDefinition;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -62,6 +77,7 @@ public final class MultiExchangeLocalBookMain {
 
         String runId = runId();
         Path rawFile = outputDir.resolve("market-data-raw-" + runId + ".jsonl");
+        Path normalizedFile = outputDir.resolve("market-data-normalized-" + runId + ".jsonl");
         Path summaryFile = outputDir.resolve("market-data-summary-" + runId + ".json");
         ObjectMapper mapper = new ObjectMapper();
         List<DeepBookSourceDefinition> sources = DeepBookSourceCatalog.defaultSources();
@@ -69,10 +85,15 @@ public final class MultiExchangeLocalBookMain {
         MarketDataCache cache = new MarketDataCache();
         MarketDataEventBus eventBus = new MarketDataEventBus();
         MarketDataEngine engine = new MarketDataEngine(cache, eventBus);
+        AsyncNormalizedEventRecorder normalizedRecorder =
+                new AsyncNormalizedEventRecorder(normalizedFile, mapper);
+        DefaultStrategyMarketDataPort strategyPort = new DefaultStrategyMarketDataPort(
+                System::currentTimeMillis, normalizedRecorder);
         AcceptedBookEventRecorder acceptedRecorder = new AcceptedBookEventRecorder();
         CrossExchangeBookView crossExchangeView = new CrossExchangeBookView();
         DeepBookStrategyListener strategy = new DeepBookStrategyListener();
         eventBus.subscribeAsync("accepted-recorder", acceptedRecorder, 8_192);
+        eventBus.subscribe(strategyPort);
         eventBus.subscribe(crossExchangeView);
         eventBus.subscribe(strategy);
 
@@ -82,6 +103,8 @@ public final class MultiExchangeLocalBookMain {
                 .build();
         Map<String, Instrument> instruments =
                 new VenueInstrumentMetadataLoader(httpClient, mapper).loadAll(sources);
+        SymbolMapper symbolMapper = new SymbolMapper(List.copyOf(instruments.values()));
+        List<PublicTradeSourceDefinition> tradeSources = PublicTradeSourceCatalog.defaultSources();
 
         Duration staleThreshold = Duration.ofSeconds(staleThresholdSeconds);
         LocalBookPublisher publisher = new LocalBookPublisher(
@@ -91,11 +114,31 @@ public final class MultiExchangeLocalBookMain {
         );
         AsyncRawRecorder rawRecorder = new AsyncRawRecorder(rawFile, mapper);
         List<LiveBookSession> sessions = new ArrayList<>();
+        List<LivePublicTradeSession> tradeSessions = new ArrayList<>();
         List<LiveBookSessionSnapshot> runEndSessions = List.of();
         Map<String, LocalBookSnapshot> runEndBooks = Map.of();
         long startedNanos = System.nanoTime();
 
         try {
+            for (PublicTradeSourceDefinition tradeSource : tradeSources) {
+                Instrument instrument = symbolMapper.byExchangeSymbol(
+                                tradeSource.venue().name(), tradeSource.venueSymbol())
+                        .orElseThrow(() -> new IllegalStateException(
+                                "missing trade instrument metadata for " + tradeSource.id()));
+                LivePublicTradeSession tradeSession = new LivePublicTradeSession(
+                        tradeSource,
+                        new PublicTradePipeline(
+                                PublicTradeNormalizerFactory.create(tradeSource, instrument, mapper),
+                                engine
+                        ),
+                        httpClient,
+                        scheduler,
+                        rawRecorder,
+                        mapper
+                );
+                tradeSessions.add(tradeSession);
+                tradeSession.start();
+            }
             for (DeepBookSourceDefinition source : sources) {
                 LiveBookSession session = new LiveBookSession(
                         source,
@@ -121,15 +164,24 @@ public final class MultiExchangeLocalBookMain {
             runEndSessions = List.copyOf(capturedSessions);
             runEndBooks = Map.copyOf(snapshots);
         } finally {
+            tradeSessions.forEach(LivePublicTradeSession::close);
             sessions.forEach(LiveBookSession::close);
             eventBus.close();
             rawRecorder.awaitDrained(10_000L);
             rawRecorder.close();
+            normalizedRecorder.awaitDrained(10_000L);
+            normalizedRecorder.close();
             scheduler.shutdownNow();
         }
 
         long elapsedNanos = System.nanoTime() - startedNanos;
         RawRecorderSummary recorderSummary = rawRecorder.summary();
+        NormalizedRecorderSummary normalizedSummary = normalizedRecorder.summary();
+        List<PublicTradeSessionSnapshot> tradeSnapshots = tradeSessions.stream()
+                .map(LivePublicTradeSession::snapshot)
+                .toList();
+        NormalizedReplayCheck normalizedReplayCheck = verifyNormalizedReplay(
+                normalizedFile, mapper, strategyPort, instruments);
         ReplayCheck replayCheck = verifyReplay(
                 recorderSummary,
                 rawFile,
@@ -151,6 +203,11 @@ public final class MultiExchangeLocalBookMain {
                 staleThresholdSeconds,
                 elapsedNanos,
                 rawFile,
+                normalizedFile,
+                normalizedSummary,
+                normalizedReplayCheck,
+                strategyPort,
+                tradeSnapshots,
                 cache,
                 eventBus,
                 acceptedRecorder,
@@ -175,8 +232,59 @@ public final class MultiExchangeLocalBookMain {
                 strategy,
                 instruments
         );
+        printStrategyPortSummary(
+                strategyPort,
+                tradeSnapshots,
+                normalizedSummary,
+                normalizedReplayCheck,
+                normalizedFile
+        );
     }
 
+
+    private static NormalizedReplayCheck verifyNormalizedReplay(
+            Path normalizedFile,
+            ObjectMapper mapper,
+            DefaultStrategyMarketDataPort live,
+            Map<String, Instrument> instruments
+    ) {
+        try {
+            DefaultStrategyMarketDataPort replayed = new DefaultStrategyMarketDataPort();
+            NormalizedReplayResult result = new NormalizedEventReplay(mapper)
+                    .replay(normalizedFile, replayed);
+            for (Instrument instrument : instruments.values()) {
+                InstrumentId id = new InstrumentId(instrument.canonicalSymbol());
+                Venue venue = Venue.fromExchange(instrument.exchange());
+                OrderBookView liveBook = live.getBook(venue, id).orElse(null);
+                OrderBookView replayBook = replayed.getBook(venue, id).orElse(null);
+                if (!sameView(liveBook, replayBook)
+                        || !live.latestTrade(venue, id).equals(replayed.latestTrade(venue, id))) {
+                    return new NormalizedReplayCheck(
+                            false, result.records(),
+                            "strategy state mismatch for " + venue + " " + id
+                    );
+                }
+            }
+            return new NormalizedReplayCheck(true, result.records(), "");
+        } catch (Exception error) {
+            return new NormalizedReplayCheck(
+                    false, 0L,
+                    error.getClass().getSimpleName() + ": " + error.getMessage()
+            );
+        }
+    }
+
+    private static boolean sameView(OrderBookView left, OrderBookView right) {
+        if (left == null || right == null) {
+            return left == right;
+        }
+        return left.bookVersion() == right.bookVersion()
+                && left.localSequence() == right.localSequence()
+                && left.streamEpoch() == right.streamEpoch()
+                && left.health() == right.health()
+                && left.topBids(10).equals(right.topBids(10))
+                && left.topAsks(10).equals(right.topAsks(10));
+    }
     private static ReplayCheck verifyReplay(
             RawRecorderSummary recorderSummary,
             Path rawFile,
@@ -222,6 +330,7 @@ public final class MultiExchangeLocalBookMain {
         return replayed != null
                 && live.sequence() == replayed.sequence()
                 && live.quality() == replayed.quality()
+                && live.bookVersion() == replayed.bookVersion()
                 && live.bids().equals(replayed.bids())
                 && live.asks().equals(replayed.asks());
     }
@@ -237,6 +346,11 @@ public final class MultiExchangeLocalBookMain {
             int staleThresholdSeconds,
             long elapsedNanos,
             Path rawFile,
+            Path normalizedFile,
+            NormalizedRecorderSummary normalizedRecorder,
+            NormalizedReplayCheck normalizedReplay,
+            DefaultStrategyMarketDataPort strategyPort,
+            List<PublicTradeSessionSnapshot> tradeSessions,
             MarketDataCache cache,
             MarketDataEventBus eventBus,
             AcceptedBookEventRecorder acceptedRecorder,
@@ -250,6 +364,26 @@ public final class MultiExchangeLocalBookMain {
         root.put("staleThresholdSeconds", staleThresholdSeconds);
         root.put("elapsedMillis", TimeUnit.NANOSECONDS.toMillis(elapsedNanos));
         root.put("rawFile", rawFile.toString());
+        root.put("normalizedFile", normalizedFile.toString());
+        root.put("normalizedRecords", normalizedRecorder.recorded());
+        root.put("normalizedDroppedRecords", normalizedRecorder.dropped());
+        root.put("normalizedReplaySafe", normalizedRecorder.replaySafe());
+        root.put("normalizedReplayParity", normalizedReplay.parity());
+        root.put("normalizedReplayRecords", normalizedReplay.records());
+        root.put("normalizedReplayFailure", normalizedReplay.failure());
+        root.put("strategyPortBookUpdates", strategyPort.bookUpdates());
+        root.put("strategyPortTradeUpdates", strategyPort.tradeUpdates());
+        root.put("strategyPortStatusUpdates", strategyPort.statusUpdates());
+        root.put("strategyPortListenerErrors", strategyPort.listenerErrors());
+        root.put("publicTradeSources", tradeSessions.size());
+        root.put("publicTradesPublished", tradeSessions.stream()
+                .mapToLong(PublicTradeSessionSnapshot::publishedTrades).sum());
+        root.put("publicTradeDuplicates", tradeSessions.stream()
+                .mapToLong(PublicTradeSessionSnapshot::duplicateTrades).sum());
+        root.put("publicTradeOutOfOrder", tradeSessions.stream()
+                .mapToLong(PublicTradeSessionSnapshot::outOfOrderTrades).sum());
+        root.put("publicTradeInvalidMessages", tradeSessions.stream()
+                .mapToLong(PublicTradeSessionSnapshot::invalidMessages).sum());
         root.put("publishableBooksAtRunEnd",
                 runEndSessions.stream().filter(item -> item.health().publishable(
                         TimeUnit.SECONDS.toMillis(staleThresholdSeconds))).count());
@@ -440,6 +574,36 @@ public final class MultiExchangeLocalBookMain {
                 + (replay.failure().isBlank() ? "" : " replayFailure=" + replay.failure()));
     }
 
+
+    private static void printStrategyPortSummary(
+            DefaultStrategyMarketDataPort port,
+            List<PublicTradeSessionSnapshot> tradeSessions,
+            NormalizedRecorderSummary recorder,
+            NormalizedReplayCheck replay,
+            Path normalizedFile
+    ) {
+        System.out.println("STRATEGY_MARKET_DATA_PORT_SUMMARY"
+                + " bookUpdates=" + port.bookUpdates()
+                + " tradeUpdates=" + port.tradeUpdates()
+                + " statusUpdates=" + port.statusUpdates()
+                + " listenerErrors=" + port.listenerErrors()
+                + " tradeSources=" + tradeSessions.size()
+                + " rawTradeMessages=" + tradeSessions.stream()
+                        .mapToLong(PublicTradeSessionSnapshot::rawMessages).sum()
+                + " publishedTrades=" + tradeSessions.stream()
+                        .mapToLong(PublicTradeSessionSnapshot::publishedTrades).sum()
+                + " duplicateTrades=" + tradeSessions.stream()
+                        .mapToLong(PublicTradeSessionSnapshot::duplicateTrades).sum()
+                + " outOfOrderTrades=" + tradeSessions.stream()
+                        .mapToLong(PublicTradeSessionSnapshot::outOfOrderTrades).sum()
+                + " invalidTradeMessages=" + tradeSessions.stream()
+                        .mapToLong(PublicTradeSessionSnapshot::invalidMessages).sum()
+                + " normalizedRecords=" + recorder.recorded()
+                + " normalizedDrops=" + recorder.dropped()
+                + " normalizedReplaySafe=" + recorder.replaySafe()
+                + " normalizedReplayParity=" + replay.parity()
+                + " normalizedFile=" + normalizedFile);
+    }
     private static int positiveInt(String value, String label) {
         int parsed = Integer.parseInt(value);
         if (parsed <= 0) {
@@ -454,6 +618,13 @@ public final class MultiExchangeLocalBookMain {
 
     private static String format(double value) {
         return String.format(Locale.ROOT, "%.2f", value);
+    }
+
+    private record NormalizedReplayCheck(
+            boolean parity,
+            long records,
+            String failure
+    ) {
     }
 
     private record ReplayCheck(

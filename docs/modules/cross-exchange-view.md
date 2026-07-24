@@ -1,7 +1,7 @@
-# Consolidated Cross-Exchange View
+# Multi-Venue View
 
 ![Consolidated view](cross-exchange-view.svg)
 
-`CrossExchangeBookView` groups venue snapshots by `canonicalInstrumentId`, not venue symbol. It retains state, generation, sequence, event/receive times, age, best prices, and immutable depth per venue.
+`MultiVenueBookView` groups the latest immutable views by canonical `InstrumentId`. Every venue retains its own symbol, bookVersion, stream epoch, health, age, exchange time, receive time, and depth.
 
-Only current, live, fresh venues participate. `ConsolidatedBookSnapshot` reports best bid/venue, best ask/venue, spread, locked/crossed state, usable venue count, watermark, and coherence. Availability events remove a venue immediately.
+The view does not claim simultaneity and does not calculate arbitrage. Existing `CrossExchangeBookView` continues to provide monitored NBBO/coherence metrics, while the stable strategy API exposes source-preserving venue views.

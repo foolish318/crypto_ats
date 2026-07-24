@@ -1,72 +1,83 @@
 # Current Architecture Diagram
 
-Release `1.0.0` has one canonical architecture. The rendered image is [docs/architecture.svg](docs/architecture.svg); detailed module images are under `docs/modules/`.
+Release `1.1.0` has one canonical architecture. The rendered image is [docs/architecture.svg](docs/architecture.svg).
 
 ```mermaid
 flowchart LR
-  subgraph S[Market Sources]
-    B[Binance.US<br/>REST snapshot + WebSocket]
-    O[OKX<br/>WebSocket snapshot + updates]
-    K[Kraken<br/>WebSocket snapshot + updates]
+  subgraph S[Public Venue Sources]
+    BD[Binance.US Depth]
+    OD[OKX Depth]
+    KD[Kraken Depth]
+    BT[Binance.US Trades]
+    OT[OKX Trades]
+    KT[Kraken Trades]
   end
 
-  subgraph I[Intake And Recovery]
-    T[VenueTransport]
-    P[Protocol State Machine]
-    H[Session Health + Watchdog]
-    R[Recovery Coordinator<br/>generation + backoff]
+  subgraph R[Raw Ingestion]
+    W[Generation-Fenced WebSocket]
+    RJ[Bounded Raw Journal]
   end
 
-  subgraph L[Deterministic Local Book]
-    J[RawEnvelope]
-    Q[Segmented Journal]
-    M[Single-Writer Mutation]
-    G[Continuity + Checksum<br/>Quality Gate]
-    A[AcceptedLocalBookEvent]
+  subgraph B[Book Pipeline]
+    BP[Protocol + Snapshot Bridge]
+    V[Sequence / Checksum / Quality]
+    L[Single-Writer Local L2 Book]
+    BS[Canonical BookSnapshot<br/>bookVersion + health]
   end
 
-  subgraph D[Distribution]
-    E[MarketDataEngine]
-    C[Generation-Fenced Cache]
-    U[Bounded Event Bus]
+  subgraph T[Trade Pipeline]
+    TN[Venue Trade Normalizers]
+    TD[Duplicate + Out-of-Order Metrics]
+    PT[Canonical PublicTrade]
   end
 
-  subgraph X[Consumers]
-    V[Consolidated Book<br/>NBBO + coherence]
-    Y[Strategy]
-    Z[Async Recorder / Analytics]
+  subgraph P[Strategy Market Data Boundary]
+    MP[StrategyMarketDataPort]
+    OV[Immutable OrderBookView]
+    MV[MultiVenueBookView]
+    PN[Book / Trade / Status Push]
   end
 
-  B --> T
-  O --> T
-  K --> T
-  T --> J
-  J --> Q
-  J --> P
-  P --> M
-  H --> R
-  R --> T
-  M --> G
-  G -->|ACCEPT| A
-  G -->|STALE / INVALID| H
-  A --> E
-  E --> C
-  E --> U
-  U --> V
-  U --> Y
-  U --> Z
-  H -->|availability event| E
+  subgraph Q[Deterministic Research]
+    NJ[Bounded Normalized Event Log]
+    NR[Streaming Normalized Replay]
+  end
+
+  BD --> W
+  OD --> W
+  KD --> W
+  BT --> W
+  OT --> W
+  KT --> W
+  W --> RJ
+  W --> BP
+  BP --> V
+  V --> L
+  L --> BS
+  W --> TN
+  TN --> TD
+  TD --> PT
+  BS --> MP
+  PT --> MP
+  MP --> OV
+  MP --> MV
+  MP --> PN
+  MP --> NJ
+  NJ --> NR
+  NR --> MP
 
   classDef source fill:#e0f2fe,stroke:#0284c7,color:#075985
-  classDef intake fill:#fef3c7,stroke:#d97706,color:#78350f
+  classDef raw fill:#fef3c7,stroke:#d97706,color:#78350f
   classDef book fill:#ede9fe,stroke:#7c3aed,color:#4c1d95
-  classDef engine fill:#ccfbf1,stroke:#0f766e,color:#134e4a
-  classDef consumer fill:#dcfce7,stroke:#16a34a,color:#14532d
-  class B,O,K source
-  class T,P,H,R intake
-  class J,Q,M,G,A book
-  class E,C,U engine
-  class V,Y,Z consumer
+  classDef trade fill:#ffe4e6,stroke:#e11d48,color:#881337
+  classDef api fill:#ccfbf1,stroke:#0f766e,color:#134e4a
+  classDef replay fill:#fae8ff,stroke:#a21caf,color:#701a75
+  class BD,OD,KD,BT,OT,KT source
+  class W,RJ raw
+  class BP,V,L,BS book
+  class TN,TD,PT trade
+  class MP,OV,MV,PN api
+  class NJ,NR replay
 ```
 
-The critical rule is fail closed: leaving `LIVE` immediately tombstones the source in cache and removes it from consolidated state. Only an accepted event from the current generation can make the source usable again.
+The pipeline publishes data only. Arbitrage, market making, Alpha, fair value, execution, positions, and risk remain downstream and out of scope.

@@ -2,6 +2,6 @@
 
 ![Source and connector](source-connector.svg)
 
-`DeepBookSourceCatalog` defines the current six public depth feeds. Each `DeepBookSourceDefinition` owns venue identity, symbol, channel, depth, WebSocket URI, optional subscription payload, and optional REST snapshot URI.
+The current source set contains six depth streams and six public-trade streams for BTC-USDT and ETH-USDT on Binance.US, OKX, and Kraken. Depth sources retain venue snapshot/recovery semantics; trade sources have independent stream epochs and subscriptions.
 
-Binance.US uses a REST snapshot bridged to buffered WebSocket deltas. OKX and Kraken receive ordered snapshot/update messages over WebSocket. Venue symbols are mapped to canonical instruments before publication; missing or invalid metadata fails closed.
+Reference metadata maps `BTCUSDT`, `BTC-USDT`, and `BTC/USDT` to canonical `InstrumentId("BTC-USDT")`. Transport identities remain venue specific, while downstream state uses canonical identity.

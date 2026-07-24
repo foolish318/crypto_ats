@@ -3,6 +3,7 @@ package com.example.hft.datasource.engine;
 import com.example.hft.datasource.deepbook.runtime.AcceptedLocalBookEvent;
 import com.example.hft.datasource.deepbook.runtime.BookAvailabilityEvent;
 import com.example.hft.datasource.deepbook.runtime.BookAvailabilityState;
+import com.example.hft.marketdata.model.PublicTrade;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -12,6 +13,7 @@ public final class MarketDataCache {
     private final Map<String, AcceptedLocalBookEvent> deepBookByVenueSymbol =
             new ConcurrentHashMap<>();
     private final Map<String, SourceFence> sourceFences = new ConcurrentHashMap<>();
+    private final Map<String, PublicTrade> latestTrades = new ConcurrentHashMap<>();
 
     public boolean updateAccepted(AcceptedLocalBookEvent event) {
         SourceFence fence = sourceFences.computeIfAbsent(event.source(), ignored -> new SourceFence());
@@ -112,6 +114,32 @@ public final class MarketDataCache {
     }
 
 
+
+    public boolean updateTrade(PublicTrade trade) {
+        String key = trade.exchange() + "|" + trade.header().instrumentId().value();
+        PublicTrade updated = latestTrades.compute(key, (ignored, current) -> {
+            if (current == null) {
+                return trade;
+            }
+            long currentEpoch = current.header().streamEpoch();
+            long nextEpoch = trade.header().streamEpoch();
+            if (nextEpoch < currentEpoch
+                    || nextEpoch == currentEpoch
+                    && trade.header().localSequence() <= current.header().localSequence()) {
+                return current;
+            }
+            return trade;
+        });
+        return updated == trade;
+    }
+
+    public Optional<PublicTrade> latestTrade(String exchange, String canonicalInstrumentId) {
+        return Optional.ofNullable(latestTrades.get(exchange + "|" + canonicalInstrumentId));
+    }
+
+    public int tradeCount() {
+        return latestTrades.size();
+    }
     public int deepBookCount() {
         return deepBookByVenueSymbol.size();
     }

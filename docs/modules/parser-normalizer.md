@@ -2,6 +2,6 @@
 
 ![Parser and normalizer](parser-normalizer.svg)
 
-Venue builders parse public JSON into exact-decimal price/quantity levels and apply venue-specific snapshot/update semantics. Transport payloads remain inside the source pipeline.
+Depth builders preserve the validated venue-specific snapshot/delta rules and emit an immutable canonical `BookSnapshot` after successful mutation. The canonical header includes venue, instrument, source/local sequence, stream epoch, exchange/receive/publish clocks, and schema version.
 
-The engine boundary is `AcceptedLocalBookEvent`, containing source, venue symbol, canonical instrument, generation, sequence, clocks, quality, and immutable depth. Consumers never parse venue JSON.
+`BinancePublicTradeNormalizer`, `OkxPublicTradeNormalizer`, and `KrakenPublicTradeNormalizer` convert public JSON trades into `PublicTrade`. Missing identifiers, invalid decimals, and nonpositive values fail explicitly. Aggressor side is mapped only from venue-provided fields; it is never inferred from book movement.

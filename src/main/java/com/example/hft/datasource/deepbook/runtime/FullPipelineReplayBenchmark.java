@@ -6,6 +6,7 @@ import com.example.hft.datasource.engine.AsyncListenerSnapshot;
 import com.example.hft.datasource.engine.MarketDataCache;
 import com.example.hft.datasource.engine.MarketDataEngine;
 import com.example.hft.datasource.engine.MarketDataEventBus;
+import com.example.hft.marketdata.api.DefaultStrategyMarketDataPort;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
@@ -49,6 +50,7 @@ public final class FullPipelineReplayBenchmark {
         MarketDataCache cache = new MarketDataCache();
         MarketDataEventBus bus = new MarketDataEventBus();
         MarketDataEngine engine = new MarketDataEngine(cache, bus);
+        DefaultStrategyMarketDataPort strategyPort = new DefaultStrategyMarketDataPort(clock::get);
         DeepBookStrategyListener strategy = new DeepBookStrategyListener();
         CrossExchangeBookView view = new CrossExchangeBookView(
                 Duration.ofMinutes(1),
@@ -57,6 +59,7 @@ public final class FullPipelineReplayBenchmark {
         );
         AcceptedBookEventRecorder sideRecorder = new AcceptedBookEventRecorder();
         bus.subscribe(view);
+        bus.subscribe(strategyPort);
         bus.subscribe(strategy);
         bus.subscribeAsync("benchmark-recorder", sideRecorder, 8_192);
         LocalBookPublisher publisher = new LocalBookPublisher(

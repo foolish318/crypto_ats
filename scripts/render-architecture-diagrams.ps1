@@ -115,7 +115,7 @@ function Save-Svg([System.Text.StringBuilder]$builder, [string]$path) {
 }
 
 function Write-CanonicalDiagram {
-    $b = New-SvgBuilder 1900 1230 'Reference-inspired crypto ATS market-data architecture' 'The current direct single-writer deep-book pipeline with availability invalidation, canonical consolidation, bounded listeners, and journal replay.'
+    $b = New-SvgBuilder 1900 1230 'Reference-inspired crypto ATS market-data architecture' 'The current single-writer book and trade pipelines, immutable strategy port, health fencing, and deterministic replay.'
     Add-Text $b 55 58 'Crypto ATS Market-Data Architecture' 34 '700' '#0f172a'
     Add-Text $b 55 91 'One canonical pipeline, informed by established open-source connector and data-engine patterns.' 16 '400' '#475569'
 
@@ -136,7 +136,7 @@ function Write-CanonicalDiagram {
         Add-Text $b ($column.x + 18) 329 $column.title 14 '700' '#334155'
     }
 
-    Add-Node $b 55 355 240 112 'Direct Exchanges' @('Binance.US / OKX / Kraken', 'REST + WebSocket; FIX later') 'source'
+    Add-Node $b 55 355 240 112 'Direct Exchanges' @('Binance.US / OKX / Kraken', 'L2 books + public trades') 'source'
     Add-Node $b 55 520 240 112 'Third-Party Feeds' @('normalized feed or FIX gateway', 'future source implementation') 'source' 'planned'
     Add-Node $b 55 685 240 112 'Replay Store' @('recorded raw market data', 'deterministic source') 'replay'
 
@@ -146,21 +146,21 @@ function Write-CanonicalDiagram {
 
     Add-Node $b 675 355 240 112 'Venue Protocol' @('subscribe ACK + errors', 'ping / pong + connection age') 'intake' ''
     Add-Node $b 675 520 240 112 'Ingress RawEnvelope' @('record before async handoff', 'source + generation + clocks') 'intake'
-    Add-Node $b 675 685 240 112 'Source Book Pipeline' @('inline protocol + book apply', 'single writer; no worker queue') 'intake' ''
+    Add-Node $b 675 685 240 112 'Source Pipelines' @('book + public trade streams', 'independent source ordering') 'intake' ''
 
-    Add-Node $b 985 355 240 112 'Parse + Quality Gate' @('schema, exact values, freshness', 'sequence, checksum, crossed book') 'quality' ''
+    Add-Node $b 985 355 240 112 'Normalize + Validate' @('canonical book and trade events', 'sequence, checksum, dedup') 'quality' ''
     Add-Node $b 985 520 240 112 'Session Health + Recovery' @('transport / book / session state', 'watchdog + backoff + generation') 'book'
     Add-Node $b 985 685 240 112 'Venue Book Builder' @('stale / gap / checksum rules', 'exact-decimal atomic updates') 'book'
-    Add-Node $b 985 850 240 112 'Venue-Local Books' @('six independent deep books', 'publishable only when LIVE') 'book' ''
+    Add-Node $b 985 850 240 112 'Local Market State' @('versioned L2 books + trades', 'publishable book only when LIVE') 'book' ''
 
-    Add-Node $b 1295 355 240 112 'AcceptedLocalBookEvent' @('canonical id + generation', 'quality-approved immutable depth') 'engine' ''
+    Add-Node $b 1295 355 240 112 'Canonical Events' @('BookSnapshot / PublicTrade', 'health + epoch + local sequence') 'engine' ''
     Add-Node $b 1295 520 240 112 'MarketDataEngine' @('single accepted-event boundary', 'cache first, publish second') 'engine'
-    Add-Node $b 1295 685 240 112 'Fenced Cache + EventBus' @('tombstone on unavailable state', 'inline core + bounded side output') 'engine' ''
-    Add-Node $b 1295 850 240 112 'Segmented Raw Journal' @('headers + checksums + index', 'drop makes replay unsafe') 'replay' ''
+    Add-Node $b 1295 685 240 112 'StrategyMarketDataPort' @('cache first, notify second', 'immutable book + trade views') 'engine' ''
+    Add-Node $b 1295 850 240 112 'Raw + Normalized Logs' @('raw forensic journal', 'canonical deterministic replay') 'replay' ''
 
-    Add-Node $b 1605 355 240 112 'Consolidated Book' @('canonical NBBO + venue depth', 'freshness + watermark/coherence') 'source' ''
-    Add-Node $b 1605 520 240 112 'Strategy Pipeline' @('spread and depth decisions', 'market-data consumers') 'consumer'
-    Add-Node $b 1605 685 240 112 'Journal + Replay Check' @('bounded queue + lag metrics', 'streaming final-book parity') 'replay'
+    Add-Node $b 1605 355 240 112 'MultiVenueBookView' @('latest view by canonical id', 'venue version + health + age') 'source' ''
+    Add-Node $b 1605 520 240 112 'Strategy Consumers' @('push notifications + pull views', 'no strategy logic in pipeline') 'consumer'
+    Add-Node $b 1605 685 240 112 'Replay Verification' @('book, trade, status ordering', 'final strategy-state parity') 'replay'
     Add-Node $b 1605 850 240 112 'Order / Risk' @('execution lifecycle is separate', 'not implemented in this scope') 'future' 'future'
 
     Add-Path $b 'M295 411 H365'
@@ -258,7 +258,7 @@ Write-ModuleDiagram 'parser-normalizer' 'Parser and Normalizer Module' 'Translat
     (N 70 205 240 112 'RawInboundMessage' @('payload and metadata', 'no venue state mutation') 'intake'),
     (N 370 205 240 112 'Venue Parser' @('Binance / OKX / Kraken', 'schema-specific decoding') 'connector'),
     (N 670 205 240 112 'Value Conversion' @('exact decimal price/size', 'timestamp and sequence') 'intake'),
-    (N 970 205 240 112 'Canonical Event' @('TopOfBookEvent', 'BookDepthEvent / TradeEvent') 'engine'),
+    (N 970 205 240 112 'Canonical Event' @('BookSnapshot / BookDelta', 'PublicTrade / status') 'engine'),
     (N 370 430 240 112 'Parse Failure' @('reason + source offset', 'count and quarantine') 'quality'),
     (N 970 430 240 112 'SymbolMapper' @('venue symbol', 'canonical instrument id') 'connector')
 ) @(
@@ -290,7 +290,7 @@ Write-ModuleDiagram 'order-book' 'Venue-Local Order-Book Module' 'Maintain one i
     (N 345 205 230 112 'Stream Updates' @('all messages, no sampling', 'source receive timestamp') 'intake'),
     (N 620 205 230 112 'Venue Builder' @('Binance U/u; OKX seq', 'Kraken timestamp + CRC32') 'book' ''),
     (N 895 205 230 112 'Exact Decimal Book' @('apply/delete levels', 'detect stale/gap/cross') 'book'),
-    (N 1170 205 230 112 'AcceptedLocalBookEvent' @('LIVE depth snapshot', 'generation + receive clocks') 'engine'),
+    (N 1170 205 230 112 'Accepted Book Event' @('LIVE immutable depth', 'bookVersion + streamEpoch') 'engine'),
     (N 895 430 230 112 'DEGRADED Book' @('publication suppressed', 'recovery required') 'quality')
 ) @(
     (P 'M185 205 V170 H735 V205'),
@@ -317,13 +317,13 @@ Write-ModuleDiagram 'recovery' 'Recovery And Availability Module' 'Withdraw inva
 ) 'Rule: a health-only LIVE signal cannot restore a book; only a quality-approved accepted generation can.'
 
 Write-ModuleDiagram 'data-engine' 'Market-Data Engine Module' 'Cache-first accepted publication plus immediate generation-safe invalidation.' @(
-    (N 70 185 230 112 'Accepted Book' @('canonical id + generation', 'immutable LIVE depth') 'book'),
+    (N 70 185 230 112 'Canonical Input' @('accepted book + public trade', 'instrument + stream epoch') 'book'),
     (N 70 405 230 112 'Availability Event' @('stale / recover / stop', 'reason + observed time') 'quality'),
     (N 370 265 240 112 'MarketDataEngine' @('accepted + health + error', 'single domain boundary') 'engine' ''),
-    (N 680 185 240 112 'Fenced Cache' @('update or tombstone', 'reject old generation') 'engine'),
+    (N 680 185 240 112 'Local Market State' @('versioned immutable views', 'reject old stream epoch') 'engine'),
     (N 680 405 240 112 'EventBus' @('core inline ordering', 'bounded async channels') 'engine'),
-    (N 990 185 240 112 'Consolidated View' @('canonical NBBO', 'freshness + coherence') 'source'),
-    (N 990 405 240 112 'Strategy + Side Output' @('inline deterministic strategy', 'async recorder / analytics') 'consumer')
+    (N 990 185 240 112 'MultiVenueBookView' @('venue health/version/age', 'latest-valid-view semantics') 'source'),
+    (N 990 405 240 112 'StrategyMarketDataPort' @('book/trade/status callbacks', 'read-only pull interface') 'consumer')
 ) @(
     (P 'M300 241 H335 V321 H370'),
     (P 'M300 461 H335 V321 H370'),
@@ -331,7 +331,7 @@ Write-ModuleDiagram 'data-engine' 'Market-Data Engine Module' 'Cache-first accep
     (P 'M610 321 H650 V461 H680'),
     (P 'M920 241 H990'),
     (P 'M920 461 H990')
-) 'Rule: accepted data restores state; unavailable data tombstones it; no old generation reaches a consumer.'
+) 'Rule: update immutable state before notification; unavailable books remain visible only with non-LIVE health.'
 
 Write-ModuleDiagram 'recorder-replay' 'Recorder And Replay Journal Module' 'Bounded long-running capture with checksummed streaming reconstruction.' @(
     (N 70 205 230 112 'RawEnvelope' @('snapshot / WS / lifecycle', 'generation + receive clocks') 'source'),
@@ -349,11 +349,11 @@ Write-ModuleDiagram 'recorder-replay' 'Recorder And Replay Journal Module' 'Boun
     (P 'M895 486 H760 V590 H185 V317' 'replay' 'same protocol + builder path' 540 612)
 ) 'Rule: accepted recorder loss is never hidden; only checksummed replay-safe evidence may claim parity.'
 
-Write-ModuleDiagram 'cross-exchange-view' 'Consolidated Cross-Exchange Book' 'Aggregate canonical instruments while preserving venue state and time consistency.' @(
+Write-ModuleDiagram 'cross-exchange-view' 'Multi-Venue Strategy View' 'Expose each canonical instrument without hiding venue version, health, age, or timestamps.' @(
     (N 70 185 230 112 'Binance.US Book' @('BTCUSDT + generation', 'LIVE depth + clocks') 'book'),
-    (N 70 345 230 112 'OKX Book' @('BTC-USDT + generation', 'LIVE depth + clocks') 'book'),
-    (N 70 505 230 112 'Kraken Book' @('BTC/USD + generation', 'LIVE depth + clocks') 'book'),
-    (N 430 265 250 112 'Canonical Instrument' @('map venue symbols', 'BTC-USD identity') 'connector'),
+    (N 70 345 230 112 'OKX Book' @('BTC-USDT + stream epoch', 'version + health + age') 'book'),
+    (N 70 505 230 112 'Kraken Book' @('BTC/USDT + stream epoch', 'version + health + age') 'book'),
+    (N 430 265 250 112 'Canonical Instrument' @('BTCUSDT / BTC-USDT / XBT/USDT', 'one BTC-USDT identity') 'connector'),
     (N 780 265 250 112 'Eligibility Filter' @('state + generation + age', 'exclude stale venue now') 'quality'),
     (N 1130 265 260 112 'Consolidated Snapshot' @('best bid/ask venue + spread', 'locked/crossed + venue count') 'source' ''),
     (N 1130 465 260 112 'Time Consistency' @('watermark + max skew', 'explicit coherent flag') 'consumer')
@@ -367,9 +367,9 @@ Write-ModuleDiagram 'cross-exchange-view' 'Consolidated Cross-Exchange Book' 'Ag
 ) 'Rule: NBBO contains only LIVE fresh generations; asynchronous venue times remain explicit.'
 
 Write-ModuleDiagram 'strategy-benchmark' 'Strategy And Performance Baselines' 'Separate deterministic decisions, side-output pressure, micro-costs, and full-path latency.' @(
-    (N 70 205 230 112 'Accepted / Consolidated' @('immutable LIVE snapshot', 'canonical venue attribution') 'source'),
-    (N 345 205 230 112 'Core Strategy' @('inline deterministic listener', 'no network or database I/O') 'consumer'),
-    (N 620 205 230 112 'Bounded Side Output' @('recorder / analytics', 'depth + lag + drops') 'replay'),
+    (N 70 205 230 112 'StrategyMarketDataPort' @('immutable book/trade views', 'push + pull contracts') 'source'),
+    (N 345 205 230 112 'Future Consumers' @('arbitrage / maker / alpha', 'not implemented here') 'consumer'),
+    (N 620 205 230 112 'Normalized Recorder' @('book / trade / status order', 'bounded + replay-safe state') 'replay'),
     (N 895 205 230 112 'JMH Stages' @('classify / parse / mutate', 'snapshot / publish / cache') 'intake'),
     (N 1170 205 230 112 'Full Pipeline Replay' @('p50 to p99.9 + max', 'allocation + GC + parity') 'intake' ''),
     (N 620 430 230 112 'Capacity Experiment' @('direct vs partitioned', 'not the live pipeline') 'future')

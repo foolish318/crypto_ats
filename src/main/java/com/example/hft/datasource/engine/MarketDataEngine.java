@@ -8,6 +8,7 @@ import com.example.hft.datasource.deepbook.runtime.BookAvailabilityEvent;
 import com.example.hft.datasource.deepbook.runtime.BookAvailabilityState;
 import com.example.hft.datasource.normalizer.NormalizedMarketDataEvent;
 import java.time.Instant;
+import com.example.hft.marketdata.model.PublicTrade;
 
 
 public final class MarketDataEngine implements MarketDataSink {
@@ -21,10 +22,13 @@ public final class MarketDataEngine implements MarketDataSink {
 
     @Override
     public void onEvent(NormalizedMarketDataEvent event) {
-        if (!(event instanceof AcceptedLocalBookEvent accepted)) {
+        if (event instanceof AcceptedLocalBookEvent accepted) {
+            publishAccepted(accepted);
+        } else if (event instanceof PublicTrade trade) {
+            publishTrade(trade);
+        } else {
             throw new IllegalArgumentException("unsupported market-data event " + event.getClass());
         }
-        publishAccepted(accepted);
     }
 
 
@@ -45,6 +49,22 @@ public final class MarketDataEngine implements MarketDataSink {
                 )
         );
         EventBusPublishResult listeners = marketData.plus(availability);
+        return new EnginePublishResult(
+                true,
+                cacheNanos,
+                listeners.coreListenerNanos(),
+                listeners.asyncOfferNanos()
+        );
+    }
+
+    public EnginePublishResult publishTrade(PublicTrade trade) {
+        long cacheStarted = System.nanoTime();
+        boolean current = cache.updateTrade(trade);
+        long cacheNanos = System.nanoTime() - cacheStarted;
+        if (!current) {
+            return EnginePublishResult.rejected(cacheNanos);
+        }
+        EventBusPublishResult listeners = eventBus.publishMeasured(trade);
         return new EnginePublishResult(
                 true,
                 cacheNanos,

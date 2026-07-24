@@ -69,7 +69,7 @@ public final class LocalBookPublisher {
                 snapshot.sourceId(), snapshot.exchange(), snapshot.symbol(),
                 builder.canonicalInstrumentId(), TransportType.WEBSOCKET,
                 receivedNanos, result.eventTimeMillis(), result.sequence(), generation,
-                acceptedEpochMillis, snapshot
+                acceptedEpochMillis, snapshot.bookVersion(), System.nanoTime(), snapshot
         ));
         return new BookPublishResult(
                 engineResult.published(),

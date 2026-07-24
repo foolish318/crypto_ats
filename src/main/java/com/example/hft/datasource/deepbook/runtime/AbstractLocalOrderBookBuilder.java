@@ -25,6 +25,9 @@ abstract class AbstractLocalOrderBookBuilder implements LocalOrderBookBuilder {
     protected BookQuality quality = BookQuality.EMPTY;
     protected long sequence = -1L;
     protected Instant exchangeTime = Instant.EPOCH;
+    protected Instant lastReceiveTime = Instant.EPOCH;
+    protected Instant lastAppliedTime = Instant.EPOCH;
+    protected long bookVersion;
     protected long acceptedMessages;
     protected long rejectedMessages;
 
@@ -83,7 +86,10 @@ abstract class AbstractLocalOrderBookBuilder implements LocalOrderBookBuilder {
                 source.symbol(),
                 quality,
                 sequence,
+                bookVersion,
                 exchangeTime,
+                lastReceiveTime,
+                lastAppliedTime,
                 book.topBids(levels),
                 book.topAsks(levels)
         );
@@ -110,6 +116,7 @@ abstract class AbstractLocalOrderBookBuilder implements LocalOrderBookBuilder {
             BookUpdateStatus status,
             long eventSequence,
             Instant eventTime,
+            long receivedEpochMillis,
             long parseNanos,
             long bookStartNanos,
             String detail
@@ -117,6 +124,9 @@ abstract class AbstractLocalOrderBookBuilder implements LocalOrderBookBuilder {
         quality = BookQuality.LIVE;
         sequence = eventSequence;
         exchangeTime = eventTime;
+        lastReceiveTime = Instant.ofEpochMilli(receivedEpochMillis);
+        lastAppliedTime = lastReceiveTime;
+        bookVersion++;
         acceptedMessages++;
         return result(status, parseNanos, bookStartNanos, detail);
     }

@@ -2,6 +2,6 @@
 
 ![Data engine](data-engine.svg)
 
-`MarketDataEngine` is the single boundary for accepted books, health changes, and errors. It updates `MarketDataCache` before publishing events. Cache entries are fenced by generation and support tombstones/removal when a source becomes unavailable.
+`MarketDataEngine` accepts both validated books and canonical public trades. Books and trades update their fenced cache before event publication. Book availability immediately invalidates the engine cache and changes strategy-view health.
 
-`MarketDataEventBus` isolates listener failures. Core deterministic listeners execute inline. Side outputs use independent bounded queues and expose current/max depth, lag, drops, errors, and last failure.
+`DefaultStrategyMarketDataPort` is a core deterministic listener. It stores an immutable view before emitting `BookUpdateNotification`, so version N is readable during the version N callback. Listener exceptions are isolated and counted.

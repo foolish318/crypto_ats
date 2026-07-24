@@ -1,41 +1,62 @@
 # Crypto ATS Market Data
 
-Current release: `1.0.0`
+Current release: `1.1.0`
 
-This repository contains one reproducible Java 17 implementation of a multi-exchange depth-market-data pipeline. It builds venue-local books for Binance.US, OKX, and Kraken, publishes only healthy books, invalidates stale state immediately, creates a canonical consolidated book, and records a deterministic replay journal.
+This repository contains one reproducible Java 17 market-data implementation for Binance.US, OKX, and Kraken. It builds generation-safe venue-local L2 books, normalizes public trades, publishes immutable strategy views, and records raw plus canonical events for deterministic replay. It contains no trading strategy, OMS, execution, position, or account logic.
 
 ## Runtime Path
 
 ```text
-REST/WebSocket
-  -> RawEnvelope + segmented journal
-  -> venue protocol and local order book
-  -> continuity/checksum/quality gate
-  -> AcceptedLocalBookEvent
-  -> MarketDataEngine
-  -> generation-fenced cache and event bus
-  -> consolidated book and strategy
+Depth WebSocket / REST snapshot
+  -> RawEnvelope + raw journal
+  -> venue protocol, sequence/checksum validation, recovery
+  -> single-writer Local L2 Order Book
+  -> canonical BookSnapshot + bookVersion
+  -> StrategyMarketDataPort
+
+Public Trade WebSocket
+  -> venue trade normalizer + duplicate/order checks
+  -> canonical PublicTrade
+  -> StrategyMarketDataPort
+
+StrategyMarketDataPort
+  -> immutable OrderBookView
+  -> MultiVenueBookView
+  -> book/trade/status push notifications
+  -> normalized event log and deterministic replay
 ```
 
-The realtime book path is `DIRECT_SINGLE_WRITER`: each source book is mutated sequentially by one writer. Slow side outputs use bounded asynchronous queues with explicit drop, lag, and replay-safety metrics.
+The live book hot path remains `DIRECT_SINGLE_WRITER`. Each venue/instrument book has one writer. Strategies read immutable top-N snapshots; mutable tree structures never cross thread boundaries.
 
 ## Quick Start
 
-Requirements: JDK 17 and network access. Maven 3.9.12 is pinned by the included wrapper.
+Requirements: JDK 17 and network access. Maven 3.9.12 is pinned by the wrapper.
 
 ```bash
 ./mvnw clean verify
 ./scripts/run.sh 15 data 10
 ```
 
-Arguments are capture duration in seconds, output directory, and stale threshold in seconds. The default source set is BTC and ETH on Binance.US, OKX, and Kraken.
+The default source set is BTC-USDT and ETH-USDT across Binance.US, OKX, and Kraken, with six depth streams and six public-trade streams.
 
-Generated files are ignored by Git:
+Generated artifacts include:
 
-- `data/market-data-raw-<run-id>.jsonl` plus rotated segments and index
-- `data/market-data-summary-<run-id>.json`
-- `data/full-pipeline-*.json` and `.md`
-- `data/jmh-deep-book.json`
+- `data/market-data-raw-<run-id>.jsonl`: venue payloads and lifecycle evidence
+- `data/market-data-normalized-<run-id>.jsonl`: canonical books, trades, and status changes
+- `data/market-data-summary-<run-id>.json`: health, replay, queue, and publication metrics
+
+## Stable Strategy Boundary
+
+`StrategyMarketDataPort` supports push and pull without exposing adapters or mutable books:
+
+```text
+onBookUpdated / onTrade / onBookStatusChanged
+getBook(venue, instrument)
+getBooks(instrument)
+latestTrade(venue, instrument)
+```
+
+`BookUpdated(version=N)` is emitted only after version N is visible through `getBook`. GAP, CHECKSUM_FAILED, STALE, RECOVERING, and DISCONNECTED health is visible and cannot be restored by an old stream epoch.
 
 ## Documentation
 
@@ -47,5 +68,3 @@ Generated files are ignored by Git:
 - [Benchmark baseline](benchmark-results.md)
 - [Framework decisions](reference-frameworks.md)
 - [Git commands](gitcommand.md)
-
-Historical implementations are intentionally absent from the current tree. Git history remains the audit trail.

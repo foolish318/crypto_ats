@@ -13,9 +13,9 @@
   <rect x="40" y="130" width="1420" height="500" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
   <g filter="url(#shadow)">
     <rect x="70" y="185" width="230" height="112" rx="7" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
-  <text x="90" y="219" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#5b21b6" text-anchor="start">Accepted Book</text>
-  <text x="90" y="247" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">canonical id + generation</text>
-  <text x="90" y="269" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">immutable LIVE depth</text>
+  <text x="90" y="219" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#5b21b6" text-anchor="start">Canonical Input</text>
+  <text x="90" y="247" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">accepted book + public trade</text>
+  <text x="90" y="269" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">instrument + stream epoch</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="70" y="405" width="230" height="112" rx="7" fill="#ffe4e6" stroke="#e11d48" stroke-width="2"/>
@@ -31,9 +31,9 @@
   </g>
   <g filter="url(#shadow)">
     <rect x="680" y="185" width="240" height="112" rx="7" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
-  <text x="700" y="219" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#115e59" text-anchor="start">Fenced Cache</text>
-  <text x="700" y="247" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">update or tombstone</text>
-  <text x="700" y="269" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">reject old generation</text>
+  <text x="700" y="219" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#115e59" text-anchor="start">Local Market State</text>
+  <text x="700" y="247" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">versioned immutable views</text>
+  <text x="700" y="269" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">reject old stream epoch</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="680" y="405" width="240" height="112" rx="7" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
@@ -43,15 +43,15 @@
   </g>
   <g filter="url(#shadow)">
     <rect x="990" y="185" width="240" height="112" rx="7" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
-  <text x="1010" y="219" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#075985" text-anchor="start">Consolidated View</text>
-  <text x="1010" y="247" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">canonical NBBO</text>
-  <text x="1010" y="269" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">freshness + coherence</text>
+  <text x="1010" y="219" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#075985" text-anchor="start">MultiVenueBookView</text>
+  <text x="1010" y="247" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">venue health/version/age</text>
+  <text x="1010" y="269" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">latest-valid-view semantics</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="990" y="405" width="240" height="112" rx="7" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
-  <text x="1010" y="439" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#166534" text-anchor="start">Strategy + Side Output</text>
-  <text x="1010" y="467" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">inline deterministic strategy</text>
-  <text x="1010" y="489" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">async recorder / analytics</text>
+  <text x="1010" y="439" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#166534" text-anchor="start">StrategyMarketDataPort</text>
+  <text x="1010" y="467" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">book/trade/status callbacks</text>
+  <text x="1010" y="489" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">read-only pull interface</text>
   </g>
   <path d="M300 241 H335 V321 H370" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
   <path d="M300 461 H335 V321 H370" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
@@ -60,5 +60,5 @@
   <path d="M920 241 H990" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
   <path d="M920 461 H990" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
   <rect x="55" y="660" width="1390" height="58" rx="7" fill="#f8fafc" stroke="#cbd5e1"/>
-  <text x="82" y="695" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#334155" text-anchor="start">Rule: accepted data restores state; unavailable data tombstones it; no old generation reaches a consumer.</text>
+  <text x="82" y="695" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#334155" text-anchor="start">Rule: update immutable state before notification; unavailable books remain visible only with non-LIVE health.</text>
 </svg>

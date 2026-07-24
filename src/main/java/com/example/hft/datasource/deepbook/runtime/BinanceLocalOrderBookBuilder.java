@@ -46,6 +46,9 @@ public final class BinanceLocalOrderBookBuilder extends AbstractLocalOrderBookBu
             }
             sequence = lastUpdateId;
             exchangeTime = Instant.ofEpochMilli(receivedEpochMillis);
+            lastReceiveTime = exchangeTime;
+            lastAppliedTime = exchangeTime;
+            bookVersion++;
             quality = BookQuality.BOOTSTRAPPING;
             bridged = false;
             acceptedMessages++;
@@ -125,6 +128,7 @@ public final class BinanceLocalOrderBookBuilder extends AbstractLocalOrderBookBu
                     BookUpdateStatus.APPLIED,
                     finalUpdateId,
                     eventTime,
+                    receivedEpochMillis,
                     parsed.parseNanos(),
                     bookStart,
                     "contiguous Binance diff applied"
@@ -140,6 +144,8 @@ public final class BinanceLocalOrderBookBuilder extends AbstractLocalOrderBookBu
         quality = BookQuality.EMPTY;
         sequence = -1L;
         exchangeTime = Instant.EPOCH;
+        lastReceiveTime = Instant.EPOCH;
+        lastAppliedTime = Instant.EPOCH;
         bridged = false;
     }
 

@@ -5,7 +5,7 @@
 
     <groupId>com.example</groupId>
     <artifactId>crypto-ats-market-data</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <name>crypto-ats-market-data</name>
 
     <properties>

@@ -37,9 +37,9 @@
   </g>
   <g filter="url(#shadow)">
     <rect x="1170" y="205" width="230" height="112" rx="7" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
-  <text x="1190" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#115e59" text-anchor="start">AcceptedLocalBookEvent</text>
-  <text x="1190" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">LIVE depth snapshot</text>
-  <text x="1190" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">generation + receive clocks</text>
+  <text x="1190" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#115e59" text-anchor="start">Accepted Book Event</text>
+  <text x="1190" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">LIVE immutable depth</text>
+  <text x="1190" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">bookVersion + streamEpoch</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="895" y="430" width="230" height="112" rx="7" fill="#ffe4e6" stroke="#e11d48" stroke-width="2"/>

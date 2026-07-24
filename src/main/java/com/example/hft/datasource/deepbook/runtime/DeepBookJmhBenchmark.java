@@ -7,6 +7,7 @@ import com.example.hft.datasource.engine.MarketDataCache;
 import com.example.hft.datasource.engine.MarketDataEngine;
 import com.example.hft.datasource.engine.MarketDataEventBus;
 import com.example.hft.datasource.transport.TransportType;
+import com.example.hft.marketdata.api.DefaultStrategyMarketDataPort;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
@@ -103,6 +104,7 @@ public class DeepBookJmhBenchmark {
             health.accepted(nowMillis);
             MarketDataCache cache = new MarketDataCache();
             MarketDataEventBus bus = new MarketDataEventBus();
+            bus.subscribe(new DefaultStrategyMarketDataPort(() -> nowMillis));
             engine = new MarketDataEngine(cache, bus);
             publisher = new LocalBookPublisher(engine, 60_000L, 10, () -> nowMillis);
             LocalBookSnapshot book = builder.snapshot(10);

@@ -32,8 +32,8 @@
   <g filter="url(#shadow)">
     <rect x="970" y="205" width="240" height="112" rx="7" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
   <text x="990" y="239" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#115e59" text-anchor="start">Canonical Event</text>
-  <text x="990" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">TopOfBookEvent</text>
-  <text x="990" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">BookDepthEvent / TradeEvent</text>
+  <text x="990" y="267" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">BookSnapshot / BookDelta</text>
+  <text x="990" y="289" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">PublicTrade / status</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="370" y="430" width="240" height="112" rx="7" fill="#ffe4e6" stroke="#e11d48" stroke-width="2"/>

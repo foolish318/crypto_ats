@@ -17,8 +17,8 @@ public final class DeepBookSourceCatalog {
                 binanceUs("ETHUSDT"),
                 okx("BTC-USDT"),
                 okx("ETH-USDT"),
-                kraken("BTC/USD"),
-                kraken("ETH/USD")
+                kraken("BTC/USDT"),
+                kraken("ETH/USDT")
         );
     }
 

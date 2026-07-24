@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1500" height="760" viewBox="0 0 1500 760" role="img" aria-labelledby="title desc">
-  <title id="title">Consolidated Cross-Exchange Book</title>
-  <desc id="desc">Aggregate canonical instruments while preserving venue state and time consistency.</desc>
+  <title id="title">Multi-Venue Strategy View</title>
+  <desc id="desc">Expose each canonical instrument without hiding venue version, health, age, or timestamps.</desc>
   <defs>
     <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M1 1 L11 6 L1 11 Z" fill="#475569"/></marker>
     <marker id="failure-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M1 1 L11 6 L1 11 Z" fill="#be123c"/></marker>
@@ -8,8 +8,8 @@
     <filter id="shadow" x="-15%" y="-15%" width="130%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/></filter>
   </defs>
   <rect width="1500" height="760" fill="#f8fafc"/>
-  <text x="55" y="58" font-family="Arial, sans-serif" font-size="32" font-weight="700" fill="#0f172a" text-anchor="start">Consolidated Cross-Exchange Book</text>
-  <text x="55" y="89" font-family="Arial, sans-serif" font-size="15" font-weight="400" fill="#475569" text-anchor="start">Aggregate canonical instruments while preserving venue state and time consistency.</text>
+  <text x="55" y="58" font-family="Arial, sans-serif" font-size="32" font-weight="700" fill="#0f172a" text-anchor="start">Multi-Venue Strategy View</text>
+  <text x="55" y="89" font-family="Arial, sans-serif" font-size="15" font-weight="400" fill="#475569" text-anchor="start">Expose each canonical instrument without hiding venue version, health, age, or timestamps.</text>
   <rect x="40" y="130" width="1420" height="500" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
   <g filter="url(#shadow)">
     <rect x="70" y="185" width="230" height="112" rx="7" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
@@ -20,20 +20,20 @@
   <g filter="url(#shadow)">
     <rect x="70" y="345" width="230" height="112" rx="7" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
   <text x="90" y="379" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#5b21b6" text-anchor="start">OKX Book</text>
-  <text x="90" y="407" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">BTC-USDT + generation</text>
-  <text x="90" y="429" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">LIVE depth + clocks</text>
+  <text x="90" y="407" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">BTC-USDT + stream epoch</text>
+  <text x="90" y="429" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">version + health + age</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="70" y="505" width="230" height="112" rx="7" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
   <text x="90" y="539" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#5b21b6" text-anchor="start">Kraken Book</text>
-  <text x="90" y="567" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">BTC/USD + generation</text>
-  <text x="90" y="589" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">LIVE depth + clocks</text>
+  <text x="90" y="567" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">BTC/USDT + stream epoch</text>
+  <text x="90" y="589" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">version + health + age</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="430" y="265" width="250" height="112" rx="7" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
   <text x="450" y="299" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#92400e" text-anchor="start">Canonical Instrument</text>
-  <text x="450" y="327" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">map venue symbols</text>
-  <text x="450" y="349" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">BTC-USD identity</text>
+  <text x="450" y="327" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">BTCUSDT / BTC-USDT / XBT/USDT</text>
+  <text x="450" y="349" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">one BTC-USDT identity</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="780" y="265" width="250" height="112" rx="7" fill="#ffe4e6" stroke="#e11d48" stroke-width="2"/>

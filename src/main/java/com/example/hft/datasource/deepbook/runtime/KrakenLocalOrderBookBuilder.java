@@ -96,6 +96,7 @@ public final class KrakenLocalOrderBookBuilder extends AbstractLocalOrderBookBui
                     status,
                     eventTime.toEpochMilli(),
                     eventTime,
+                    receivedEpochMillis,
                     parsed.parseNanos(),
                     bookStart,
                     "Kraken " + type + " applied; crc32=" + actualChecksum
@@ -111,6 +112,8 @@ public final class KrakenLocalOrderBookBuilder extends AbstractLocalOrderBookBui
         quality = BookQuality.EMPTY;
         sequence = -1L;
         exchangeTime = Instant.EPOCH;
+        lastReceiveTime = Instant.EPOCH;
+        lastAppliedTime = Instant.EPOCH;
     }
 
     private static JsonNode requiredFirst(JsonNode array) {

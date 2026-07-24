@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1230" viewBox="0 0 1900 1230" role="img" aria-labelledby="title desc">
   <title id="title">Reference-inspired crypto ATS market-data architecture</title>
-  <desc id="desc">The current direct single-writer deep-book pipeline with availability invalidation, canonical consolidation, bounded listeners, and journal replay.</desc>
+  <desc id="desc">The current single-writer book and trade pipelines, immutable strategy port, health fencing, and deterministic replay.</desc>
   <defs>
     <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M1 1 L11 6 L1 11 Z" fill="#475569"/></marker>
     <marker id="failure-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M1 1 L11 6 L1 11 Z" fill="#be123c"/></marker>
@@ -50,7 +50,7 @@
     <rect x="55" y="355" width="240" height="112" rx="7" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
   <text x="75" y="389" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#075985" text-anchor="start">Direct Exchanges</text>
   <text x="75" y="417" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">Binance.US / OKX / Kraken</text>
-  <text x="75" y="439" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">REST + WebSocket; FIX later</text>
+  <text x="75" y="439" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">L2 books + public trades</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="55" y="520" width="240" height="112" rx="7" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
@@ -98,15 +98,15 @@
   </g>
   <g filter="url(#shadow)">
     <rect x="675" y="685" width="240" height="112" rx="7" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
-  <text x="695" y="719" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#334155" text-anchor="start">Source Book Pipeline</text>
-  <text x="695" y="747" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">inline protocol + book apply</text>
-  <text x="695" y="769" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">single writer; no worker queue</text>
+  <text x="695" y="719" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#334155" text-anchor="start">Source Pipelines</text>
+  <text x="695" y="747" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">book + public trade streams</text>
+  <text x="695" y="769" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">independent source ordering</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="985" y="355" width="240" height="112" rx="7" fill="#ffe4e6" stroke="#e11d48" stroke-width="2"/>
-  <text x="1005" y="389" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#9f1239" text-anchor="start">Parse + Quality Gate</text>
-  <text x="1005" y="417" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">schema, exact values, freshness</text>
-  <text x="1005" y="439" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">sequence, checksum, crossed book</text>
+  <text x="1005" y="389" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#9f1239" text-anchor="start">Normalize + Validate</text>
+  <text x="1005" y="417" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">canonical book and trade events</text>
+  <text x="1005" y="439" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">sequence, checksum, dedup</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="985" y="520" width="240" height="112" rx="7" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
@@ -122,15 +122,15 @@
   </g>
   <g filter="url(#shadow)">
     <rect x="985" y="850" width="240" height="112" rx="7" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
-  <text x="1005" y="884" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#5b21b6" text-anchor="start">Venue-Local Books</text>
-  <text x="1005" y="912" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">six independent deep books</text>
-  <text x="1005" y="934" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">publishable only when LIVE</text>
+  <text x="1005" y="884" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#5b21b6" text-anchor="start">Local Market State</text>
+  <text x="1005" y="912" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">versioned L2 books + trades</text>
+  <text x="1005" y="934" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">publishable book only when LIVE</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="1295" y="355" width="240" height="112" rx="7" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
-  <text x="1315" y="389" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#115e59" text-anchor="start">AcceptedLocalBookEvent</text>
-  <text x="1315" y="417" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">canonical id + generation</text>
-  <text x="1315" y="439" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">quality-approved immutable depth</text>
+  <text x="1315" y="389" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#115e59" text-anchor="start">Canonical Events</text>
+  <text x="1315" y="417" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">BookSnapshot / PublicTrade</text>
+  <text x="1315" y="439" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">health + epoch + local sequence</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="1295" y="520" width="240" height="112" rx="7" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
@@ -140,33 +140,33 @@
   </g>
   <g filter="url(#shadow)">
     <rect x="1295" y="685" width="240" height="112" rx="7" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
-  <text x="1315" y="719" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#115e59" text-anchor="start">Fenced Cache + EventBus</text>
-  <text x="1315" y="747" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">tombstone on unavailable state</text>
-  <text x="1315" y="769" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">inline core + bounded side output</text>
+  <text x="1315" y="719" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#115e59" text-anchor="start">StrategyMarketDataPort</text>
+  <text x="1315" y="747" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">cache first, notify second</text>
+  <text x="1315" y="769" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">immutable book + trade views</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="1295" y="850" width="240" height="112" rx="7" fill="#fae8ff" stroke="#a21caf" stroke-width="2"/>
-  <text x="1315" y="884" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#86198f" text-anchor="start">Segmented Raw Journal</text>
-  <text x="1315" y="912" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">headers + checksums + index</text>
-  <text x="1315" y="934" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">drop makes replay unsafe</text>
+  <text x="1315" y="884" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#86198f" text-anchor="start">Raw + Normalized Logs</text>
+  <text x="1315" y="912" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">raw forensic journal</text>
+  <text x="1315" y="934" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">canonical deterministic replay</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="1605" y="355" width="240" height="112" rx="7" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
-  <text x="1625" y="389" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#075985" text-anchor="start">Consolidated Book</text>
-  <text x="1625" y="417" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">canonical NBBO + venue depth</text>
-  <text x="1625" y="439" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">freshness + watermark/coherence</text>
+  <text x="1625" y="389" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#075985" text-anchor="start">MultiVenueBookView</text>
+  <text x="1625" y="417" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">latest view by canonical id</text>
+  <text x="1625" y="439" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">venue version + health + age</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="1605" y="520" width="240" height="112" rx="7" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
-  <text x="1625" y="554" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#166534" text-anchor="start">Strategy Pipeline</text>
-  <text x="1625" y="582" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">spread and depth decisions</text>
-  <text x="1625" y="604" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">market-data consumers</text>
+  <text x="1625" y="554" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#166534" text-anchor="start">Strategy Consumers</text>
+  <text x="1625" y="582" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">push notifications + pull views</text>
+  <text x="1625" y="604" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">no strategy logic in pipeline</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="1605" y="685" width="240" height="112" rx="7" fill="#fae8ff" stroke="#a21caf" stroke-width="2"/>
-  <text x="1625" y="719" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#86198f" text-anchor="start">Journal + Replay Check</text>
-  <text x="1625" y="747" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">bounded queue + lag metrics</text>
-  <text x="1625" y="769" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">streaming final-book parity</text>
+  <text x="1625" y="719" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#86198f" text-anchor="start">Replay Verification</text>
+  <text x="1625" y="747" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">book, trade, status ordering</text>
+  <text x="1625" y="769" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">final strategy-state parity</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="1605" y="850" width="240" height="112" rx="7" fill="#f8fafc" stroke="#94a3b8" stroke-width="2" stroke-dasharray="8 6"/>

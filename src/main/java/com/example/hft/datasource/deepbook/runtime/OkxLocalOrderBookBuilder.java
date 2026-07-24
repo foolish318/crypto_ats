@@ -89,6 +89,7 @@ public final class OkxLocalOrderBookBuilder extends AbstractLocalOrderBookBuilde
                     status,
                     eventSequence,
                     eventTime,
+                    receivedEpochMillis,
                     parsed.parseNanos(),
                     bookStart,
                     "OKX " + action + " applied"
@@ -104,6 +105,8 @@ public final class OkxLocalOrderBookBuilder extends AbstractLocalOrderBookBuilde
         quality = BookQuality.EMPTY;
         sequence = -1L;
         exchangeTime = Instant.EPOCH;
+        lastReceiveTime = Instant.EPOCH;
+        lastAppliedTime = Instant.EPOCH;
     }
 
     private static JsonNode requiredFirst(JsonNode array) {

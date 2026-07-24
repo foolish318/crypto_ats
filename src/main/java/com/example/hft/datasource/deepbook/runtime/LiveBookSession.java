@@ -332,7 +332,7 @@ public final class LiveBookSession implements AutoCloseable {
         );
         if (result.requiresRecovery()) {
             String reason = result.status() + ": " + result.detail();
-            pipeline.availability(listenerGeneration, BookAvailabilityState.INVALID, reason
+            pipeline.availability(listenerGeneration, availabilityState(result.status()), reason
             );
             requestRecovery(reason, listenerGeneration);
         }
@@ -585,6 +585,14 @@ public final class LiveBookSession implements AutoCloseable {
                 );
             }
         });
+    }
+
+    private static BookAvailabilityState availabilityState(BookUpdateStatus status) {
+        return switch (status) {
+            case GAP -> BookAvailabilityState.GAP;
+            case CHECKSUM_FAILED -> BookAvailabilityState.CHECKSUM_FAILED;
+            default -> BookAvailabilityState.INVALID;
+        };
     }
     private static double averageMicros(long totalNanos, long count) {
         return count == 0L ? 0.0 : (double) totalNanos / count / 1_000.0;

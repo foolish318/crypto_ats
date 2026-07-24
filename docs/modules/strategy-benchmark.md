@@ -1,7 +1,7 @@
-# Strategy And Benchmarks
+# Strategy Port And Benchmarks
 
-![Strategy and benchmarks](strategy-benchmark.svg)
+![Strategy port and benchmarks](strategy-benchmark.svg)
 
-`DeepBookStrategyListener` consumes only accepted, current, fresh books. `CrossExchangeBookView` supplies immutable canonical NBBO snapshots without exposing mutable maps.
+`StrategyMarketDataPort` is data-only. Push methods are `onBookUpdated`, `onTrade`, and `onBookStatusChanged`. Pull methods are `getBook`, `getBooks`, and `latestTrade`. No feature, signal, fair value, order, or risk type is part of the API.
 
-`DeepBookJmhBenchmark` measures classification, JSON parse, mutation, snapshot, publisher, and cache/event-bus stages. `FullPipelineReplayBenchmark` exercises the same major path as live processing and reports throughput, latency percentiles through p99.9, max, allocation, GC, queue/listener lag, drops, rejects, and replay parity.
+The port supports future cross-venue observation through `MultiVenueBookView`, future market making through immutable L2 plus public trades, and future Alpha research through sequenced canonical state/trade logs and deterministic replay. JMH and full raw-replay benchmarks remain separate from strategy logic.

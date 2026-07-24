@@ -2,27 +2,22 @@
 
 ```text
 hft_java/
-|-- pom.xml                     Java 17 build and pinned dependencies
-|-- mvnw, mvnw.cmd, .mvn/      Maven 3.9.12 wrapper
-|-- scripts/                    Current run, test, benchmark, and diagram commands
+|-- pom.xml, mvnw, .mvn/        Java 17 and pinned Maven build
+|-- scripts/                    Live, test, benchmark, and diagram commands
 |-- src/main/java/com/example/hft/
-|   |-- app/                    Live and replay-benchmark entry points
-|   `-- datasource/
-|       |-- deepbook/           Source catalog
-|       |   `-- runtime/        Protocol, books, recovery, journal, replay, benchmarks
-|       |-- engine/             Cache and event bus
-|       |-- instrument/         Metadata and canonical instruments
-|       |-- normalizer/         Engine event contract
-|       |-- book/               Book quality contract
-|       `-- transport/          Transport type contract
-|-- src/test/java/              JUnit 5 deterministic tests
-|-- docs/                       One architecture plus per-module detail
-`-- data/                       Ignored runtime artifacts; only .gitkeep is tracked
+|   |-- app/                    Live runner and replay benchmark
+|   |-- datasource/
+|   |   |-- deepbook/runtime/   Book transport, validation, recovery, journal, replay
+|   |   |-- engine/             Cache and event bus
+|   |   `-- instrument/         Venue reference data and canonical mapping
+|   `-- marketdata/
+|       |-- model/              Canonical book/trade/status model
+|       |-- trade/              Public-trade sources, normalizers, sessions
+|       |-- api/                Immutable strategy-facing views and notifications
+|       `-- recording/          Normalized recorder and deterministic replay
+|-- src/test/java/              Unit, fixture, fault, replay, and API contract tests
+|-- docs/                       Architecture and module details
+`-- data/                       Ignored runtime journals and benchmark output
 ```
 
-There are two supported application entry points:
-
-- `MultiExchangeLocalBookMain`: live six-source capture, local books, engine, journal, summary, and replay-parity check
-- `FullPipelineBenchmarkMain`: current-journal end-to-end replay benchmark
-
-Old benchmark variants and superseded entry points are intentionally excluded from the current tree. Historical source remains available through Git history.
+Supported entry points remain `MultiExchangeLocalBookMain` and `FullPipelineBenchmarkMain`.
